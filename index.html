@@ -12,67 +12,47 @@ margin:0;
 font-family:sans-serif;
 background:url('Qe0hvO9ST0yp18ylzejiMQ.webp') no-repeat center;
 background-size:cover;
+}
+
+#overlay{
+background:rgba(0,0,0,0.5);
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
 }
 
-body::before{
-content:"";
-position:fixed;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-z-index:-1;
-}
-
 .card{
-backdrop-filter:blur(15px);
-background:rgba(255,255,255,0.1);
-border-radius:15px;
-padding:25px;
+background:rgba(255,255,255,0.9);
+padding:20px;
+border-radius:12px;
 width:280px;
 text-align:center;
-box-shadow:0 0 20px rgba(0,0,0,0.4);
-color:white;
 }
 
 input{
 width:90%;
 padding:10px;
-margin:10px 0;
-border:none;
+margin:10px;
 border-radius:8px;
-outline:none;
-background:rgba(255,255,255,0.2);
-color:white;
-}
-
-input::placeholder{
-color:#ddd;
+border:none;
 }
 
 button{
-width:100%;
 padding:10px;
 border:none;
 border-radius:20px;
-background:#25D366;
+background:#128C7E;
 color:white;
+width:100%;
 font-weight:bold;
-cursor:pointer;
 }
 
 #chat{
 display:none;
-flex-direction:column;
 height:100vh;
-width:100%;
+flex-direction:column;
 background:#e5ddd5;
-position:absolute;
-top:0;
-left:0;
 }
 
 #header{
@@ -85,11 +65,6 @@ padding:10px;
 font-size:12px;
 }
 
-#typing{
-font-size:12px;
-color:yellow;
-}
-
 #messages{
 flex:1;
 overflow:auto;
@@ -99,9 +74,9 @@ flex-direction:column;
 }
 
 .msg{
+max-width:70%;
 padding:8px;
 margin:5px;
-max-width:70%;
 border-radius:8px;
 }
 
@@ -115,23 +90,21 @@ background:white;
 align-self:flex-start;
 }
 
-.time{
-font-size:10px;
-color:gray;
-text-align:right;
+.name{
+font-size:12px;
+font-weight:bold;
 }
 
-.seen{
+.time{
 font-size:10px;
 text-align:right;
-color:#4fc3f7;
+color:gray;
 }
 
 #inputArea{
 display:flex;
 padding:10px;
 background:#ece5dd;
-align-items:center;
 }
 
 #msg{
@@ -141,23 +114,22 @@ border-radius:20px;
 border:none;
 }
 
-/* emoji */
-#emojiBox{
-display:none;
-position:absolute;
-bottom:70px;
-background:white;
+.sendBtn{
+background:#128C7E;
+color:white;
+border:none;
 padding:10px;
-border-radius:10px;
-width:200px;
-height:120px;
-overflow:auto;
+border-radius:50%;
+margin-left:5px;
 }
 
-.emoji{
-cursor:pointer;
-font-size:20px;
-padding:5px;
+.emojiBtn{
+background:#128C7E;
+color:white;
+border:none;
+padding:10px;
+border-radius:50%;
+margin-right:5px;
 }
 
 </style>
@@ -166,17 +138,21 @@ padding:5px;
 
 <body>
 
+<div id="overlay">
+
 <div id="access" class="card">
-<h2>🔐 Access</h2>
+<h2>Access</h2>
 <input id="key" placeholder="Enter Key">
 <button onclick="unlock()">Enter</button>
 </div>
 
 <div id="login" class="card" style="display:none">
-<h2>💬 Login</h2>
+<h2>Login</h2>
 <input id="name" placeholder="Username">
 <input id="code" placeholder="Password">
 <button onclick="start()">Enter Chat</button>
+</div>
+
 </div>
 
 <div id="chat">
@@ -184,17 +160,14 @@ padding:5px;
 <div id="header">
 Private Chat
 <div id="status">Offline</div>
-<div id="typing"></div>
 </div>
 
 <div id="messages"></div>
 
-<div id="emojiBox"></div>
-
 <div id="inputArea">
-<button onclick="toggleEmoji()">😊</button>
-<input id="msg" oninput="typingNow()" placeholder="Type message">
-<button onclick="send()">➤</button>
+<button class="emojiBtn" onclick="addEmoji()">😊</button>
+<input id="msg" placeholder="Type message">
+<button class="sendBtn" onclick="send()">➤</button>
 </div>
 
 </div>
@@ -202,21 +175,20 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const firebaseConfig = {
-apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
+const firebaseConfig={
+apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
 }
 
-const app = initializeApp(firebaseConfig)
-const db = getDatabase(app)
+const app=initializeApp(firebaseConfig)
+const db=getDatabase(app)
 
 let username=""
-let typingTimeout
 
 window.unlock=function(){
-if(document.getElementById("key").value.trim()!="67"){
+if(key.value!="67"){
 alert("Wrong key")
 return
 }
@@ -226,22 +198,23 @@ login.style.display="block"
 
 window.start=function(){
 
-username=document.getElementById("name").value.trim()
-let code=document.getElementById("code").value.trim()
+username=name.value.trim()
+let codeVal=code.value.trim()
 
 let users={
 "a2F0aXMx":"8822",
 "a2l0dHlpczAwMDE=":"9911"
 }
 
-if(users[btoa(username)]!=code){
+if(users[btoa(username)]!=codeVal){
 alert("Access denied")
 return
 }
 
-login.style.display="none"
+overlay.style.display="none"
 chat.style.display="flex"
 
+/* ONLINE STATUS */
 set(ref(db,"status/"+username),{
 online:true,
 last:Date.now()
@@ -255,27 +228,27 @@ last:Date.now()
 })
 
 watchStatus()
-watchTyping()
 }
 
+/* SEND MESSAGE */
 window.send=function(){
+
 let text=msg.value.trim()
 if(!text) return
 
 push(ref(db,"messages"),{
 name:username,
 text:text,
-time:Date.now(),
-seen:false
+time:Date.now()
 })
 
 msg.value=""
 }
 
-onChildAdded(ref(db,"messages"),function(data){
+/* RECEIVE MESSAGE */
+onChildAdded(ref(db,"messages"),snap=>{
 
-let m=data.val()
-let key=data.key
+let m=snap.val()
 
 let div=document.createElement("div")
 div.classList.add("msg")
@@ -284,78 +257,49 @@ if(m.name==username){
 div.classList.add("me")
 }else{
 div.classList.add("other")
-update(ref(db,"messages/"+key),{seen:true})
 }
+
+/* LINK FIX */
+let text=m.text.replace(
+/(https?:\/\/[^\s]+)/g,
+'<a href="$1" target="_blank">$1</a>'
+)
 
 let time=new Date(m.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-let seenMark=m.seen?"✓✓":"✓"
-
 div.innerHTML=
-m.text+
-"<div class='time'>"+t+"</div>"+
-(m.name==username?"<div class='seen'>"+seenMark+"</div>":"")
+"<div class='name'>"+m.name+"</div>"+
+text+
+"<div class='time'>"+t+"</div>"
 
 messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
 })
 
-window.typingNow=function(){
-set(ref(db,"typing/"+username),true)
-
-clearTimeout(typingTimeout)
-
-typingTimeout=setTimeout(()=>{
-set(ref(db,"typing/"+username),false)
-},1000)
-}
-
-function watchTyping(){
-onValue(ref(db,"typing"),snap=>{
-let data=snap.val()
-
-for(let u in data){
-if(u!=username && data[u]){
-typing.innerText="typing..."
-return
-}
-}
-typing.innerText=""
-})
-}
-
+/* STATUS WATCH */
 function watchStatus(){
 onValue(ref(db,"status"),snap=>{
 let data=snap.val()
 
 for(let u in data){
 if(u!=username){
+
 if(data[u].online){
 status.innerText="Online"
 }else{
-let sec=Math.floor((Date.now()-data[u].last)/60)
-status.innerText="Last seen "+sec+" min ago"
+let min=Math.floor((Date.now()-data[u].last)/60000)
+status.innerText="Last seen "+min+" min ago"
 }
+
 }
 }
 })
 }
 
-/* 🔥 NEW EMOJI LIST */
-const emojis=["😏","😂","🤫","😎","😢","😞","❤️","😭","🌚","😑","🥺","🤔"]
-
-emojis.forEach(e=>{
-let span=document.createElement("span")
-span.innerText=e
-span.className="emoji"
-span.onclick=()=>msg.value+=e
-emojiBox.appendChild(span)
-})
-
-window.toggleEmoji=function(){
-emojiBox.style.display=
-emojiBox.style.display=="block"?"none":"block"
+/* EMOJI */
+window.addEmoji=function(){
+msg.value+="😊"
 }
 
 </script>

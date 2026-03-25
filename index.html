@@ -10,8 +10,7 @@
 body{
 margin:0;
 font-family:sans-serif;
-background:url('Qe0hvO9ST0yp18ylzejiMQ.webp') no-repeat center;
-background-size:cover;
+background:#e5ddd5;
 }
 
 /* LOGIN */
@@ -24,7 +23,7 @@ background:rgba(0,0,0,0.5);
 }
 
 .card{
-background:rgba(255,255,255,0.9);
+background:white;
 padding:20px;
 border-radius:15px;
 width:300px;
@@ -54,25 +53,22 @@ color:white;
 display:none;
 height:100vh;
 flex-direction:column;
-background:#e5ddd5;
 }
 
 #header{
 background:#075E54;
 color:white;
 padding:10px;
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
 #status{
 font-size:12px;
 }
 
-#typing{
-font-size:11px;
-color:#ccc;
-}
-
-/* MESSAGE */
+/* MESSAGE AREA */
 #messages{
 flex:1;
 overflow:auto;
@@ -81,6 +77,7 @@ display:flex;
 flex-direction:column;
 }
 
+/* MESSAGE STYLE */
 .msg{
 max-width:70%;
 padding:8px;
@@ -109,10 +106,10 @@ text-align:right;
 color:gray;
 }
 
-.seen{
+.tick{
 font-size:11px;
-color:blue;
 text-align:right;
+color:blue;
 }
 
 /* INPUT */
@@ -120,25 +117,50 @@ text-align:right;
 display:flex;
 padding:10px;
 background:#ece5dd;
+align-items:center;
 }
 
 #msg{
 flex:1;
-padding:10px;
+padding:12px;
 border-radius:20px;
 border:none;
+margin:0 5px;
 }
 
-.sendBtn,.emojiBtn{
+.sendBtn{
+background:#128C7E;
+color:white;
+border:none;
+padding:12px;
+border-radius:50%;
+}
+
+.emojiBtn{
 background:#128C7E;
 color:white;
 border:none;
 padding:10px;
 border-radius:50%;
-margin:3px;
+}
+
+/* MENU */
+#menuBox{
+position:absolute;
+top:50px;
+right:10px;
+background:white;
+display:none;
+box-shadow:0 2px 10px rgba(0,0,0,0.3);
+}
+
+#menuBox div{
+padding:10px;
+cursor:pointer;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -147,14 +169,14 @@ margin:3px;
 
 <div id="access" class="card">
 <h2>Access</h2>
-<input id="key" placeholder="Enter Key">
+<input id="key">
 <button onclick="unlock()">Enter</button>
 </div>
 
 <div id="login" class="card" style="display:none">
 <h2>Login</h2>
-<input id="name" placeholder="Username">
-<input id="code" placeholder="Password">
+<input id="name">
+<input id="code">
 <button onclick="start()">Enter Chat</button>
 </div>
 
@@ -164,15 +186,21 @@ margin:3px;
 
 <div id="header">
 Private Chat
-<div id="status">Offline</div>
-<div id="typing"></div>
+<div>
+<span id="status">Offline</span>
+<span onclick="toggleMenu()">⋮</span>
+</div>
+</div>
+
+<div id="menuBox">
+<div onclick="deleteAll()">Delete All Chat</div>
 </div>
 
 <div id="messages"></div>
 
 <div id="inputArea">
-<button class="emojiBtn" onclick="addEmoji()">😊</button>
-<input id="msg" oninput="typing()" placeholder="Type message">
+<button class="emojiBtn" onclick="emoji()">😊</button>
+<input id="msg" placeholder="Type message...">
 <button class="sendBtn" onclick="send()">➤</button>
 </div>
 
@@ -181,14 +209,13 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getDatabase, ref, push, onChildAdded, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const firebaseConfig={
+const app=initializeApp({
 apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
 databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
-}
+})
 
-const app=initializeApp(firebaseConfig)
 const db=getDatabase(app)
 
 let username=""
@@ -224,20 +251,17 @@ chat.style.display="flex"
 /* ONLINE */
 set(ref(db,"status/"+username),{
 online:true,
-last:Date.now(),
-typing:false
+last:Date.now()
 })
 
 window.addEventListener("beforeunload",()=>{
 set(ref(db,"status/"+username),{
 online:false,
-last:Date.now(),
-typing:false
+last:Date.now()
 })
 })
 
 watchStatus()
-watchTyping()
 }
 
 /* SEND */
@@ -254,7 +278,6 @@ seen:false
 })
 
 msg.value=""
-set(ref(db,"status/"+username+"/typing"),false)
 }
 
 /* RECEIVE */
@@ -271,7 +294,7 @@ div.classList.add("me")
 }else{
 div.classList.add("other")
 
-/* SEEN UPDATE */
+/* MARK SEEN */
 update(ref(db,"messages/"+key),{seen:true})
 }
 
@@ -283,13 +306,16 @@ let text=m.text.replace(
 let time=new Date(m.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-let seenText = (m.name==username && m.seen) ? "✔✔ Seen" : ""
+let tick=""
+if(m.name==username){
+tick = m.seen ? "✔✔" : "✔"
+}
 
 div.innerHTML=
 "<div class='name'>"+m.name+"</div>"+
 text+
 "<div class='time'>"+t+"</div>"+
-"<div class='seen'>"+seenText+"</div>"
+"<div class='tick'>"+tick+"</div>"
 
 messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
@@ -299,45 +325,36 @@ messages.scrollTop=messages.scrollHeight
 function watchStatus(){
 onValue(ref(db,"status"),snap=>{
 let data=snap.val()
+
 for(let u in data){
 if(u!=username){
+
 if(data[u].online){
 status.innerText="Online"
 }else{
 let min=Math.floor((Date.now()-data[u].last)/60000)
 status.innerText="Last seen "+min+" min ago"
 }
+
 }
 }
 })
 }
 
-/* TYPING */
-window.typing=function(){
-set(ref(db,"status/"+username+"/typing"),true)
+/* DELETE */
+window.deleteAll=function(){
+if(confirm("Delete all chat?")){
+remove(ref(db,"messages"))
+messages.innerHTML=""
+}
+}
 
-setTimeout(()=>{
-set(ref(db,"status/"+username+"/typing"),false)
-},2000)
-}
-
-function watchTyping(){
-onValue(ref(db,"status"),snap=>{
-let data=snap.val()
-for(let u in data){
-if(u!=username){
-if(data[u].typing){
-typing.innerText="typing..."
-}else{
-typing.innerText=""
-}
-}
-}
-})
+window.toggleMenu=function(){
+menuBox.style.display = menuBox.style.display=="block"?"none":"block"
 }
 
 /* EMOJI */
-window.addEmoji=function(){
+window.emoji=function(){
 msg.value+="😊"
 }
 

@@ -44,7 +44,7 @@ width:90%;
 padding:12px;
 border:none;
 border-radius:25px;
-background:#128C7E;
+background:#075E54;
 color:white;
 }
 
@@ -68,7 +68,7 @@ align-items:center;
 font-size:12px;
 }
 
-/* MESSAGE AREA */
+/* MESSAGE */
 #messages{
 flex:1;
 overflow:auto;
@@ -77,10 +77,9 @@ display:flex;
 flex-direction:column;
 }
 
-/* MESSAGE STYLE */
 .msg{
 max-width:70%;
-padding:8px;
+padding:10px;
 margin:5px;
 border-radius:10px;
 }
@@ -109,7 +108,7 @@ color:gray;
 .tick{
 font-size:11px;
 text-align:right;
-color:blue;
+color:#075E54;
 }
 
 /* INPUT */
@@ -117,31 +116,26 @@ color:blue;
 display:flex;
 padding:10px;
 background:#ece5dd;
-align-items:center;
 }
 
 #msg{
 flex:1;
-padding:12px;
-border-radius:20px;
+padding:14px;
+border-radius:25px;
 border:none;
-margin:0 5px;
+font-size:14px;
 }
 
 .sendBtn{
-background:#128C7E;
+margin-left:8px;
+background:#075E54;
 color:white;
 border:none;
 padding:12px;
 border-radius:50%;
-}
-
-.emojiBtn{
-background:#128C7E;
-color:white;
-border:none;
-padding:10px;
-border-radius:50%;
+font-size:16px;
+width:45px;
+height:45px;
 }
 
 /* MENU */
@@ -199,7 +193,6 @@ Private Chat
 <div id="messages"></div>
 
 <div id="inputArea">
-<button class="emojiBtn" onclick="emoji()">😊</button>
 <input id="msg" placeholder="Type message...">
 <button class="sendBtn" onclick="send()">➤</button>
 </div>
@@ -209,7 +202,7 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getDatabase, ref, push, onChildAdded, set, onValue, remove, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const app=initializeApp({
 apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
@@ -220,7 +213,7 @@ const db=getDatabase(app)
 
 let username=""
 
-/* LOGIN */
+/* ACCESS */
 window.unlock=function(){
 if(document.getElementById("key").value!="67"){
 alert("Wrong key")
@@ -230,6 +223,7 @@ access.style.display="none"
 login.style.display="block"
 }
 
+/* LOGIN */
 window.start=function(){
 
 username=document.getElementById("name").value.trim()
@@ -249,16 +243,16 @@ overlay.style.display="none"
 chat.style.display="flex"
 
 /* ONLINE */
-set(ref(db,"status/"+username),{
+let userRef=ref(db,"status/"+username)
+
+set(userRef,{
 online:true,
 last:Date.now()
 })
 
-window.addEventListener("beforeunload",()=>{
-set(ref(db,"status/"+username),{
+onDisconnect(userRef).set({
 online:false,
 last:Date.now()
-})
 })
 
 watchStatus()
@@ -266,7 +260,6 @@ watchStatus()
 
 /* SEND */
 window.send=function(){
-
 let text=msg.value.trim()
 if(!text) return
 
@@ -286,6 +279,34 @@ onChildAdded(ref(db,"messages"),snap=>{
 let m=snap.val()
 let key=snap.key
 
+/* seen only when other user loads */
+if(m.name!=username){
+setTimeout(()=>{
+update(ref(db,"messages/"+key),{seen:true})
+},1000)
+}
+
+renderMessage(m)
+
+})
+
+/* REALTIME UPDATE */
+onValue(ref(db,"messages"),snap=>{
+let all=snap.val()
+if(!all) return
+
+messages.innerHTML=""
+
+for(let key in all){
+renderMessage(all[key])
+}
+
+messages.scrollTop=messages.scrollHeight
+})
+
+/* RENDER */
+function renderMessage(m){
+
 let div=document.createElement("div")
 div.classList.add("msg")
 
@@ -293,9 +314,6 @@ if(m.name==username){
 div.classList.add("me")
 }else{
 div.classList.add("other")
-
-/* MARK SEEN */
-update(ref(db,"messages/"+key),{seen:true})
 }
 
 let text=m.text.replace(
@@ -318,13 +336,14 @@ text+
 "<div class='tick'>"+tick+"</div>"
 
 messages.appendChild(div)
-messages.scrollTop=messages.scrollHeight
-})
+
+}
 
 /* STATUS */
 function watchStatus(){
 onValue(ref(db,"status"),snap=>{
 let data=snap.val()
+if(!data) return
 
 for(let u in data){
 if(u!=username){
@@ -353,12 +372,8 @@ window.toggleMenu=function(){
 menuBox.style.display = menuBox.style.display=="block"?"none":"block"
 }
 
-/* EMOJI */
-window.emoji=function(){
-msg.value+="😊"
-}
-
 </script>
 
 </body>
+
 </html>

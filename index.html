@@ -14,40 +14,42 @@ background:url('Qe0hvO9ST0yp18ylzejiMQ.webp') no-repeat center;
 background-size:cover;
 }
 
+/* LOGIN */
 #overlay{
-background:rgba(0,0,0,0.5);
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
+background:rgba(0,0,0,0.5);
 }
 
 .card{
 background:rgba(255,255,255,0.9);
 padding:20px;
-border-radius:12px;
-width:280px;
+border-radius:15px;
+width:300px;
 text-align:center;
 }
 
 input{
 width:90%;
-padding:10px;
+padding:12px;
 margin:10px;
-border-radius:8px;
+border-radius:10px;
 border:none;
+background:#f1f1f1;
 }
 
 button{
-padding:10px;
+width:90%;
+padding:12px;
 border:none;
-border-radius:20px;
+border-radius:25px;
 background:#128C7E;
 color:white;
-width:100%;
-font-weight:bold;
 }
 
+/* CHAT */
 #chat{
 display:none;
 height:100vh;
@@ -65,6 +67,12 @@ padding:10px;
 font-size:12px;
 }
 
+#typing{
+font-size:11px;
+color:#ccc;
+}
+
+/* MESSAGE */
 #messages{
 flex:1;
 overflow:auto;
@@ -77,7 +85,7 @@ flex-direction:column;
 max-width:70%;
 padding:8px;
 margin:5px;
-border-radius:8px;
+border-radius:10px;
 }
 
 .me{
@@ -101,6 +109,13 @@ text-align:right;
 color:gray;
 }
 
+.seen{
+font-size:11px;
+color:blue;
+text-align:right;
+}
+
+/* INPUT */
 #inputArea{
 display:flex;
 padding:10px;
@@ -114,26 +129,16 @@ border-radius:20px;
 border:none;
 }
 
-.sendBtn{
+.sendBtn,.emojiBtn{
 background:#128C7E;
 color:white;
 border:none;
 padding:10px;
 border-radius:50%;
-margin-left:5px;
-}
-
-.emojiBtn{
-background:#128C7E;
-color:white;
-border:none;
-padding:10px;
-border-radius:50%;
-margin-right:5px;
+margin:3px;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -160,13 +165,14 @@ margin-right:5px;
 <div id="header">
 Private Chat
 <div id="status">Offline</div>
+<div id="typing"></div>
 </div>
 
 <div id="messages"></div>
 
 <div id="inputArea">
 <button class="emojiBtn" onclick="addEmoji()">😊</button>
-<input id="msg" placeholder="Type message">
+<input id="msg" oninput="typing()" placeholder="Type message">
 <button class="sendBtn" onclick="send()">➤</button>
 </div>
 
@@ -175,7 +181,7 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getDatabase, ref, push, onChildAdded, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig={
 apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
@@ -187,8 +193,9 @@ const db=getDatabase(app)
 
 let username=""
 
+/* LOGIN */
 window.unlock=function(){
-if(key.value!="67"){
+if(document.getElementById("key").value!="67"){
 alert("Wrong key")
 return
 }
@@ -198,15 +205,15 @@ login.style.display="block"
 
 window.start=function(){
 
-username=name.value.trim()
-let codeVal=code.value.trim()
+username=document.getElementById("name").value.trim()
+let code=document.getElementById("code").value.trim()
 
 let users={
 "a2F0aXMx":"8822",
 "a2l0dHlpczAwMDE=":"9911"
 }
 
-if(users[btoa(username)]!=codeVal){
+if(users[btoa(username)]!=code){
 alert("Access denied")
 return
 }
@@ -214,23 +221,26 @@ return
 overlay.style.display="none"
 chat.style.display="flex"
 
-/* ONLINE STATUS */
+/* ONLINE */
 set(ref(db,"status/"+username),{
 online:true,
-last:Date.now()
+last:Date.now(),
+typing:false
 })
 
 window.addEventListener("beforeunload",()=>{
 set(ref(db,"status/"+username),{
 online:false,
-last:Date.now()
+last:Date.now(),
+typing:false
 })
 })
 
 watchStatus()
+watchTyping()
 }
 
-/* SEND MESSAGE */
+/* SEND */
 window.send=function(){
 
 let text=msg.value.trim()
@@ -239,16 +249,19 @@ if(!text) return
 push(ref(db,"messages"),{
 name:username,
 text:text,
-time:Date.now()
+time:Date.now(),
+seen:false
 })
 
 msg.value=""
+set(ref(db,"status/"+username+"/typing"),false)
 }
 
-/* RECEIVE MESSAGE */
+/* RECEIVE */
 onChildAdded(ref(db,"messages"),snap=>{
 
 let m=snap.val()
+let key=snap.key
 
 let div=document.createElement("div")
 div.classList.add("msg")
@@ -257,9 +270,11 @@ if(m.name==username){
 div.classList.add("me")
 }else{
 div.classList.add("other")
+
+/* SEEN UPDATE */
+update(ref(db,"messages/"+key),{seen:true})
 }
 
-/* LINK FIX */
 let text=m.text.replace(
 /(https?:\/\/[^\s]+)/g,
 '<a href="$1" target="_blank">$1</a>'
@@ -268,30 +283,54 @@ let text=m.text.replace(
 let time=new Date(m.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
+let seenText = (m.name==username && m.seen) ? "✔✔ Seen" : ""
+
 div.innerHTML=
 "<div class='name'>"+m.name+"</div>"+
 text+
-"<div class='time'>"+t+"</div>"
+"<div class='time'>"+t+"</div>"+
+"<div class='seen'>"+seenText+"</div>"
 
 messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
 })
 
-/* STATUS WATCH */
+/* STATUS */
 function watchStatus(){
 onValue(ref(db,"status"),snap=>{
 let data=snap.val()
-
 for(let u in data){
 if(u!=username){
-
 if(data[u].online){
 status.innerText="Online"
 }else{
 let min=Math.floor((Date.now()-data[u].last)/60000)
 status.innerText="Last seen "+min+" min ago"
 }
+}
+}
+})
+}
 
+/* TYPING */
+window.typing=function(){
+set(ref(db,"status/"+username+"/typing"),true)
+
+setTimeout(()=>{
+set(ref(db,"status/"+username+"/typing"),false)
+},2000)
+}
+
+function watchTyping(){
+onValue(ref(db,"status"),snap=>{
+let data=snap.val()
+for(let u in data){
+if(u!=username){
+if(data[u].typing){
+typing.innerText="typing..."
+}else{
+typing.innerText=""
+}
 }
 }
 })

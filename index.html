@@ -14,7 +14,6 @@ background:url('Qe0hvO9ST0yp18ylzejiMQ.webp') no-repeat center;
 background-size:cover;
 }
 
-/* overlay */
 body::before{
 content:"";
 position:fixed;
@@ -117,7 +116,7 @@ color:white;
 margin-left:5px;
 }
 
-/* emoji box */
+/* emoji */
 #emojiBox{
 display:none;
 position:absolute;
@@ -193,7 +192,7 @@ let username=""
 let typingTimeout
 
 window.unlock=function(){
-if(key.value!="67"){
+if(key.value.trim()!="67"){
 document.body.innerHTML=""
 return
 }
@@ -203,8 +202,8 @@ login.style.display="block"
 
 window.start=function(){
 
-username=name.value
-let code=document.getElementById("code").value
+username=name.value.trim()
+let code=document.getElementById("code").value.trim()
 
 let users={
 "a2F0aXMx":"8822",
@@ -219,6 +218,7 @@ return
 login.style.display="none"
 chat.style.display="flex"
 
+/* status */
 set(ref(db,"status/"+username),{
 online:true,
 last:Date.now()
@@ -327,6 +327,7 @@ status.innerText="Last seen "+sec+" min ago"
 
 /* emoji */
 const emojis=["😏","😂","🤫","😎","😢","😞","❤️","😭","🌚","😑","🥺","🤔"]
+
 
 emojis.forEach(e=>{
 let span=document.createElement("span")

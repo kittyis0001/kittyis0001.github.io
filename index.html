@@ -12,6 +12,10 @@ margin:0;
 font-family:sans-serif;
 background:url('Qe0hvO9ST0yp18ylzejiMQ.webp') no-repeat center;
 background-size:cover;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
 body::before{
@@ -19,23 +23,58 @@ content:"";
 position:fixed;
 width:100%;
 height:100%;
-background:rgba(0,0,0,0.4);
+background:rgba(0,0,0,0.5);
 z-index:-1;
 }
 
-#access,#login{
+.card{
+backdrop-filter:blur(15px);
+background:rgba(255,255,255,0.1);
+border-radius:15px;
+padding:25px;
+width:280px;
 text-align:center;
-margin-top:120px;
+box-shadow:0 0 20px rgba(0,0,0,0.4);
 color:white;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px 0;
+border:none;
+border-radius:8px;
+outline:none;
+background:rgba(255,255,255,0.2);
+color:white;
+}
+
+input::placeholder{
+color:#ddd;
+}
+
+button{
+width:100%;
+padding:10px;
+border:none;
+border-radius:20px;
+background:#25D366;
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 
 #chat{
 display:none;
-height:100vh;
 flex-direction:column;
+height:100vh;
+width:100%;
+background:#e5ddd5;
+position:absolute;
+top:0;
+left:0;
 }
 
-/* header */
 #header{
 background:#075E54;
 color:white;
@@ -44,7 +83,6 @@ padding:10px;
 
 #status{
 font-size:12px;
-color:#ddd;
 }
 
 #typing{
@@ -52,7 +90,6 @@ font-size:12px;
 color:yellow;
 }
 
-/* messages */
 #messages{
 flex:1;
 overflow:auto;
@@ -62,11 +99,10 @@ flex-direction:column;
 }
 
 .msg{
-padding:8px 12px;
-margin:4px;
+padding:8px;
+margin:5px;
 max-width:70%;
 border-radius:8px;
-font-size:14px;
 }
 
 .me{
@@ -91,7 +127,6 @@ text-align:right;
 color:#4fc3f7;
 }
 
-/* input */
 #inputArea{
 display:flex;
 padding:10px;
@@ -104,16 +139,6 @@ flex:1;
 padding:10px;
 border-radius:20px;
 border:none;
-outline:none;
-}
-
-button{
-background:#25D366;
-border:none;
-padding:10px;
-border-radius:50%;
-color:white;
-margin-left:5px;
 }
 
 /* emoji */
@@ -136,27 +161,28 @@ padding:5px;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<div id="access">
-<h2>Enter Access Key</h2>
-<input id="key"><br><br>
+<div id="access" class="card">
+<h2>🔐 Access</h2>
+<input id="key" placeholder="Enter Key">
 <button onclick="unlock()">Enter</button>
 </div>
 
-<div id="login" style="display:none">
-<h2>Login</h2>
-<input id="name"><br><br>
-<input id="code"><br><br>
+<div id="login" class="card" style="display:none">
+<h2>💬 Login</h2>
+<input id="name" placeholder="Username">
+<input id="code" placeholder="Password">
 <button onclick="start()">Enter Chat</button>
 </div>
 
 <div id="chat">
 
 <div id="header">
-<div>Private Chat</div>
+Private Chat
 <div id="status">Offline</div>
 <div id="typing"></div>
 </div>
@@ -180,9 +206,7 @@ import { getDatabase, ref, push, onChildAdded, set, onValue, update } from "http
 
 const firebaseConfig = {
 apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-authDomain: "private-chat-318a6.firebaseapp.com",
-databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "private-chat-318a6"
+databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
 }
 
 const app = initializeApp(firebaseConfig)
@@ -192,8 +216,8 @@ let username=""
 let typingTimeout
 
 window.unlock=function(){
-if(key.value.trim()!="67"){
-document.body.innerHTML=""
+if(document.getElementById("key").value.trim()!="67"){
+alert("Wrong key")
 return
 }
 access.style.display="none"
@@ -202,7 +226,7 @@ login.style.display="block"
 
 window.start=function(){
 
-username=name.value.trim()
+username=document.getElementById("name").value.trim()
 let code=document.getElementById("code").value.trim()
 
 let users={
@@ -218,7 +242,6 @@ return
 login.style.display="none"
 chat.style.display="flex"
 
-/* status */
 set(ref(db,"status/"+username),{
 online:true,
 last:Date.now()
@@ -235,7 +258,6 @@ watchStatus()
 watchTyping()
 }
 
-/* send */
 window.send=function(){
 let text=msg.value.trim()
 if(!text) return
@@ -248,10 +270,8 @@ seen:false
 })
 
 msg.value=""
-set(ref(db,"typing/"+username),false)
 }
 
-/* messages */
 onChildAdded(ref(db,"messages"),function(data){
 
 let m=data.val()
@@ -275,13 +295,12 @@ let seenMark=m.seen?"✓✓":"✓"
 div.innerHTML=
 m.text+
 "<div class='time'>"+t+"</div>"+
-(m.name==username ? "<div class='seen'>"+seenMark+"</div>" : "")
+(m.name==username?"<div class='seen'>"+seenMark+"</div>":"")
 
 messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
 })
 
-/* typing */
 window.typingNow=function(){
 set(ref(db,"typing/"+username),true)
 
@@ -302,12 +321,10 @@ typing.innerText="typing..."
 return
 }
 }
-
 typing.innerText=""
 })
 }
 
-/* status */
 function watchStatus(){
 onValue(ref(db,"status"),snap=>{
 let data=snap.val()
@@ -325,9 +342,8 @@ status.innerText="Last seen "+sec+" min ago"
 })
 }
 
-/* emoji */
+/* 🔥 NEW EMOJI LIST */
 const emojis=["😏","😂","🤫","😎","😢","😞","❤️","😭","🌚","😑","🥺","🤔"]
-
 
 emojis.forEach(e=>{
 let span=document.createElement("span")

@@ -210,15 +210,14 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
+// ✅ ONLINE SET ONLY ONCE
 set(userRef,{online:true,last:Date.now()})
 
+// ✅ OFFLINE WHEN CLOSE
 onDisconnect(userRef).set({online:false,last:Date.now()})
 
-setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
-},5000)
+// ❌ REMOVE setInterval (THIS WAS THE BUG)
 
-// ✅ FIX: mark seen only when chat open
 markSeenMessages()
 
 }
@@ -284,7 +283,7 @@ createMessage(message,key)
 
 })
 
-// ✅ REALTIME UPDATE
+// UPDATE
 onChildChanged(ref(db,"messages"),function(data){
 
 let message=data.val()
@@ -303,7 +302,7 @@ msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
 
 })
 
-// ✅ FIXED SEEN SYSTEM
+// SEEN SYSTEM
 function markSeenMessages(){
 
 onValue(ref(db,"messages"),(snap)=>{
@@ -315,11 +314,8 @@ Object.keys(data).forEach(key=>{
 
 let msg=data[key]
 
-// 👉 only other user's msg
 if(msg.name!=username && !msg.seen){
-
 update(ref(db,"messages/"+key),{seen:true})
-
 }
 
 })

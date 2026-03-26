@@ -119,7 +119,6 @@ border-radius:50%;
 color:white;
 font-size:18px;
 }
-
 </style>
 </head>
 
@@ -163,7 +162,7 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, remove, set, onValue, onDisconnect, update } 
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig = {
@@ -223,7 +222,7 @@ online:false,
 last:Date.now()
 })
 
-// FORCE UPDATE (mobile fix)
+// FORCE UPDATE
 setInterval(()=>{
 set(userRef,{
 online:true,
@@ -248,19 +247,12 @@ seen:false
 document.getElementById("msg").value=""
 }
 
-// RECEIVE
-onChildAdded(ref(db,"messages"),function(data){
-
-let message=data.val()
-let key=data.key
-
-// seen update
-if(message.name!=username){
-update(ref(db,"messages/"+key),{seen:true})
-}
+// MESSAGE CREATE
+function createMessage(message,key){
 
 let div=document.createElement("div")
 div.classList.add("msg")
+div.id=key
 
 if(message.name==username){
 div.classList.add("me")
@@ -271,13 +263,11 @@ div.classList.add("other")
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-// link fix
 let text=message.text.replace(
 /(https?:\/\/[^\s]+)/g,
 '<a href="$1" target="_blank">$1</a>'
 )
 
-// tick
 let tick=""
 if(message.name==username){
 tick = message.seen ? "✔✔" : "✔"
@@ -291,9 +281,42 @@ document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=
 document.getElementById("messages").scrollHeight
 
+}
+
+// RECEIVE NEW
+onChildAdded(ref(db,"messages"),function(data){
+
+let message=data.val()
+let key=data.key
+
+if(message.name!=username && !message.seen){
+update(ref(db,"messages/"+key),{seen:true})
+}
+
+createMessage(message,key)
+
 })
 
-// STATUS LISTENER
+// 🔥 REALTIME SEEN FIX
+onChildChanged(ref(db,"messages"),function(data){
+
+let message=data.val()
+let key=data.key
+
+let msgDiv=document.getElementById(key)
+
+if(msgDiv && message.name==username){
+
+let tick = message.seen ? "✔✔" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
+
+})
+
+// STATUS
 onValue(ref(db,"status"),(snap)=>{
 
 let data=snap.val()

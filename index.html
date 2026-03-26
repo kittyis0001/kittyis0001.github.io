@@ -218,6 +218,9 @@ setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
 },5000)
 
+// ✅ FINAL FIX
+fixSeenAfterLogin()
+
 }
 
 // SEND
@@ -256,7 +259,6 @@ let text=message.text.replace(
 '<a href="$1" target="_blank">$1</a>'
 )
 
-// ✅ FIXED TICK (PERSISTENT)
 let tick=""
 if(message.name==username){
 tick = message.seen === true ? "✔✔" : "✔"
@@ -279,11 +281,6 @@ onChildAdded(ref(db,"messages"),function(data){
 let message=data.val()
 let key=data.key
 
-// ✅ IMPORTANT FIX (reload seen restore)
-if(message.name!=username && !message.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-
 createMessage(message,key)
 
 })
@@ -304,6 +301,32 @@ msgDiv.querySelector(".tick").innerText = tick
 }
 
 })
+
+// ✅ FINAL SEEN FIX
+function fixSeenAfterLogin(){
+
+setTimeout(()=>{
+
+onValue(ref(db,"messages"),(snap)=>{
+
+let data=snap.val()
+if(!data) return
+
+Object.keys(data).forEach(key=>{
+
+let msg=data[key]
+
+if(msg.name!=username && !msg.seen){
+update(ref(db,"messages/"+key),{seen:true})
+}
+
+})
+
+})
+
+},1000)
+
+}
 
 // STATUS
 onValue(ref(db,"status"),(snap)=>{

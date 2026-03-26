@@ -6,145 +6,59 @@
 <title>Private Chat</title>
 
 <style>
-
 body{
 margin:0;
-font-family:sans-serif;
-background:#e5ddd5;
-}
-
-/* LOGIN */
-#overlay{
+font-family:Arial;
+background-image:url('Qe0hvO9ST0yp18ylzejiMQ.webp');
+background-size:cover;
+background-position:center;
 height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background:rgba(0,0,0,0.5);
 }
 
-.card{
-background:white;
-padding:20px;
-border-radius:15px;
-width:300px;
+#access,#login{
 text-align:center;
+margin-top:120px;
+background:rgba(255,255,255,0.9);
+width:300px;
+margin-left:auto;
+margin-right:auto;
+padding:20px;
+border-radius:12px;
 }
 
-input{
-width:90%;
-padding:12px;
-margin:10px;
-border-radius:10px;
-border:none;
-background:#f1f1f1;
-}
+#login{display:none;}
 
-button{
-width:90%;
-padding:12px;
-border:none;
-border-radius:25px;
-background:#075E54;
-color:white;
-}
-
-/* CHAT */
 #chat{
 display:none;
 height:100vh;
 flex-direction:column;
+background:#e5ddd5;
 }
 
 #header{
 background:#075E54;
 color:white;
-padding:10px;
+padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 }
 
-#status{
+#statusText{
 font-size:12px;
 }
 
-/* MESSAGE */
-#messages{
-flex:1;
-overflow:auto;
-padding:10px;
-display:flex;
-flex-direction:column;
+#menu{
+cursor:pointer;
+font-size:22px;
 }
 
-.msg{
-max-width:70%;
-padding:10px;
-margin:5px;
-border-radius:10px;
-}
-
-.me{
-background:#dcf8c6;
-align-self:flex-end;
-}
-
-.other{
-background:white;
-align-self:flex-start;
-}
-
-.name{
-font-size:12px;
-font-weight:bold;
-}
-
-.time{
-font-size:10px;
-text-align:right;
-color:gray;
-}
-
-.tick{
-font-size:11px;
-text-align:right;
-color:#075E54;
-}
-
-/* INPUT */
-#inputArea{
-display:flex;
-padding:10px;
-background:#ece5dd;
-}
-
-#msg{
-flex:1;
-padding:14px;
-border-radius:25px;
-border:none;
-font-size:14px;
-}
-
-.sendBtn{
-margin-left:8px;
-background:#075E54;
-color:white;
-border:none;
-padding:12px;
-border-radius:50%;
-font-size:16px;
-width:45px;
-height:45px;
-}
-
-/* MENU */
 #menuBox{
-position:absolute;
-top:50px;
-right:10px;
-background:white;
 display:none;
+position:absolute;
+right:10px;
+top:60px;
+background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
 }
 
@@ -153,37 +67,84 @@ padding:10px;
 cursor:pointer;
 }
 
-</style>
+#messages{
+flex:1;
+overflow:auto;
+padding:10px;
+}
 
+.msg{
+padding:10px;
+margin:6px;
+max-width:65%;
+border-radius:8px;
+word-wrap:break-word;
+}
+
+.me{
+background:#dcf8c6;
+margin-left:auto;
+}
+
+.other{
+background:white;
+}
+
+.time{
+font-size:11px;
+color:gray;
+margin-top:3px;
+text-align:right;
+}
+
+#inputArea{
+display:flex;
+padding:10px;
+background:#f0f0f0;
+}
+
+#msg{
+flex:1;
+padding:12px;
+border-radius:20px;
+border:2px solid #000;
+}
+
+#sendBtn{
+background:#075E54;
+border:none;
+margin-left:8px;
+padding:10px 14px;
+border-radius:50%;
+color:white;
+font-size:18px;
+}
+
+</style>
 </head>
 
 <body>
 
-<div id="overlay">
-
-<div id="access" class="card">
-<h2>Access</h2>
-<input id="key">
+<div id="access">
+<h2>Enter Access Key</h2>
+<input id="key" placeholder="Access Key">
+<br><br>
 <button onclick="unlock()">Enter</button>
 </div>
 
-<div id="login" class="card" style="display:none">
+<div id="login">
 <h2>Login</h2>
-<input id="name">
-<input id="code">
+<input id="name" placeholder="Username"><br><br>
+<input id="code" placeholder="Secret Code"><br><br>
 <button onclick="start()">Enter Chat</button>
-</div>
-
 </div>
 
 <div id="chat">
 
 <div id="header">
 Private Chat
-<div>
-<span id="status">Offline</span>
-<span onclick="toggleMenu()">⋮</span>
-</div>
+<div id="statusText">Offline</div>
+<div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
 
 <div id="menuBox">
@@ -194,7 +155,7 @@ Private Chat
 
 <div id="inputArea">
 <input id="msg" placeholder="Type message...">
-<button class="sendBtn" onclick="send()">➤</button>
+<button id="sendBtn" onclick="send()">➤</button>
 </div>
 
 </div>
@@ -202,32 +163,38 @@ Private Chat
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, set, onValue, remove, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getDatabase, ref, push, onChildAdded, remove, set, onValue, onDisconnect, update } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const app=initializeApp({
-apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
-})
+const firebaseConfig = {
+apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+authDomain: "private-chat-318a6.firebaseapp.com",
+databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "private-chat-318a6",
+storageBucket: "private-chat-318a6.appspot.com",
+messagingSenderId: "1082000480834",
+appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
+}
 
-const db=getDatabase(app)
+const app = initializeApp(firebaseConfig)
+const db = getDatabase(app)
 
 let username=""
 
-/* ACCESS */
 window.unlock=function(){
-if(document.getElementById("key").value!="67"){
-alert("Wrong key")
+let key=document.getElementById("key").value
+if(key!="67"){
+document.body.innerHTML=""
 return
 }
-access.style.display="none"
-login.style.display="block"
+document.getElementById("access").style.display="none"
+document.getElementById("login").style.display="block"
 }
 
-/* LOGIN */
 window.start=function(){
 
-username=document.getElementById("name").value.trim()
-let code=document.getElementById("code").value.trim()
+username=document.getElementById("name").value
+let code=document.getElementById("code").value
 
 let users={
 "a2F0aXMx":"8822",
@@ -239,37 +206,37 @@ alert("Access denied")
 return
 }
 
-overlay.style.display="none"
-chat.style.display="flex"
+document.getElementById("login").style.display="none"
+document.getElementById("chat").style.display="flex"
 
-/* ONLINE */
-let userRef=ref(db,"status/"+username)
+const userRef=ref(db,"status/"+username)
 
+// ONLINE
 set(userRef,{
 online:true,
 last:Date.now()
 })
 
+// DISCONNECT FIX
 onDisconnect(userRef).set({
 online:false,
 last:Date.now()
 })
 
-/* 🔥 KEEP ALIVE (FIX) */
+// FORCE UPDATE (mobile fix)
 setInterval(()=>{
-set(ref(db,"status/"+username),{
+set(userRef,{
 online:true,
 last:Date.now()
 })
 },5000)
 
-watchStatus()
 }
 
-/* SEND */
+// SEND
 window.send=function(){
-let text=msg.value.trim()
-if(!text) return
+let text=document.getElementById("msg").value.trim()
+if(text=="") return
 
 push(ref(db,"messages"),{
 name:username,
@@ -278,123 +245,94 @@ time:Date.now(),
 seen:false
 })
 
-msg.value=""
+document.getElementById("msg").value=""
 }
 
-/* RECEIVE */
-onChildAdded(ref(db,"messages"),snap=>{
+// RECEIVE
+onChildAdded(ref(db,"messages"),function(data){
 
-let m=snap.val()
-let key=snap.key
+let message=data.val()
+let key=data.key
 
-if(m.name!=username){
-setTimeout(()=>{
+// seen update
+if(message.name!=username){
 update(ref(db,"messages/"+key),{seen:true})
-},1000)
 }
-
-renderMessage(m)
-
-})
-
-onValue(ref(db,"messages"),snap=>{
-let all=snap.val()
-if(!all) return
-
-messages.innerHTML=""
-
-for(let key in all){
-renderMessage(all[key])
-}
-
-messages.scrollTop=messages.scrollHeight
-})
-
-function renderMessage(m){
 
 let div=document.createElement("div")
 div.classList.add("msg")
 
-if(m.name==username){
+if(message.name==username){
 div.classList.add("me")
 }else{
 div.classList.add("other")
 }
 
-let text=m.text.replace(
+let time=new Date(message.time)
+let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
+
+// link fix
+let text=message.text.replace(
 /(https?:\/\/[^\s]+)/g,
 '<a href="$1" target="_blank">$1</a>'
 )
 
-let time=new Date(m.time)
-let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-
+// tick
 let tick=""
-if(m.name==username){
-tick = m.seen ? "✔✔" : "✔"
+if(message.name==username){
+tick = message.seen ? "✔✔" : "✔"
 }
 
-div.innerHTML=
-"<div class='name'>"+m.name+"</div>"+
-text+
-"<div class='time'>"+t+"</div>"+
-"<div class='tick'>"+tick+"</div>"
+div.innerHTML="<b>"+message.name+"</b><br>"+text+
+"<div class='time'>"+t+" "+tick+"</div>"
 
-messages.appendChild(div)
-}
+document.getElementById("messages").appendChild(div)
 
-/* 🔥 FIXED STATUS */
-function watchStatus(){
+document.getElementById("messages").scrollTop=
+document.getElementById("messages").scrollHeight
 
-onValue(ref(db,"status"),snap=>{
+})
+
+// STATUS LISTENER
+onValue(ref(db,"status"),(snap)=>{
 
 let data=snap.val()
 if(!data) return
 
-let otherUser=null
+let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
 
-for(let u in data){
-if(u!==username){
-otherUser=data[u]
-}
-}
+if(data[otherUser]){
 
-if(!otherUser){
-status.innerText="Offline"
-return
-}
-
-if(otherUser.online===true){
-status.innerText="Online"
+if(data[otherUser].online){
+document.getElementById("statusText").innerText="Online"
 }else{
-let sec=Math.floor((Date.now()-otherUser.last)/1000)
 
-if(sec<60){
-status.innerText="Last seen "+sec+" sec ago"
-}else{
-let min=Math.floor(sec/60)
-status.innerText="Last seen "+min+" min ago"
+let diff = Date.now() - data[otherUser].last
+let min = Math.floor(diff/60000)
+
+document.getElementById("statusText").innerText="Last seen "+min+" min ago"
+
 }
+
 }
 
 })
 
+// MENU
+window.toggleMenu=function(){
+let m=document.getElementById("menuBox")
+m.style.display=m.style.display=="block"?"none":"block"
 }
 
-/* DELETE */
+// DELETE
 window.deleteAll=function(){
 if(confirm("Delete all chat?")){
 remove(ref(db,"messages"))
-messages.innerHTML=""
+document.getElementById("messages").innerHTML=""
 }
-}
-
-window.toggleMenu=function(){
-menuBox.style.display = menuBox.style.display=="block"?"none":"block"
 }
 
 </script>
 
 </body>
-
 </html>

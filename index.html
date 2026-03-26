@@ -15,8 +15,7 @@ background-position:center;
 height:100vh;
 }
 
-/* ACCESS SAME */
-#access{
+#access,#login{
 text-align:center;
 margin-top:120px;
 background:rgba(255,255,255,0.9);
@@ -27,54 +26,8 @@ padding:20px;
 border-radius:12px;
 }
 
-/* CENTER LOGIN */
-#login{
-display:none;
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:85%;
-max-width:350px;
-background:rgba(255,255,255,0.95);
-padding:25px;
-border-radius:18px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-text-align:center;
-}
+#login{display:none;}
 
-#login h2{
-margin-bottom:5px;
-}
-
-.warning{
-font-size:13px;
-color:#555;
-margin-bottom:15px;
-}
-
-.loginInput{
-width:100%;
-padding:14px;
-margin-bottom:15px;
-border-radius:12px;
-border:none;
-background:#f0f0f0;
-font-size:16px;
-outline:none;
-}
-
-#loginBtn{
-width:100%;
-padding:14px;
-background:#075E54;
-color:white;
-border:none;
-border-radius:20px;
-font-size:16px;
-}
-
-/* CHAT SAME */
 #chat{
 display:none;
 height:100vh;
@@ -180,14 +133,9 @@ font-size:18px;
 
 <div id="login">
 <h2>Login</h2>
-
-<div class="warning">
-⚠️ Always use incognito mode ⚠️
-</div>
-
-<input id="name" class="loginInput" placeholder="Username">
-<input id="code" type="password" class="loginInput" placeholder="Password">
-<button id="loginBtn" onclick="start()">Enter Chat</button>
+<input id="name" placeholder="Username"><br><br>
+<input id="code" placeholder="Secret Code"><br><br>
+<button onclick="start()">Enter Chat</button>
 </div>
 
 <div id="chat">
@@ -262,95 +210,186 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-set(userRef,{online:true,last:Date.now()})
-onDisconnect(userRef).set({online:false,last:Date.now()})
+// ✅ ONLINE
+set(userRef,{
+online:true,
+last:Date.now()
+})
 
+// ✅ DISCONNECT SAFE
+onDisconnect(userRef).set({
+online:false,
+last:Date.now()
+})
+
+// ✅ PAGE HIDE / CLOSE FIX
 document.addEventListener("visibilitychange",()=>{
 if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
+set(userRef,{
+online:false,
+last:Date.now()
+})
 }else{
-set(userRef,{online:true,last:Date.now()})
+set(userRef,{
+online:true,
+last:Date.now()
+})
 }
 })
 
+// ✅ EXTRA CLOSE FIX
+window.addEventListener("beforeunload",()=>{
+set(userRef,{
+online:false,
+last:Date.now()
+})
+})
+
+// ✅ HEARTBEAT (important)
 setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
+set(userRef,{
+online:true,
+last:Date.now()
+})
 },10000)
 
 markSeenMessages()
+
 }
 
+// SEND
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
-push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
+
+push(ref(db,"messages"),{
+name:username,
+text:text,
+time:Date.now(),
+seen:false
+})
+
 document.getElementById("msg").value=""
 }
 
+// CREATE MESSAGE
 function createMessage(message,key){
+
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
-if(message.name==username){div.classList.add("me")}else{div.classList.add("other")}
+
+if(message.name==username){
+div.classList.add("me")
+}else{
+div.classList.add("other")
+}
+
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
+let text=message.text.replace(
+/(https?:\/\/[^\s]+)/g,
+'<a href="$1" target="_blank">$1</a>'
+)
+
 let tick=""
 if(message.name==username){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
+
 div.innerHTML="<b>"+message.name+"</b><br>"+text+
 "<div class='time'>"+t+" "+tick+"</div>"
+
 document.getElementById("messages").appendChild(div)
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
+
+document.getElementById("messages").scrollTop=
+document.getElementById("messages").scrollHeight
+
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+// RECEIVE
+onChildAdded(ref(db,"messages"),function(data){
 
-onChildChanged(ref(db,"messages"),function(data){
 let message=data.val()
 let key=data.key
-let msgDiv=document.getElementById(key)
-if(msgDiv && message.name==username){
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-}
+
+createMessage(message,key)
+
 })
 
+// UPDATE
+onChildChanged(ref(db,"messages"),function(data){
+
+let message=data.val()
+let key=data.key
+
+let msgDiv=document.getElementById(key)
+
+if(msgDiv && message.name==username){
+
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
+
+})
+
+// SEEN SYSTEM
 function markSeenMessages(){
+
 onValue(ref(db,"messages"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
+
 Object.keys(data).forEach(key=>{
+
 let msg=data[key]
+
 if(msg.name!=username && !msg.seen){
 update(ref(db,"messages/"+key),{seen:true})
 }
+
 })
+
 })
+
 }
 
+// STATUS (SMART)
 onValue(ref(db,"status"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
+
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
 if(data[otherUser]){
+
 let diff = Date.now() - data[otherUser].last
+
+// ✅ if heartbeat within 12 sec = online
 if(diff < 12000){
 document.getElementById("statusText").innerText="Online"
 }else{
 let min = Math.floor(diff/60000)
 document.getElementById("statusText").innerText="Last seen "+min+" min ago"
 }
+
 }
+
 })
 
+// MENU
 window.toggleMenu=function(){
 let m=document.getElementById("menuBox")
 m.style.display=m.style.display=="block"?"none":"block"
 }
 
+// DELETE
 window.deleteAll=function(){
 if(confirm("Delete all chat?")){
 remove(ref(db,"messages"))

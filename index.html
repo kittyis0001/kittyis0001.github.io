@@ -27,22 +27,30 @@ padding:20px;
 border-radius:12px;
 }
 
-/* 🔥 NEW LOGIN UI */
+/* CENTER LOGIN */
 #login{
 display:none;
 position:fixed;
-bottom:0;
-width:100%;
-background:white;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:85%;
+max-width:350px;
+background:rgba(255,255,255,0.95);
 padding:25px;
-border-top-left-radius:20px;
-border-top-right-radius:20px;
-box-shadow:0 -2px 10px rgba(0,0,0,0.2);
+border-radius:18px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+text-align:center;
 }
 
 #login h2{
-text-align:center;
-margin-bottom:20px;
+margin-bottom:5px;
+}
+
+.warning{
+font-size:13px;
+color:#555;
+margin-bottom:15px;
 }
 
 .loginInput{
@@ -50,8 +58,10 @@ width:100%;
 padding:14px;
 margin-bottom:15px;
 border-radius:12px;
-border:1px solid #ccc;
+border:none;
+background:#f0f0f0;
 font-size:16px;
+outline:none;
 }
 
 #loginBtn{
@@ -60,7 +70,7 @@ padding:14px;
 background:#075E54;
 color:white;
 border:none;
-border-radius:12px;
+border-radius:20px;
 font-size:16px;
 }
 
@@ -161,7 +171,6 @@ font-size:18px;
 
 <body>
 
-<!-- ACCESS SAME -->
 <div id="access">
 <h2>Enter Access Key</h2>
 <input id="key" placeholder="Access Key">
@@ -169,9 +178,13 @@ font-size:18px;
 <button onclick="unlock()">Enter</button>
 </div>
 
-<!-- 🔥 NEW LOGIN -->
 <div id="login">
 <h2>Login</h2>
+
+<div class="warning">
+⚠️ Always use incognito mode ⚠️
+</div>
+
 <input id="name" class="loginInput" placeholder="Username">
 <input id="code" type="password" class="loginInput" placeholder="Password">
 <button id="loginBtn" onclick="start()">Enter Chat</button>
@@ -229,7 +242,6 @@ document.getElementById("access").style.display="none"
 document.getElementById("login").style.display="block"
 }
 
-/* 🔥 START FUNCTION UNTOUCHED */
 window.start=function(){
 
 username=document.getElementById("name").value
@@ -268,7 +280,6 @@ set(userRef,{online:true,last:Date.now()})
 markSeenMessages()
 }
 
-/* बाकी সব same */
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return

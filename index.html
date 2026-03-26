@@ -210,25 +210,16 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-// ONLINE
-set(userRef,{
-online:true,
-last:Date.now()
-})
+set(userRef,{online:true,last:Date.now()})
 
-// DISCONNECT FIX
-onDisconnect(userRef).set({
-online:false,
-last:Date.now()
-})
+onDisconnect(userRef).set({online:false,last:Date.now()})
 
-// FORCE UPDATE
 setInterval(()=>{
-set(userRef,{
-online:true,
-last:Date.now()
-})
+set(userRef,{online:true,last:Date.now()})
 },5000)
+
+// ✅ FIX: mark seen only when chat open
+markSeenMessages()
 
 }
 
@@ -247,7 +238,7 @@ seen:false
 document.getElementById("msg").value=""
 }
 
-// MESSAGE CREATE
+// CREATE MESSAGE
 function createMessage(message,key){
 
 let div=document.createElement("div")
@@ -270,7 +261,7 @@ let text=message.text.replace(
 
 let tick=""
 if(message.name==username){
-tick = message.seen ? "✔✔" : "✔"
+tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
 div.innerHTML="<b>"+message.name+"</b><br>"+text+
@@ -283,21 +274,17 @@ document.getElementById("messages").scrollHeight
 
 }
 
-// RECEIVE NEW
+// RECEIVE
 onChildAdded(ref(db,"messages"),function(data){
 
 let message=data.val()
 let key=data.key
 
-if(message.name!=username && !message.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-
 createMessage(message,key)
 
 })
 
-// 🔥 REALTIME SEEN FIX
+// ✅ REALTIME UPDATE
 onChildChanged(ref(db,"messages"),function(data){
 
 let message=data.val()
@@ -307,7 +294,7 @@ let msgDiv=document.getElementById(key)
 
 if(msgDiv && message.name==username){
 
-let tick = message.seen ? "✔✔" : "✔"
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 
 msgDiv.querySelector(".time").innerHTML =
 msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
@@ -315,6 +302,31 @@ msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
 }
 
 })
+
+// ✅ FIXED SEEN SYSTEM
+function markSeenMessages(){
+
+onValue(ref(db,"messages"),(snap)=>{
+
+let data=snap.val()
+if(!data) return
+
+Object.keys(data).forEach(key=>{
+
+let msg=data[key]
+
+// 👉 only other user's msg
+if(msg.name!=username && !msg.seen){
+
+update(ref(db,"messages/"+key),{seen:true})
+
+}
+
+})
+
+})
+
+}
 
 // STATUS
 onValue(ref(db,"status"),(snap)=>{

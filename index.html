@@ -218,9 +218,8 @@ setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
 },5000)
 
-// ✅ FIX: mark seen only when chat open
+// mark seen
 markSeenMessages()
-
 }
 
 // SEND
@@ -238,7 +237,7 @@ seen:false
 document.getElementById("msg").value=""
 }
 
-// CREATE MESSAGE
+// MESSAGE UI
 function createMessage(message,key){
 
 let div=document.createElement("div")
@@ -261,30 +260,30 @@ let text=message.text.replace(
 
 let tick=""
 if(message.name==username){
-tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+tick = message.seen ? "✔✔" : "✔"
 }
 
-div.innerHTML="<b>"+message.name+"</b><br>"+text+
-"<div class='time'>"+t+" "+tick+"</div>"
+div.innerHTML=`
+<b>${message.name}</b><br>
+${text}
+<div class='time'>
+<span class="msg-time">${t}</span>
+<span class="tick">${tick}</span>
+</div>
+`
 
 document.getElementById("messages").appendChild(div)
 
 document.getElementById("messages").scrollTop=
 document.getElementById("messages").scrollHeight
-
 }
 
-// RECEIVE
+// LOAD
 onChildAdded(ref(db,"messages"),function(data){
-
-let message=data.val()
-let key=data.key
-
-createMessage(message,key)
-
+createMessage(data.val(),data.key)
 })
 
-// ✅ REALTIME UPDATE
+// REALTIME FIX
 onChildChanged(ref(db,"messages"),function(data){
 
 let message=data.val()
@@ -294,16 +293,15 @@ let msgDiv=document.getElementById(key)
 
 if(msgDiv && message.name==username){
 
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+let tick = message.seen ? "✔✔" : "✔"
 
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+msgDiv.querySelector(".tick").innerText = tick
 
 }
 
 })
 
-// ✅ FIXED SEEN SYSTEM
+// SEEN SYSTEM
 function markSeenMessages(){
 
 onValue(ref(db,"messages"),(snap)=>{
@@ -315,11 +313,8 @@ Object.keys(data).forEach(key=>{
 
 let msg=data[key]
 
-// 👉 only other user's msg
 if(msg.name!=username && !msg.seen){
-
 update(ref(db,"messages/"+key),{seen:true})
-
 }
 
 })

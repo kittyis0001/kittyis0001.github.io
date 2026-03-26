@@ -15,7 +15,6 @@ background-position:center;
 height:100vh;
 }
 
-/* ACCESS SAME */
 #access{
 text-align:center;
 margin-top:120px;
@@ -27,7 +26,6 @@ padding:20px;
 border-radius:12px;
 }
 
-/* CENTER LOGIN */
 #login{
 display:none;
 position:fixed;
@@ -41,10 +39,6 @@ padding:25px;
 border-radius:18px;
 box-shadow:0 5px 20px rgba(0,0,0,0.3);
 text-align:center;
-}
-
-#login h2{
-margin-bottom:5px;
 }
 
 .warning{
@@ -74,7 +68,6 @@ border-radius:20px;
 font-size:16px;
 }
 
-/* CHAT SAME */
 #chat{
 display:none;
 height:100vh;
@@ -180,11 +173,7 @@ font-size:18px;
 
 <div id="login">
 <h2>Login</h2>
-
-<div class="warning">
-⚠️ Always use incognito mode ⚠️
-</div>
-
+<div class="warning">⚠️ Always use incognito mode ⚠️</div>
 <input id="name" class="loginInput" placeholder="Username">
 <input id="code" type="password" class="loginInput" placeholder="Password">
 <button id="loginBtn" onclick="start()">Enter Chat</button>
@@ -217,27 +206,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const firebaseConfig = {
-apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-authDomain: "private-chat-318a6.firebaseapp.com",
-databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "private-chat-318a6",
-storageBucket: "private-chat-318a6.appspot.com",
-messagingSenderId: "1082000480834",
-appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
-}
+const app = initializeApp({
+apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+authDomain:"private-chat-318a6.firebaseapp.com",
+databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"private-chat-318a6"
+})
 
-const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
 
 window.unlock=function(){
 let key=document.getElementById("key").value
-if(key!="67"){
-document.body.innerHTML=""
-return
-}
+if(key!="67"){document.body.innerHTML="";return}
 document.getElementById("access").style.display="none"
 document.getElementById("login").style.display="block"
 }
@@ -252,10 +234,7 @@ let users={
 "a2l0dHlpczAwMDE=":"9911"
 }
 
-if(users[btoa(username)]!=code){
-alert("Access denied")
-return
-}
+if(users[btoa(username)]!=code){alert("Access denied");return}
 
 document.getElementById("login").style.display="none"
 document.getElementById("chat").style.display="flex"
@@ -265,17 +244,7 @@ const userRef=ref(db,"status/"+username)
 set(userRef,{online:true,last:Date.now()})
 onDisconnect(userRef).set({online:false,last:Date.now()})
 
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
-}else{
-set(userRef,{online:true,last:Date.now()})
-}
-})
-
-setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
-},10000)
+setInterval(()=>{set(userRef,{online:true,last:Date.now()})},10000)
 
 markSeenMessages()
 }
@@ -283,24 +252,43 @@ markSeenMessages()
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
-push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
+
+push(ref(db,"messages"),{
+name:username,
+text:text,
+time:Date.now(),
+seen:false
+})
+
 document.getElementById("msg").value=""
 }
 
 function createMessage(message,key){
+
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
-if(message.name==username){div.classList.add("me")}else{div.classList.add("other")}
+
+if(message.name==username){div.classList.add("me")}
+else{div.classList.add("other")}
+
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
+
 let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
 let tick=""
+let seenText=""
+
 if(message.name==username){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+seenText = message.seen ? "<div style='font-size:10px;color:#777;text-align:right;'>Seen</div>" : ""
 }
+
 div.innerHTML="<b>"+message.name+"</b><br>"+text+
+seenText+
 "<div class='time'>"+t+" "+tick+"</div>"
+
 document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
@@ -308,20 +296,35 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
 onChildChanged(ref(db,"messages"),function(data){
+
 let message=data.val()
 let key=data.key
 let msgDiv=document.getElementById(key)
+
 if(msgDiv && message.name==username){
+
 let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+let timeOnly = msgDiv.querySelector(".time").innerHTML.split(" ")[0]
+
+let seenHtml = message.seen 
+? "<div style='font-size:10px;color:#777;text-align:right;'>Seen</div>" 
+: ""
+
+msgDiv.innerHTML =
+msgDiv.innerHTML.split("<div class='time'>")[0] +
+seenHtml +
+"<div class='time'>" + timeOnly + " " + tick + "</div>"
+
 }
+
 })
 
 function markSeenMessages(){
 onValue(ref(db,"messages"),(snap)=>{
 let data=snap.val()
 if(!data) return
+
 Object.keys(data).forEach(key=>{
 let msg=data[key]
 if(msg.name!=username && !msg.seen){
@@ -334,7 +337,9 @@ update(ref(db,"messages/"+key),{seen:true})
 onValue(ref(db,"status"),(snap)=>{
 let data=snap.val()
 if(!data) return
+
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
 if(data[otherUser]){
 let diff = Date.now() - data[otherUser].last
 if(diff < 12000){

@@ -178,7 +178,8 @@ appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
 const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
-let username=""
+// ✅ IMPORTANT FIX
+let username = localStorage.getItem("chatUser") || ""
 
 window.unlock=function(){
 let key=document.getElementById("key").value
@@ -193,7 +194,9 @@ document.getElementById("login").style.display="block"
 window.start=function(){
 
 username=document.getElementById("name").value
-localStorage.setItem("chatUser", username) // ✅ FIX
+
+// ✅ SAVE USER
+localStorage.setItem("chatUser", username)
 
 let code=document.getElementById("code").value
 
@@ -215,18 +218,6 @@ const userRef=ref(db,"status/"+username)
 set(userRef,{online:true,last:Date.now()})
 
 onDisconnect(userRef).set({online:false,last:Date.now()})
-
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
-}else{
-set(userRef,{online:true,last:Date.now()})
-}
-})
-
-window.addEventListener("beforeunload",()=>{
-set(userRef,{online:false,last:Date.now()})
-})
 
 setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
@@ -253,13 +244,12 @@ document.getElementById("msg").value=""
 // CREATE MESSAGE
 function createMessage(message,key){
 
-let me = localStorage.getItem("chatUser") // ✅ FIX
-
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
 
-if(message.name==me){
+// ✅ COLOR FIX
+if(message.name===username){
 div.classList.add("me")
 }else{
 div.classList.add("other")
@@ -274,7 +264,7 @@ let text=message.text.replace(
 )
 
 let tick=""
-if(message.name==me){
+if(message.name==username){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
@@ -285,27 +275,22 @@ document.getElementById("messages").appendChild(div)
 
 document.getElementById("messages").scrollTop=
 document.getElementById("messages").scrollHeight
-
 }
 
 // RECEIVE
 onChildAdded(ref(db,"messages"),function(data){
-let message=data.val()
-let key=data.key
-createMessage(message,key)
+createMessage(data.val(),data.key)
 })
 
 // UPDATE
 onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") // ✅ FIX
 
 let message=data.val()
 let key=data.key
 
 let msgDiv=document.getElementById(key)
 
-if(msgDiv && message.name==me){
+if(msgDiv && message.name==username){
 
 let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 
@@ -318,21 +303,29 @@ msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
 
 // SEEN SYSTEM
 function markSeenMessages(){
+
 onValue(ref(db,"messages"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
 
 Object.keys(data).forEach(key=>{
+
 let msg=data[key]
+
 if(msg.name!=username && !msg.seen){
 update(ref(db,"messages/"+key),{seen:true})
 }
+
 })
+
 })
+
 }
 
 // STATUS
 onValue(ref(db,"status"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
 
@@ -350,6 +343,7 @@ document.getElementById("statusText").innerText="Last seen "+min+" min ago"
 }
 
 }
+
 })
 
 // MENU

@@ -210,13 +210,48 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-// ✅ ONLINE SET ONLY ONCE
-set(userRef,{online:true,last:Date.now()})
+// ✅ ONLINE
+set(userRef,{
+online:true,
+last:Date.now()
+})
 
-// ✅ OFFLINE WHEN CLOSE
-onDisconnect(userRef).set({online:false,last:Date.now()})
+// ✅ DISCONNECT SAFE
+onDisconnect(userRef).set({
+online:false,
+last:Date.now()
+})
 
-// ❌ REMOVE setInterval (THIS WAS THE BUG)
+// ✅ PAGE HIDE / CLOSE FIX
+document.addEventListener("visibilitychange",()=>{
+if(document.hidden){
+set(userRef,{
+online:false,
+last:Date.now()
+})
+}else{
+set(userRef,{
+online:true,
+last:Date.now()
+})
+}
+})
+
+// ✅ EXTRA CLOSE FIX
+window.addEventListener("beforeunload",()=>{
+set(userRef,{
+online:false,
+last:Date.now()
+})
+})
+
+// ✅ HEARTBEAT (important)
+setInterval(()=>{
+set(userRef,{
+online:true,
+last:Date.now()
+})
+},10000)
 
 markSeenMessages()
 
@@ -324,7 +359,7 @@ update(ref(db,"messages/"+key),{seen:true})
 
 }
 
-// STATUS
+// STATUS (SMART)
 onValue(ref(db,"status"),(snap)=>{
 
 let data=snap.val()
@@ -334,15 +369,14 @@ let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
 
 if(data[otherUser]){
 
-if(data[otherUser].online){
+let diff = Date.now() - data[otherUser].last
+
+// ✅ if heartbeat within 12 sec = online
+if(diff < 12000){
 document.getElementById("statusText").innerText="Online"
 }else{
-
-let diff = Date.now() - data[otherUser].last
 let min = Math.floor(diff/60000)
-
 document.getElementById("statusText").innerText="Last seen "+min+" min ago"
-
 }
 
 }

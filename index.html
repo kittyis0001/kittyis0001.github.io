@@ -218,8 +218,6 @@ setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
 },5000)
 
-// mark seen
-markSeenMessages()
 }
 
 // SEND
@@ -258,19 +256,16 @@ let text=message.text.replace(
 '<a href="$1" target="_blank">$1</a>'
 )
 
+// ✅ FIXED TICK (PERSISTENT)
 let tick=""
 if(message.name==username){
-tick = message.seen ? "✔✔" : "✔"
+tick = message.seen === true ? "✔✔" : "✔"
 }
 
-div.innerHTML=`
-<b>${message.name}</b><br>
-${text}
-<div class='time'>
-<span class="msg-time">${t}</span>
-<span class="tick">${tick}</span>
-</div>
-`
+div.innerHTML=
+"<b>"+message.name+"</b><br>"+
+text+
+"<div class='time'>"+t+" <span class='tick'>"+tick+"</span></div>"
 
 document.getElementById("messages").appendChild(div)
 
@@ -278,12 +273,22 @@ document.getElementById("messages").scrollTop=
 document.getElementById("messages").scrollHeight
 }
 
-// LOAD
+// RECEIVE
 onChildAdded(ref(db,"messages"),function(data){
-createMessage(data.val(),data.key)
+
+let message=data.val()
+let key=data.key
+
+// ✅ IMPORTANT FIX (reload seen restore)
+if(message.name!=username && !message.seen){
+update(ref(db,"messages/"+key),{seen:true})
+}
+
+createMessage(message,key)
+
 })
 
-// REALTIME FIX
+// REALTIME UPDATE
 onChildChanged(ref(db,"messages"),function(data){
 
 let message=data.val()
@@ -294,34 +299,11 @@ let msgDiv=document.getElementById(key)
 if(msgDiv && message.name==username){
 
 let tick = message.seen ? "✔✔" : "✔"
-
 msgDiv.querySelector(".tick").innerText = tick
 
 }
 
 })
-
-// SEEN SYSTEM
-function markSeenMessages(){
-
-onValue(ref(db,"messages"),(snap)=>{
-
-let data=snap.val()
-if(!data) return
-
-Object.keys(data).forEach(key=>{
-
-let msg=data[key]
-
-if(msg.name!=username && !msg.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-
-})
-
-})
-
-}
 
 // STATUS
 onValue(ref(db,"status"),(snap)=>{

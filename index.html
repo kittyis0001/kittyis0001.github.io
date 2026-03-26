@@ -165,7 +165,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const app = initializeApp({
+const firebaseConfig = {
 apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
 authDomain: "private-chat-318a6.firebaseapp.com",
 databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -173,15 +173,19 @@ projectId: "private-chat-318a6",
 storageBucket: "private-chat-318a6.appspot.com",
 messagingSenderId: "1082000480834",
 appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
-})
+}
 
+const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
+
 let username=""
-let isActive = true
 
 window.unlock=function(){
 let key=document.getElementById("key").value
-if(key!="67"){document.body.innerHTML="";return}
+if(key!="67"){
+document.body.innerHTML=""
+return
+}
 document.getElementById("access").style.display="none"
 document.getElementById("login").style.display="block"
 }
@@ -197,7 +201,8 @@ let users={
 }
 
 if(users[btoa(username)]!=code){
-alert("Access denied");return
+alert("Access denied")
+return
 }
 
 document.getElementById("login").style.display="none"
@@ -205,111 +210,186 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-// ONLINE
-function goOnline(){
-set(userRef,{online:true,last:Date.now()})
-}
+// ✅ ONLINE
+set(userRef,{
+online:true,
+last:Date.now()
+})
 
-// OFFLINE
-function goOffline(){
-set(userRef,{online:false,last:Date.now()})
-}
+// ✅ DISCONNECT SAFE
+onDisconnect(userRef).set({
+online:false,
+last:Date.now()
+})
 
-goOnline()
-
-onDisconnect(userRef).set({online:false,last:Date.now()})
-
-// 🔥 FIXED visibility
+// ✅ PAGE HIDE / CLOSE FIX
 document.addEventListener("visibilitychange",()=>{
 if(document.hidden){
-isActive=false
-goOffline()
+set(userRef,{
+online:false,
+last:Date.now()
+})
 }else{
-isActive=true
-goOnline()
+set(userRef,{
+online:true,
+last:Date.now()
+})
 }
 })
 
-// 🔥 FIXED heartbeat (ONLY if active)
+// ✅ EXTRA CLOSE FIX
+window.addEventListener("beforeunload",()=>{
+set(userRef,{
+online:false,
+last:Date.now()
+})
+})
+
+// ✅ HEARTBEAT (important)
 setInterval(()=>{
-if(isActive){
-goOnline()
-}
+set(userRef,{
+online:true,
+last:Date.now()
+})
 },10000)
 
 markSeenMessages()
+
 }
 
-// ===== REST SAME (UNCHANGED) =====
-
+// SEND
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
-push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
+
+push(ref(db,"messages"),{
+name:username,
+text:text,
+time:Date.now(),
+seen:false
+})
+
 document.getElementById("msg").value=""
 }
 
+// CREATE MESSAGE
 function createMessage(message,key){
+
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
-if(message.name==username){div.classList.add("me")}else{div.classList.add("other")}
+
+if(message.name==username){
+div.classList.add("me")
+}else{
+div.classList.add("other")
+}
+
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
+let text=message.text.replace(
+/(https?:\/\/[^\s]+)/g,
+'<a href="$1" target="_blank">$1</a>'
+)
+
 let tick=""
-if(message.name==username){tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"}
-div.innerHTML="<b>"+message.name+"</b><br>"+text+"<div class='time'>"+t+" "+tick+"</div>"
-document.getElementById("messages").appendChild(div)
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
+if(message.name==username){
+tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+div.innerHTML="<b>"+message.name+"</b><br>"+text+
+"<div class='time'>"+t+" "+tick+"</div>"
 
-onChildChanged(ref(db,"messages"),function(data){
+document.getElementById("messages").appendChild(div)
+
+document.getElementById("messages").scrollTop=
+document.getElementById("messages").scrollHeight
+
+}
+
+// RECEIVE
+onChildAdded(ref(db,"messages"),function(data){
+
 let message=data.val()
 let key=data.key
-let msgDiv=document.getElementById(key)
-if(msgDiv && message.name==username){
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-}
+
+createMessage(message,key)
+
 })
 
+// UPDATE
+onChildChanged(ref(db,"messages"),function(data){
+
+let message=data.val()
+let key=data.key
+
+let msgDiv=document.getElementById(key)
+
+if(msgDiv && message.name==username){
+
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
+
+})
+
+// SEEN SYSTEM
 function markSeenMessages(){
-onValue(ref(db,"messages"),snap=>{
+
+onValue(ref(db,"messages"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
+
 Object.keys(data).forEach(key=>{
+
 let msg=data[key]
+
 if(msg.name!=username && !msg.seen){
 update(ref(db,"messages/"+key),{seen:true})
 }
+
 })
+
 })
+
 }
 
-onValue(ref(db,"status"),snap=>{
+// STATUS (SMART)
+onValue(ref(db,"status"),(snap)=>{
+
 let data=snap.val()
 if(!data) return
+
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
 if(data[otherUser]){
+
 let diff = Date.now() - data[otherUser].last
+
+// ✅ if heartbeat within 12 sec = online
 if(diff < 12000){
 document.getElementById("statusText").innerText="Online"
 }else{
-let min=Math.floor(diff/60000)
+let min = Math.floor(diff/60000)
 document.getElementById("statusText").innerText="Last seen "+min+" min ago"
 }
+
 }
+
 })
 
+// MENU
 window.toggleMenu=function(){
 let m=document.getElementById("menuBox")
 m.style.display=m.style.display=="block"?"none":"block"
 }
 
+// DELETE
 window.deleteAll=function(){
 if(confirm("Delete all chat?")){
 remove(ref(db,"messages"))

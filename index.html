@@ -179,6 +179,7 @@ const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
+let typingTimeout=null
 
 window.unlock=function(){
 let key=document.getElementById("key").value
@@ -210,50 +211,26 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-// ✅ ONLINE
-set(userRef,{
-online:true,
-last:Date.now()
-})
+// 🔥 ULTRA PRESENCE
+function updateOnline(){
+set(userRef,{lastActive:Date.now()})
+}
 
-// ✅ DISCONNECT SAFE
-onDisconnect(userRef).set({
-online:false,
-last:Date.now()
-})
+updateOnline()
+setInterval(updateOnline,5000)
 
-// ✅ PAGE HIDE / CLOSE FIX
 document.addEventListener("visibilitychange",()=>{
 if(document.hidden){
-set(userRef,{
-online:false,
-last:Date.now()
-})
+set(userRef,{lastActive:Date.now()-20000})
 }else{
-set(userRef,{
-online:true,
-last:Date.now()
-})
+updateOnline()
 }
 })
 
-// ✅ EXTRA CLOSE FIX
-window.addEventListener("beforeunload",()=>{
-set(userRef,{
-online:false,
-last:Date.now()
-})
-})
-
-// ✅ HEARTBEAT (important)
-setInterval(()=>{
-set(userRef,{
-online:true,
-last:Date.now()
-})
-},10000)
+onDisconnect(userRef).set({lastActive:Date.now()-20000})
 
 markSeenMessages()
+listenTyping()
 
 }
 
@@ -270,6 +247,27 @@ seen:false
 })
 
 document.getElementById("msg").value=""
+set(ref(db,"typing/"+username),false)
+}
+
+// TYPING
+document.getElementById("msg").addEventListener("input",()=>{
+set(ref(db,"typing/"+username),true)
+
+clearTimeout(typingTimeout)
+typingTimeout=setTimeout(()=>{
+set(ref(db,"typing/"+username),false)
+},1500)
+})
+
+function listenTyping(){
+let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
+onValue(ref(db,"typing/"+otherUser),(snap)=>{
+if(snap.val()){
+document.getElementById("statusText").innerText="Typing..."
+}
+})
 }
 
 // CREATE MESSAGE
@@ -310,12 +308,7 @@ document.getElementById("messages").scrollHeight
 
 // RECEIVE
 onChildAdded(ref(db,"messages"),function(data){
-
-let message=data.val()
-let key=data.key
-
-createMessage(message,key)
-
+createMessage(data.val(),data.key)
 })
 
 // UPDATE
@@ -339,27 +332,20 @@ msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
 
 // SEEN SYSTEM
 function markSeenMessages(){
-
 onValue(ref(db,"messages"),(snap)=>{
-
 let data=snap.val()
 if(!data) return
 
 Object.keys(data).forEach(key=>{
-
 let msg=data[key]
-
 if(msg.name!=username && !msg.seen){
 update(ref(db,"messages/"+key),{seen:true})
 }
-
 })
-
 })
-
 }
 
-// STATUS (SMART)
+// STATUS
 onValue(ref(db,"status"),(snap)=>{
 
 let data=snap.val()
@@ -369,10 +355,9 @@ let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
 
 if(data[otherUser]){
 
-let diff = Date.now() - data[otherUser].last
+let diff = Date.now() - data[otherUser].lastActive
 
-// ✅ if heartbeat within 12 sec = online
-if(diff < 12000){
+if(diff < 8000){
 document.getElementById("statusText").innerText="Online"
 }else{
 let min = Math.floor(diff/60000)

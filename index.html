@@ -255,6 +255,14 @@ online:false,
 last:Date.now()
 })
 
+/* 🔥 KEEP ALIVE (FIX) */
+setInterval(()=>{
+set(ref(db,"status/"+username),{
+online:true,
+last:Date.now()
+})
+},5000)
+
 watchStatus()
 }
 
@@ -279,7 +287,6 @@ onChildAdded(ref(db,"messages"),snap=>{
 let m=snap.val()
 let key=snap.key
 
-/* seen only when other user loads */
 if(m.name!=username){
 setTimeout(()=>{
 update(ref(db,"messages/"+key),{seen:true})
@@ -290,7 +297,6 @@ renderMessage(m)
 
 })
 
-/* REALTIME UPDATE */
 onValue(ref(db,"messages"),snap=>{
 let all=snap.val()
 if(!all) return
@@ -304,7 +310,6 @@ renderMessage(all[key])
 messages.scrollTop=messages.scrollHeight
 })
 
-/* RENDER */
 function renderMessage(m){
 
 let div=document.createElement("div")
@@ -336,28 +341,44 @@ text+
 "<div class='tick'>"+tick+"</div>"
 
 messages.appendChild(div)
-
 }
 
-/* STATUS */
+/* 🔥 FIXED STATUS */
 function watchStatus(){
+
 onValue(ref(db,"status"),snap=>{
+
 let data=snap.val()
 if(!data) return
 
-for(let u in data){
-if(u!=username){
+let otherUser=null
 
-if(data[u].online){
+for(let u in data){
+if(u!==username){
+otherUser=data[u]
+}
+}
+
+if(!otherUser){
+status.innerText="Offline"
+return
+}
+
+if(otherUser.online===true){
 status.innerText="Online"
 }else{
-let min=Math.floor((Date.now()-data[u].last)/60000)
+let sec=Math.floor((Date.now()-otherUser.last)/1000)
+
+if(sec<60){
+status.innerText="Last seen "+sec+" sec ago"
+}else{
+let min=Math.floor(sec/60)
 status.innerText="Last seen "+min+" min ago"
 }
+}
 
-}
-}
 })
+
 }
 
 /* DELETE */

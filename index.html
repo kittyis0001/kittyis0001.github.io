@@ -9,62 +9,54 @@
 body{
 margin:0;
 font-family:Arial;
-background-image:url('Qe0hvO9ST0yp18ylzejiMQ.webp');
-background-size:cover;
-background-position:center;
+background:#ece5dd;
+}
+
+#login{
+display:flex;
+justify-content:center;
+align-items:center;
 height:100vh;
+background:rgba(0,0,0,0.2);
 }
 
-#access,#login{
-text-align:center;
-margin-top:120px;
-background:rgba(255,255,255,0.9);
-width:300px;
-margin-left:auto;
-margin-right:auto;
-padding:20px;
+.box{
+background:white;
+padding:25px;
 border-radius:12px;
+width:300px;
+text-align:center;
 }
 
-#login{display:none;}
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+background:#075E54;
+color:white;
+border-radius:8px;
+}
 
 #chat{
 display:none;
 height:100vh;
 flex-direction:column;
-background:#e5ddd5;
 }
 
 #header{
 background:#075E54;
 color:white;
-padding:15px;
+padding:12px;
 display:flex;
 justify-content:space-between;
-align-items:center;
-}
-
-#statusText{
-font-size:12px;
-}
-
-#menu{
-cursor:pointer;
-font-size:22px;
-}
-
-#menuBox{
-display:none;
-position:absolute;
-right:10px;
-top:60px;
-background:white;
-box-shadow:0 2px 10px rgba(0,0,0,0.3);
-}
-
-#menuBox div{
-padding:10px;
-cursor:pointer;
 }
 
 #messages{
@@ -94,7 +86,6 @@ background:white;
 font-size:11px;
 color:gray;
 margin-top:3px;
-text-align:right;
 }
 
 #inputArea{
@@ -107,47 +98,37 @@ background:#f0f0f0;
 flex:1;
 padding:12px;
 border-radius:20px;
-border:2px solid #000;
+border:1px solid #ccc;
 }
 
 #sendBtn{
 background:#075E54;
-border:none;
-margin-left:8px;
-padding:10px 14px;
-border-radius:50%;
 color:white;
-font-size:18px;
+border:none;
+padding:10px 15px;
+border-radius:50%;
+margin-left:5px;
 }
+
 </style>
+
 </head>
 
 <body>
 
-<div id="access">
-<h2>Enter Access Key</h2>
-<input id="key" placeholder="Access Key">
-<br><br>
-<button onclick="unlock()">Enter</button>
-</div>
-
 <div id="login">
+<div class="box">
 <h2>Login</h2>
-<input id="name" placeholder="Username"><br><br>
-<input id="code" placeholder="Secret Code"><br><br>
+<input id="name" placeholder="Username">
+<input id="code" placeholder="Password">
 <button onclick="start()">Enter Chat</button>
+</div>
 </div>
 
 <div id="chat">
-
 <div id="header">
-Private Chat
-<div id="statusText">Offline</div>
-<div id="menu" onclick="toggleMenu()">⋮</div>
-</div>
-
-<div id="menuBox">
-<div onclick="deleteAll()">Delete All Chat</div>
+<span>Private Chat</span>
+<span id="statusText">Offline</span>
 </div>
 
 <div id="messages"></div>
@@ -156,7 +137,6 @@ Private Chat
 <input id="msg" placeholder="Type message...">
 <button id="sendBtn" onclick="send()">➤</button>
 </div>
-
 </div>
 
 <script type="module">
@@ -180,16 +160,7 @@ const db = getDatabase(app)
 
 let username=""
 
-window.unlock=function(){
-let key=document.getElementById("key").value
-if(key!="67"){
-document.body.innerHTML=""
-return
-}
-document.getElementById("access").style.display="none"
-document.getElementById("login").style.display="block"
-}
-
+// LOGIN
 window.start=function(){
 
 username=document.getElementById("name").value
@@ -210,30 +181,21 @@ document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
 
-// ONLINE
-set(userRef,{
-online:true,
-last:Date.now()
-})
+set(userRef,{online:true,last:Date.now()})
+onDisconnect(userRef).set({online:false,last:Date.now()})
 
-// DISCONNECT FIX
-onDisconnect(userRef).set({
-online:false,
-last:Date.now()
-})
-
-// FORCE UPDATE
 setInterval(()=>{
-set(userRef,{
-online:true,
-last:Date.now()
-})
+set(userRef,{online:true,last:Date.now()})
 },5000)
+
+// 👇 FIXED SEEN SYSTEM
+startSeenSystem()
 
 }
 
 // SEND
 window.send=function(){
+
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
 
@@ -247,7 +209,7 @@ seen:false
 document.getElementById("msg").value=""
 }
 
-// MESSAGE CREATE
+// CREATE MESSAGE
 function createMessage(message,key){
 
 let div=document.createElement("div")
@@ -268,9 +230,12 @@ let text=message.text.replace(
 '<a href="$1" target="_blank">$1</a>'
 )
 
+// tick
 let tick=""
 if(message.name==username){
-tick = message.seen ? "✔✔" : "✔"
+tick = message.seen 
+? "<span style='color:#0066ff'>✔✔</span>" 
+: "✔"
 }
 
 div.innerHTML="<b>"+message.name+"</b><br>"+text+
@@ -278,26 +243,14 @@ div.innerHTML="<b>"+message.name+"</b><br>"+text+
 
 document.getElementById("messages").appendChild(div)
 
-document.getElementById("messages").scrollTop=
-document.getElementById("messages").scrollHeight
-
 }
 
-// RECEIVE NEW
+// RECEIVE
 onChildAdded(ref(db,"messages"),function(data){
-
-let message=data.val()
-let key=data.key
-
-if(message.name!=username && !message.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-
-createMessage(message,key)
-
+createMessage(data.val(),data.key)
 })
 
-// 🔥 REALTIME SEEN FIX
+// UPDATE TICK
 onChildChanged(ref(db,"messages"),function(data){
 
 let message=data.val()
@@ -307,14 +260,59 @@ let msgDiv=document.getElementById(key)
 
 if(msgDiv && message.name==username){
 
-let tick = message.seen ? "✔✔" : "✔"
+let tick = message.seen 
+? "<span style='color:#0066ff'>✔✔</span>" 
+: "✔"
 
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+let timeText = msgDiv.querySelector(".time").innerText.split(" ")[0]
+
+msgDiv.querySelector(".time").innerHTML = timeText + " " + tick
 
 }
 
 })
+
+// ✅ PERFECT SEEN SYSTEM
+function startSeenSystem(){
+
+onChildAdded(ref(db,"messages"),(data)=>{
+
+let msg=data.val()
+let key=data.key
+
+if(msg.name!=username && !msg.seen){
+
+// only when user is ACTIVE
+if(document.visibilityState==="visible"){
+update(ref(db,"messages/"+key),{seen:true})
+}
+
+}
+
+})
+
+// when user returns to screen
+document.addEventListener("visibilitychange",()=>{
+if(document.visibilityState==="visible"){
+
+onValue(ref(db,"messages"),(snap)=>{
+let data=snap.val()
+if(!data) return
+
+Object.keys(data).forEach(key=>{
+let msg=data[key]
+
+if(msg.name!=username && !msg.seen){
+update(ref(db,"messages/"+key),{seen:true})
+}
+})
+
+})
+
+}
+})
+
+}
 
 // STATUS
 onValue(ref(db,"status"),(snap)=>{
@@ -329,31 +327,14 @@ if(data[otherUser]){
 if(data[otherUser].online){
 document.getElementById("statusText").innerText="Online"
 }else{
-
 let diff = Date.now() - data[otherUser].last
 let min = Math.floor(diff/60000)
-
 document.getElementById("statusText").innerText="Last seen "+min+" min ago"
-
 }
 
 }
 
 })
-
-// MENU
-window.toggleMenu=function(){
-let m=document.getElementById("menuBox")
-m.style.display=m.style.display=="block"?"none":"block"
-}
-
-// DELETE
-window.deleteAll=function(){
-if(confirm("Delete all chat?")){
-remove(ref(db,"messages"))
-document.getElementById("messages").innerHTML=""
-}
-}
 
 </script>
 

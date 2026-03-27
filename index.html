@@ -234,8 +234,6 @@ document.getElementById("login").style.display="block"
 window.start=function(){
 
 username=document.getElementById("name").value
-
-// ✅ FIX
 localStorage.setItem("chatUser", username)
 
 let code=document.getElementById("code").value
@@ -284,6 +282,11 @@ function createMessage(message,key){
 
 let me = localStorage.getItem("chatUser") || username
 
+// ✅ NAME SHORT FIX
+let displayName = message.name
+if(message.name === "katis1") displayName = "Kat"
+if(message.name === "kittyis0001") displayName = "Kitty"
+
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
@@ -300,7 +303,7 @@ if(message.name==me){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
-div.innerHTML="<b>"+message.name+"</b><br>"+text+
+div.innerHTML="<b>"+displayName+"</b><br>"+text+
 "<div class='time'>"+t+" "+tick+"</div>"
 
 document.getElementById("messages").appendChild(div)

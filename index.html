@@ -231,6 +231,9 @@ document.getElementById("access").style.display="none"
 document.getElementById("login").style.display="block"
 }
 
+// 🔔 Notification permission
+Notification.requestPermission()
+
 window.start=function(){
 
 username=document.getElementById("name").value
@@ -282,7 +285,6 @@ function createMessage(message,key){
 
 let me = localStorage.getItem("chatUser") || username
 
-// ✅ NAME SHORT FIX
 let displayName = message.name
 if(message.name === "katis1") displayName = "Kat"
 if(message.name === "kittyis0001") displayName = "Kitty"
@@ -310,7 +312,31 @@ document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+// 🔥 RECEIVE + NOTIFICATION
+onChildAdded(ref(db,"messages"),function(data){
+
+let message=data.val()
+let key=data.key
+
+createMessage(message,key)
+
+// 🔔 ONLY FOR YOU
+let me = localStorage.getItem("chatUser")
+
+if(me==="katis1" && message.name==="kittyis0001"){
+
+let audio = new Audio("https://actions.google.com/sounds/v1/alarms/notification_simple-01.mp3")
+audio.play()
+
+if(Notification.permission==="granted"){
+new Notification("New Message from Kitty",{
+body: message.text
+})
+}
+
+}
+
+})
 
 onChildChanged(ref(db,"messages"),function(data){
 

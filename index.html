@@ -278,6 +278,71 @@ push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
 document.getElementById("msg").value=""
 }
 
+function createMessage(message,key){
+
+let me = localStorage.getItem("chatUser") || username
+
+let displayName = message.name
+if(message.name === "katis1") displayName = "Kat"
+if(message.name === "kittyis0001") displayName = "Kitty"
+
+let div=document.createElement("div")
+div.classList.add("msg")
+div.id=key
+
+if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
+
+let time=new Date(message.time)
+let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
+
+let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
+let tick=""
+if(message.name==me){
+tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+}
+
+div.innerHTML="<b>"+displayName+"</b><br>"+text+
+"<div class='time'>"+t+" "+tick+"</div>"
+
+document.getElementById("messages").appendChild(div)
+document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
+}
+
+onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+
+onChildChanged(ref(db,"messages"),function(data){
+
+let me = localStorage.getItem("chatUser") || username
+
+let message=data.val()
+let key=data.key
+let msgDiv=document.getElementById(key)
+
+if(msgDiv && message.name==me){
+
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
+
+})
+
+function markSeenMessages(){
+onValue(ref(db,"messages"),(snap)=>{
+let data=snap.val()
+if(!data) return
+Object.keys(data).forEach(key=>{
+let msg=data[key]
+if(msg.name!=username && !msg.seen){
+update(ref(db,"messages/"+key),{seen:true})
+}
+})
+})
+}
+
 function formatTime(ts){
 let d=new Date(ts)
 return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
@@ -322,7 +387,17 @@ statusText.innerText="Last seen "+date+" at "+time
 }
 })
 
-// باقي code same...
+window.toggleMenu=function(){
+let m=document.getElementById("menuBox")
+m.style.display=m.style.display=="block"?"none":"block"
+}
+
+window.deleteAll=function(){
+if(confirm("Delete all chat?")){
+remove(ref(db,"messages"))
+document.getElementById("messages").innerHTML=""
+}
+}
 
 </script>
 

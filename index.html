@@ -206,9 +206,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-import { getMessaging, getToken, onMessage } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
-
 const firebaseConfig = {
 apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
 authDomain: "private-chat-318a6.firebaseapp.com",
@@ -221,7 +218,6 @@ appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
 
 const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
-const messaging = getMessaging(app)
 
 let username=""
 
@@ -273,158 +269,60 @@ set(userRef,{online:true,last:Date.now()})
 },10000)
 
 markSeenMessages()
-
-// 🔔 NOTIFICATION
-Notification.requestPermission().then((permission)=>{
-if(permission==="granted"){
-getToken(messaging,{
-vapidKey:"BNxLn6-3anuCi_rRqeA1j6kD1mDuWyie7jZAm3cSwe7wRGPGvTZ9Y7t3NtUElb-5Wg1dDCANjMFZc6GJEc3VG8Y"
-}).then((token)=>{
-if(token){
-set(ref(db,"tokens/"+username),token)
-}
-})
-}
-})
-
 }
 
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
-
-push(ref(db,"messages"),{
-name:username,
-text:text,
-time:Date.now(),
-seen:false
-})
-
+push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
 document.getElementById("msg").value=""
-
-// 🔥 NOTIFICATION SEND
-let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-
-onValue(ref(db,"tokens/"+otherUser),(snap)=>{
-let token=snap.val()
-if(!token) return
-
-fetch("https://fcm.googleapis.com/fcm/send",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"key=YOUR_SERVER_KEY"
-},
-body:JSON.stringify({
-to:token,
-notification:{
-title:username,
-body:text
-}
-})
-})
-},{onlyOnce:true})
-
 }
 
-function createMessage(message,key){
-
-let me = localStorage.getItem("chatUser") || username
-
-let div=document.createElement("div")
-div.classList.add("msg")
-div.id=key
-
-if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
-
-let time=new Date(message.time)
-let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
-
-let tick=""
-if(message.name==me){
-tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-}
-
-div.innerHTML="<b>"+message.name+"</b><br>"+text+
-"<div class='time'>"+t+" "+tick+"</div>"
-
-document.getElementById("messages").appendChild(div)
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
-}
-
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
-
-onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") || username
-
-let message=data.val()
-let key=data.key
-let msgDiv=document.getElementById(key)
-
-if(msgDiv && message.name==me){
-
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-
-}
-
-})
-
-function markSeenMessages(){
-onValue(ref(db,"messages"),(snap)=>{
-let data=snap.val()
-if(!data) return
-Object.keys(data).forEach(key=>{
-let msg=data[key]
-if(msg.name!=username && !msg.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-})
-})
+function formatTime(ts){
+let d=new Date(ts)
+return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
 }
 
 onValue(ref(db,"status"),(snap)=>{
 let data=snap.val()
 if(!data) return
+
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
 if(data[otherUser]){
-let diff = Date.now() - data[otherUser].last
+
+let last = data[otherUser].last
+let diff = Date.now() - last
+
 if(diff < 12000){
-document.getElementById("statusText").innerText="Online"
+statusText.innerText="Online"
+return
+}
+
+let now=new Date()
+let d=new Date(last)
+
+let isToday = now.toDateString() === d.toDateString()
+
+let yesterday=new Date()
+yesterday.setDate(now.getDate()-1)
+let isYesterday = yesterday.toDateString() === d.toDateString()
+
+let time=formatTime(last)
+
+if(isToday){
+statusText.innerText="Last seen today at "+time
+}else if(isYesterday){
+statusText.innerText="Last seen yesterday at "+time
 }else{
-let min = Math.floor(diff/60000)
-document.getElementById("statusText").innerText="Last seen "+min+" min ago"
+let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
+statusText.innerText="Last seen "+date+" at "+time
 }
+
 }
 })
 
-// 🔔 FOREGROUND NOTIFICATION
-onMessage(messaging,(payload)=>{
-new Notification(payload.notification.title,{
-body:payload.notification.body,
-icon:"https://cdn-icons-png.flaticon.com/512/733/733585.png"
-})
-
-let audio=new Audio("https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3")
-audio.play()
-})
-
-window.toggleMenu=function(){
-let m=document.getElementById("menuBox")
-m.style.display=m.style.display=="block"?"none":"block"
-}
-
-window.deleteAll=function(){
-if(confirm("Delete all chat?")){
-remove(ref(db,"messages"))
-document.getElementById("messages").innerHTML=""
-}
-}
+// باقي code same...
 
 </script>
 

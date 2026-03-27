@@ -180,36 +180,6 @@ const db = getDatabase(app)
 
 let username=""
 
-// ✅ FIX START
-window.addEventListener("load",()=>{
-
-let savedUser = localStorage.getItem("chatUser")
-
-if(savedUser){
-
-username = savedUser
-
-document.getElementById("access").style.display="none"
-document.getElementById("login").style.display="none"
-document.getElementById("chat").style.display="flex"
-
-const userRef=ref(db,"status/"+username)
-
-set(userRef,{online:true,last:Date.now()})
-
-onDisconnect(userRef).set({online:false,last:Date.now()})
-
-setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
-},10000)
-
-markSeenMessages()
-
-}
-
-})
-// ✅ FIX END
-
 window.unlock=function(){
 let key=document.getElementById("key").value
 if(key!="67"){
@@ -225,7 +195,7 @@ window.start=function(){
 username=document.getElementById("name").value
 
 // ✅ SAVE USER
-localStorage.setItem("chatUser",username)
+localStorage.setItem("chatUser", username)
 
 let code=document.getElementById("code").value
 
@@ -245,7 +215,6 @@ document.getElementById("chat").style.display="flex"
 const userRef=ref(db,"status/"+username)
 
 set(userRef,{online:true,last:Date.now()})
-
 onDisconnect(userRef).set({online:false,last:Date.now()})
 
 setInterval(()=>{
@@ -273,12 +242,13 @@ document.getElementById("msg").value=""
 // CREATE MESSAGE
 function createMessage(message,key){
 
+let me = localStorage.getItem("chatUser") // ✅ FINAL FIX
+
 let div=document.createElement("div")
 div.classList.add("msg")
 div.id=key
 
-// ✅ FIXED COLOR LOGIC
-if(message.name === username){
+if(message.name === me){
 div.classList.add("me")
 }else{
 div.classList.add("other")
@@ -293,7 +263,7 @@ let text=message.text.replace(
 )
 
 let tick=""
-if(message.name==username){
+if(message.name==me){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
@@ -314,12 +284,14 @@ createMessage(data.val(),data.key)
 // UPDATE
 onChildChanged(ref(db,"messages"),function(data){
 
+let me = localStorage.getItem("chatUser") // ✅ FINAL FIX
+
 let message=data.val()
 let key=data.key
 
 let msgDiv=document.getElementById(key)
 
-if(msgDiv && message.name==username){
+if(msgDiv && message.name==me){
 
 let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 

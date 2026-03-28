@@ -194,7 +194,6 @@ Private Chat
 
 <div id="messages"></div>
 
-<!-- 🔥 INPUT AREA -->
 <div id="inputArea">
 
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
@@ -205,8 +204,18 @@ Private Chat
 
 </div>
 
-<!-- 🔥 EMOJI BOX -->
-<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
+<!-- emoji panel -->
+<div id="emojiBox" style="
+display:none;
+position:fixed;
+bottom:60px;
+left:0;
+width:100%;
+background:white;
+max-height:200px;
+overflow:auto;
+padding:10px;
+"></div>
 
 </div>
 
@@ -233,185 +242,72 @@ let username=""
 
 window.unlock=function(){
 let key=document.getElementById("key").value
-if(key!="67"){
-document.body.innerHTML=""
-return
-}
-document.getElementById("access").style.display="none"
-document.getElementById("login").style.display="block"
+if(key!="67"){document.body.innerHTML="";return}
+access.style.display="none";login.style.display="block"
 }
 
 window.start=function(){
-
-username=document.getElementById("name").value
+username=name.value
 localStorage.setItem("chatUser", username)
 
-let code=document.getElementById("code").value
-
-let users={
-"a2F0aXMx":"8822",
-"a2l0dHlpczAwMDE=":"9911"
+if({"a2F0aXMx":"8822","a2l0dHlpczAwMDE=":"9911"}[btoa(username)]!=code.value){
+alert("Access denied");return
 }
 
-if(users[btoa(username)]!=code){
-alert("Access denied")
-return
-}
-
-document.getElementById("login").style.display="none"
-document.getElementById("chat").style.display="flex"
+login.style.display="none"
+chat.style.display="flex"
 
 const userRef=ref(db,"status/"+username)
-
 set(userRef,{online:true,last:Date.now()})
 onDisconnect(userRef).set({online:false,last:Date.now()})
-
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
-}else{
-set(userRef,{online:true,last:Date.now()})
-}
-})
-
-setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
-},10000)
+setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
 
 markSeenMessages()
 }
 
 window.send=function(){
-let text=document.getElementById("msg").value.trim()
-if(text=="") return
+let text=msg.value.trim()
+if(!text)return
 push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
-document.getElementById("msg").value=""
+msg.value=""
 }
 
 function createMessage(message,key){
-
 let me = localStorage.getItem("chatUser") || username
-
-let displayName = message.name
-if(message.name === "katis1") displayName = "Kat"
-if(message.name === "kittyis0001") displayName = "Kitty"
+let displayName = message.name==="katis1"?"Kat":message.name==="kittyis0001"?"Kitty":message.name
 
 let div=document.createElement("div")
-div.classList.add("msg")
-div.id=key
+div.className="msg "+(message.name==me?"me":"other")
 
-if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
+let t=new Date(message.time)
+let time=t.getHours()+":"+("0"+t.getMinutes()).slice(-2)
 
-let time=new Date(message.time)
-let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
+let tick=message.name==me?(message.seen?"✔✔":"✔"):""
 
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+div.innerHTML=`<b>${displayName}</b><br>${message.text}
+<div class='time'>${time} ${tick}</div>`
 
-let tick=""
-if(message.name==me){
-tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-}
-
-div.innerHTML="<b>"+displayName+"</b><br>"+text+
-"<div class='time'>"+t+" "+tick+"</div>"
-
-document.getElementById("messages").appendChild(div)
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
+messages.appendChild(div)
+messages.scrollTop=messages.scrollHeight
 }
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") || username
-
-let message=data.val()
-let key=data.key
-let msgDiv=document.getElementById(key)
-
-if(msgDiv && message.name==me){
-
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-
-}
-
-})
-
 function markSeenMessages(){
-onValue(ref(db,"messages"),(snap)=>{
-let data=snap.val()
-if(!data) return
-Object.keys(data).forEach(key=>{
-let msg=data[key]
-if(msg.name!=username && !msg.seen){
-update(ref(db,"messages/"+key),{seen:true})
+onValue(ref(db,"messages"),snap=>{
+let d=snap.val()
+if(!d)return
+Object.keys(d).forEach(k=>{
+if(d[k].name!=username && !d[k].seen){
+update(ref(db,"messages/"+k),{seen:true})
 }
 })
 })
 }
 
-function formatTime(ts){
-let d=new Date(ts)
-return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-}
+/* ✅ Zangi style emoji toggle */
 
-onValue(ref(db,"status"),(snap)=>{
-let data=snap.val()
-if(!data) return
-
-let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-
-if(data[otherUser]){
-
-let last = data[otherUser].last
-let diff = Date.now() - last
-
-if(diff < 12000){
-statusText.innerText="Online"
-return
-}
-
-let now=new Date()
-let d=new Date(last)
-
-let isToday = now.toDateString() === d.toDateString()
-
-let yesterday=new Date()
-yesterday.setDate(now.getDate()-1)
-let isYesterday = yesterday.toDateString() === d.toDateString()
-
-let time=formatTime(last)
-
-if(isToday){
-statusText.innerText="Last seen today at "+time
-}else if(isYesterday){
-statusText.innerText="Last seen yesterday at "+time
-}else{
-let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
-statusText.innerText="Last seen "+date+" at "+time
-}
-
-}
-})
-
-window.toggleMenu=function(){
-let m=document.getElementById("menuBox")
-m.style.display=m.style.display=="block"?"none":"block"
-}
-
-window.deleteAll=function(){
-if(confirm("Delete all chat?")){
-remove(ref(db,"messages"))
-document.getElementById("messages").innerHTML=""
-}
-}
-
-/* 🔥 EMOJI SYSTEM */
-
-const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😴 💋 🫶 👀 👉 👈 🌹 🐼 🍎 🍉 🍑 🍌 🍆 🍫 ❤️ 💙 🖤 💖 💞 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
 const box = document.getElementById("emojiBox")
 
@@ -423,18 +319,26 @@ span.style.padding="6px"
 span.style.cursor="pointer"
 
 span.onclick=()=>{
-let input=document.getElementById("msg")
-input.value+=e
-input.focus()
+msg.value+=e
+msg.focus()
 }
 
 box.appendChild(span)
 })
 
 window.toggleEmoji=function(){
-let box=document.getElementById("emojiBox")
-box.style.display = box.style.display=="block" ? "none" : "block"
+if(box.style.display=="block"){
+box.style.display="none"
+msg.focus()
+}else{
+box.style.display="block"
+msg.blur()
 }
+}
+
+msg.addEventListener("focus",()=>{
+box.style.display="none"
+})
 
 </script>
 

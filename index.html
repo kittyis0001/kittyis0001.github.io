@@ -141,6 +141,7 @@ text-align:right;
 display:flex;
 padding:10px;
 background:#f0f0f0;
+align-items:center;
 }
 
 #msg{
@@ -193,10 +194,19 @@ Private Chat
 
 <div id="messages"></div>
 
+<!-- 🔥 INPUT AREA -->
 <div id="inputArea">
+
+<button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
+
 <input id="msg" placeholder="Type message...">
+
 <button id="sendBtn" onclick="send()">➤</button>
+
 </div>
+
+<!-- 🔥 EMOJI BOX -->
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
 
 </div>
 
@@ -397,6 +407,33 @@ if(confirm("Delete all chat?")){
 remove(ref(db,"messages"))
 document.getElementById("messages").innerHTML=""
 }
+}
+
+/* 🔥 EMOJI SYSTEM */
+
+const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+
+const box = document.getElementById("emojiBox")
+
+emojis.forEach(e=>{
+let span=document.createElement("span")
+span.innerText=e
+span.style.fontSize="22px"
+span.style.padding="6px"
+span.style.cursor="pointer"
+
+span.onclick=()=>{
+let input=document.getElementById("msg")
+input.value+=e
+input.focus()
+}
+
+box.appendChild(span)
+})
+
+window.toggleEmoji=function(){
+let box=document.getElementById("emojiBox")
+box.style.display = box.style.display=="block" ? "none" : "block"
 }
 
 </script>

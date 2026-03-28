@@ -195,47 +195,26 @@ Private Chat
 <div id="messages"></div>
 
 <div id="inputArea">
-
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
-
 <input id="msg" placeholder="Type message...">
-
 <button id="sendBtn" onclick="send()">➤</button>
-
 </div>
 
-<!-- emoji panel -->
-<div id="emojiBox" style="
-display:none;
-position:fixed;
-bottom:60px;
-left:0;
-width:100%;
-background:white;
-max-height:200px;
-overflow:auto;
-padding:10px;
-"></div>
+<div id="emojiBox" style="display:none;position:fixed;bottom:60px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;"></div>
 
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
+import { getDatabase, ref, push, onChildAdded, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const firebaseConfig = {
-apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-authDomain: "private-chat-318a6.firebaseapp.com",
-databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "private-chat-318a6",
-storageBucket: "private-chat-318a6.appspot.com",
-messagingSenderId: "1082000480834",
-appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
-}
+const app = initializeApp({
+apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
+})
 
-const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
@@ -243,59 +222,71 @@ let username=""
 window.unlock=function(){
 let key=document.getElementById("key").value
 if(key!="67"){document.body.innerHTML="";return}
-access.style.display="none";login.style.display="block"
+document.getElementById("access").style.display="none"
+document.getElementById("login").style.display="block"
 }
 
 window.start=function(){
-username=name.value
+
+username=document.getElementById("name").value
 localStorage.setItem("chatUser", username)
 
-if({"a2F0aXMx":"8822","a2l0dHlpczAwMDE=":"9911"}[btoa(username)]!=code.value){
-alert("Access denied");return
+let code=document.getElementById("code").value
+
+let users={
+"a2F0aXMx":"8822",
+"a2l0dHlpczAwMDE=":"9911"
 }
 
-login.style.display="none"
-chat.style.display="flex"
+if(users[btoa(username)]!=code){
+alert("Access denied")
+return
+}
+
+document.getElementById("login").style.display="none"
+document.getElementById("chat").style.display="flex"
 
 const userRef=ref(db,"status/"+username)
+
 set(userRef,{online:true,last:Date.now()})
 onDisconnect(userRef).set({online:false,last:Date.now()})
-setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
+
+setInterval(()=>{
+set(userRef,{online:true,last:Date.now()})
+},10000)
 
 markSeenMessages()
 }
 
 window.send=function(){
-let text=msg.value.trim()
+let text=document.getElementById("msg").value.trim()
 if(!text)return
 push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
 msg.value=""
 }
 
-function createMessage(message,key){
-let me = localStorage.getItem("chatUser") || username
-let displayName = message.name==="katis1"?"Kat":message.name==="kittyis0001"?"Kitty":message.name
+function createMessage(m){
+let me=localStorage.getItem("chatUser")
+let name=m.name=="katis1"?"Kat":m.name=="kittyis0001"?"Kitty":m.name
 
 let div=document.createElement("div")
-div.className="msg "+(message.name==me?"me":"other")
+div.className="msg "+(m.name==me?"me":"other")
 
-let t=new Date(message.time)
+let t=new Date(m.time)
 let time=t.getHours()+":"+("0"+t.getMinutes()).slice(-2)
 
-let tick=message.name==me?(message.seen?"✔✔":"✔"):""
-
-div.innerHTML=`<b>${displayName}</b><br>${message.text}
-<div class='time'>${time} ${tick}</div>`
+div.innerHTML=`<b>${name}</b><br>${m.text}
+<div class="time">${time}</div>`
 
 messages.appendChild(div)
 messages.scrollTop=messages.scrollHeight
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+onChildAdded(ref(db,"messages"),d=>createMessage(d.val()))
 
 function markSeenMessages(){
-onValue(ref(db,"messages"),snap=>{
-let d=snap.val()
+onValue(ref(db,"messages"),s=>{
+let d=s.val()
 if(!d)return
 Object.keys(d).forEach(k=>{
 if(d[k].name!=username && !d[k].seen){
@@ -305,25 +296,19 @@ update(ref(db,"messages/"+k),{seen:true})
 })
 }
 
-/* ✅ Zangi style emoji toggle */
+/* emoji */
 
-const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😴 💋 🫶 👀 👉 👈 🌹 🐼 🍎 🍉 🍑 🍌 🍆 🍫 ❤️ 💙 🖤 💖 💞 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+const emojis="😇 😆 😅 😂 🤣 😊 🙂 😉 😘 😎 😭 😤 🤔 🙄 😴 💋 👀 👉 👈 🌹 🐼 🍎 🍉 🍑 🍌 ❤️ 💙 🖤 💖 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
-const box = document.getElementById("emojiBox")
+const box=document.getElementById("emojiBox")
 
 emojis.forEach(e=>{
-let span=document.createElement("span")
-span.innerText=e
-span.style.fontSize="22px"
-span.style.padding="6px"
-span.style.cursor="pointer"
-
-span.onclick=()=>{
-msg.value+=e
-msg.focus()
-}
-
-box.appendChild(span)
+let s=document.createElement("span")
+s.innerText=e
+s.style.fontSize="22px"
+s.style.padding="6px"
+s.onclick=()=>{msg.value+=e;msg.focus()}
+box.appendChild(s)
 })
 
 window.toggleEmoji=function(){
@@ -336,9 +321,7 @@ msg.blur()
 }
 }
 
-msg.addEventListener("focus",()=>{
-box.style.display="none"
-})
+msg.addEventListener("focus",()=>box.style.display="none")
 
 </script>
 

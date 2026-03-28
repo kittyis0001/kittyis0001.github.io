@@ -194,18 +194,12 @@ Private Chat
 
 <div id="messages"></div>
 
-<!-- 🔥 INPUT AREA -->
 <div id="inputArea">
-
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
-
 <input id="msg" placeholder="Type message...">
-
 <button id="sendBtn" onclick="send()">➤</button>
-
 </div>
 
-<!-- 🔥 EMOJI BOX -->
 <div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
 
 </div>
@@ -321,6 +315,34 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
+/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
+onChildAdded(ref(db,"messages"),(data)=>{
+
+let message = data.val()
+
+if(message.name === "kittyis0001"){
+
+let now = new Date()
+let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+
+let text = `💬 Kitty:
+${message.text}
+
+🕒 Today at ${time}`
+
+fetch("https://api.telegram.org/bot8706773948:AAGEEWhwYeP2e44k73DBFzQrEaFi5lGZj1c/sendMessage",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+chat_id:"8782681794",
+text:text
+})
+})
+
+}
+
+})
+
 onChildChanged(ref(db,"messages"),function(data){
 
 let me = localStorage.getItem("chatUser") || username
@@ -409,7 +431,7 @@ document.getElementById("messages").innerHTML=""
 }
 }
 
-/* 🔥 EMOJI SYSTEM */
+/* emoji same */
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 

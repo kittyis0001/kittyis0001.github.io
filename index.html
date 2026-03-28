@@ -275,9 +275,30 @@ set(userRef,{online:true,last:Date.now()})
 markSeenMessages()
 }
 
-window.send=function(){
+// 🔥 ONLY CHANGE HERE
+window.send=async function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
+
+if(username === "katis1"){
+try{
+let res = await fetch("https://api.languagetool.org/v2/check",{
+method:"POST",
+headers:{"Content-Type":"application/x-www-form-urlencoded"},
+body:`text=${encodeURIComponent(text)}&language=en-US`
+})
+let data = await res.json()
+if(data.matches.length > 0){
+data.matches.forEach(m=>{
+let suggestion = m.replacements[0]?.value
+if(suggestion){
+text = text.substring(0,m.offset) + suggestion + text.substring(m.offset + m.length)
+}
+})
+}
+}catch(e){}
+}
+
 push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
 document.getElementById("msg").value=""
 }
@@ -315,7 +336,6 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
 onChildAdded(ref(db,"messages"),(data)=>{
 
 let message = data.val()
@@ -430,8 +450,6 @@ remove(ref(db,"messages"))
 document.getElementById("messages").innerHTML=""
 }
 }
-
-/* emoji same */
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 

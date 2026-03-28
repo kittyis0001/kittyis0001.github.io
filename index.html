@@ -194,34 +194,49 @@ Private Chat
 
 <div id="messages"></div>
 
+<!-- 🔥 INPUT AREA -->
 <div id="inputArea">
+
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
+
 <input id="msg" placeholder="Type message...">
+
 <button id="sendBtn" onclick="send()">➤</button>
+
 </div>
 
-<div id="emojiBox" style="display:none;position:fixed;bottom:60px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;"></div>
+<!-- 🔥 EMOJI BOX -->
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
 
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, remove, set, onValue, onDisconnect, update } 
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
-const app = initializeApp({
-apiKey:"AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-databaseURL:"https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app"
-})
+const firebaseConfig = {
+apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+authDomain: "private-chat-318a6.firebaseapp.com",
+databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "private-chat-318a6",
+storageBucket: "private-chat-318a6.appspot.com",
+messagingSenderId: "1082000480834",
+appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
+}
 
+const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
 
 window.unlock=function(){
 let key=document.getElementById("key").value
-if(key!="67"){document.body.innerHTML="";return}
+if(key!="67"){
+document.body.innerHTML=""
+return
+}
 document.getElementById("access").style.display="none"
 document.getElementById("login").style.display="block"
 }
@@ -251,6 +266,14 @@ const userRef=ref(db,"status/"+username)
 set(userRef,{online:true,last:Date.now()})
 onDisconnect(userRef).set({online:false,last:Date.now()})
 
+document.addEventListener("visibilitychange",()=>{
+if(document.hidden){
+set(userRef,{online:false,last:Date.now()})
+}else{
+set(userRef,{online:true,last:Date.now()})
+}
+})
+
 setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
 },10000)
@@ -260,68 +283,158 @@ markSeenMessages()
 
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
-if(!text)return
+if(text=="") return
 push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
-msg.value=""
+document.getElementById("msg").value=""
 }
 
-function createMessage(m){
-let me=localStorage.getItem("chatUser")
-let name=m.name=="katis1"?"Kat":m.name=="kittyis0001"?"Kitty":m.name
+function createMessage(message,key){
+
+let me = localStorage.getItem("chatUser") || username
+
+let displayName = message.name
+if(message.name === "katis1") displayName = "Kat"
+if(message.name === "kittyis0001") displayName = "Kitty"
 
 let div=document.createElement("div")
-div.className="msg "+(m.name==me?"me":"other")
+div.classList.add("msg")
+div.id=key
 
-let t=new Date(m.time)
-let time=t.getHours()+":"+("0"+t.getMinutes()).slice(-2)
+if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
 
-div.innerHTML=`<b>${name}</b><br>${m.text}
-<div class="time">${time}</div>`
+let time=new Date(message.time)
+let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-messages.appendChild(div)
-messages.scrollTop=messages.scrollHeight
+let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
+let tick=""
+if(message.name==me){
+tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val()))
+div.innerHTML="<b>"+displayName+"</b><br>"+text+
+"<div class='time'>"+t+" "+tick+"</div>"
+
+document.getElementById("messages").appendChild(div)
+document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
+}
+
+onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+
+onChildChanged(ref(db,"messages"),function(data){
+
+let me = localStorage.getItem("chatUser") || username
+
+let message=data.val()
+let key=data.key
+let msgDiv=document.getElementById(key)
+
+if(msgDiv && message.name==me){
+
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
+
+})
 
 function markSeenMessages(){
-onValue(ref(db,"messages"),s=>{
-let d=s.val()
-if(!d)return
-Object.keys(d).forEach(k=>{
-if(d[k].name!=username && !d[k].seen){
-update(ref(db,"messages/"+k),{seen:true})
+onValue(ref(db,"messages"),(snap)=>{
+let data=snap.val()
+if(!data) return
+Object.keys(data).forEach(key=>{
+let msg=data[key]
+if(msg.name!=username && !msg.seen){
+update(ref(db,"messages/"+key),{seen:true})
 }
 })
 })
 }
 
-/* emoji */
+function formatTime(ts){
+let d=new Date(ts)
+return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+}
 
-const emojis="😇 😆 😅 😂 🤣 😊 🙂 😉 😘 😎 😭 😤 🤔 🙄 😴 💋 👀 👉 👈 🌹 🐼 🍎 🍉 🍑 🍌 ❤️ 💙 🖤 💖 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+onValue(ref(db,"status"),(snap)=>{
+let data=snap.val()
+if(!data) return
 
-const box=document.getElementById("emojiBox")
+let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+
+if(data[otherUser]){
+
+let last = data[otherUser].last
+let diff = Date.now() - last
+
+if(diff < 12000){
+statusText.innerText="Online"
+return
+}
+
+let now=new Date()
+let d=new Date(last)
+
+let isToday = now.toDateString() === d.toDateString()
+
+let yesterday=new Date()
+yesterday.setDate(now.getDate()-1)
+let isYesterday = yesterday.toDateString() === d.toDateString()
+
+let time=formatTime(last)
+
+if(isToday){
+statusText.innerText="Last seen today at "+time
+}else if(isYesterday){
+statusText.innerText="Last seen yesterday at "+time
+}else{
+let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
+statusText.innerText="Last seen "+date+" at "+time
+}
+
+}
+})
+
+window.toggleMenu=function(){
+let m=document.getElementById("menuBox")
+m.style.display=m.style.display=="block"?"none":"block"
+}
+
+window.deleteAll=function(){
+if(confirm("Delete all chat?")){
+remove(ref(db,"messages"))
+document.getElementById("messages").innerHTML=""
+}
+}
+
+/* 🔥 EMOJI SYSTEM */
+
+const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+
+const box = document.getElementById("emojiBox")
 
 emojis.forEach(e=>{
-let s=document.createElement("span")
-s.innerText=e
-s.style.fontSize="22px"
-s.style.padding="6px"
-s.onclick=()=>{msg.value+=e;msg.focus()}
-box.appendChild(s)
+let span=document.createElement("span")
+span.innerText=e
+span.style.fontSize="22px"
+span.style.padding="6px"
+span.style.cursor="pointer"
+
+span.onclick=()=>{
+let input=document.getElementById("msg")
+input.value+=e
+input.focus()
+}
+
+box.appendChild(span)
 })
 
 window.toggleEmoji=function(){
-if(box.style.display=="block"){
-box.style.display="none"
-msg.focus()
-}else{
-box.style.display="block"
-msg.blur()
+let box=document.getElementById("emojiBox")
+box.style.display = box.style.display=="block" ? "none" : "block"
 }
-}
-
-msg.addEventListener("focus",()=>box.style.display="none")
 
 </script>
 

@@ -313,13 +313,15 @@ document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
 
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
-
-/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
+/* ✅ FIXED SINGLE LISTENER */
 onChildAdded(ref(db,"messages"),(data)=>{
 
 let message = data.val()
+let key = data.key
 
+createMessage(message,key)
+
+/* 🔥 TELEGRAM */
 if(message.name === "kittyis0001"){
 
 let now = new Date()
@@ -433,7 +435,7 @@ document.getElementById("messages").innerHTML=""
 
 /* emoji same */
 
-const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+const emojis = "😇 😆 😅 😂 🤣 😏 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
 const box = document.getElementById("emojiBox")
 

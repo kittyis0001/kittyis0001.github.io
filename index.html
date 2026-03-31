@@ -309,49 +309,22 @@ tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 div.innerHTML="<b>"+displayName+"</b><br>"+text+
 "<div class='time'>"+t+" "+tick+"</div>"
 
-// 🔥 EDIT FEATURE (mobile + pc)
-let pressTimer
-
-div.oncontextmenu=function(e){
-e.preventDefault()
-editMsg(message,key)
-}
-
-div.ontouchstart=function(){
-pressTimer=setTimeout(()=>{
-if(navigator.vibrate) navigator.vibrate(50)
-editMsg(message,key)
-},600)
-}
-
-div.ontouchend=function(){
-clearTimeout(pressTimer)
-}
-
 document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
 
-function editMsg(message,key){
-let newText = prompt("Edit message:", message.text)
-if(newText && newText.trim()!=""){
-update(ref(db,"messages/"+key),{
-text:newText,
-edited:true
-})
-}
-}
+onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-/* SINGLE LISTENER */
+/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
 onChildAdded(ref(db,"messages"),(data)=>{
-let message = data.val()
-let key = data.key
-createMessage(message,key)
 
-/* TELEGRAM */
+let message = data.val()
+
 if(message.name === "kittyis0001"){
+
 let now = new Date()
 let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+
 let text = `💬 Kitty:
 ${message.text}
 
@@ -365,38 +338,27 @@ chat_id:"8782681794",
 text:text
 })
 })
+
 }
+
 })
 
-/* 🔥 FIXED EDIT UPDATE */
 onChildChanged(ref(db,"messages"),function(data){
-
-let message = data.val()
-let key = data.key
-let msgDiv = document.getElementById(key)
-
-if(!msgDiv) return
-
-let displayName = message.name === "katis1" ? "Kat" :
-                  message.name === "kittyis0001" ? "Kitty" :
-                  message.name
-
-let time = new Date(message.time)
-let t = time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-
-let formatted = message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
 
 let me = localStorage.getItem("chatUser") || username
 
-let tick=""
-if(message.name==me){
-tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-}
+let message=data.val()
+let key=data.key
+let msgDiv=document.getElementById(key)
 
-msgDiv.innerHTML =
-"<b>"+displayName+"</b><br>"+
-formatted + (message.edited ? " <span style='font-size:10px;color:gray'>(edited)</span>" : "") +
-"<div class='time'>"+t+" "+tick+"</div>"
+if(msgDiv && message.name==me){
+
+let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+
+msgDiv.querySelector(".time").innerHTML =
+msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+
+}
 
 })
 
@@ -425,6 +387,7 @@ if(!data) return
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
 
 if(data[otherUser]){
+
 let last = data[otherUser].last
 let diff = Date.now() - last
 
@@ -452,6 +415,7 @@ statusText.innerText="Last seen yesterday at "+time
 let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
 statusText.innerText="Last seen "+date+" at "+time
 }
+
 }
 })
 
@@ -469,7 +433,7 @@ document.getElementById("messages").innerHTML=""
 
 /* emoji same */
 
-const emojis = "😇 😆 😅 😂 🤣 😏 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
 const box = document.getElementById("emojiBox")
 

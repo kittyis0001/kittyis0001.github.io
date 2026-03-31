@@ -137,6 +137,11 @@ margin-top:3px;
 text-align:right;
 }
 
+.msgText span{
+font-size:10px;
+color:gray;
+}
+
 #inputArea{
 display:flex;
 padding:10px;
@@ -306,27 +311,54 @@ if(message.name==me){
 tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
 }
 
-div.innerHTML="<b>"+displayName+"</b><br>"+text+
+div.innerHTML="<b>"+displayName+"</b><br><span class='msgText'>"+text+"</span>"+
 "<div class='time'>"+t+" "+tick+"</div>"
+
+// PC right click
+div.oncontextmenu = function(e){
+e.preventDefault()
+editMessage(message,key)
+}
+
+// Mobile long press
+let pressTimer
+
+div.ontouchstart = function(){
+pressTimer = setTimeout(()=>{
+navigator.vibrate(50)
+editMessage(message,key)
+},600)
+}
+
+div.ontouchend = function(){
+clearTimeout(pressTimer)
+}
 
 document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
 
-/* ✅ FIXED SINGLE LISTENER */
-onChildAdded(ref(db,"messages"),(data)=>{
+// 🔥 edit function
+function editMessage(message,key){
+let newText = prompt("Edit message:", message.text)
+if(newText && newText.trim() !== ""){
+update(ref(db,"messages/"+key),{
+text:newText,
+edited:true
+})
+}
+}
 
+/* SINGLE LISTENER */
+onChildAdded(ref(db,"messages"),(data)=>{
 let message = data.val()
 let key = data.key
-
 createMessage(message,key)
 
-/* 🔥 TELEGRAM */
+/* TELEGRAM */
 if(message.name === "kittyis0001"){
-
 let now = new Date()
 let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-
 let text = `💬 Kitty:
 ${message.text}
 
@@ -340,29 +372,37 @@ chat_id:"8782681794",
 text:text
 })
 })
-
 }
-
 })
 
 onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") || username
 
 let message=data.val()
 let key=data.key
 let msgDiv=document.getElementById(key)
 
-if(msgDiv && message.name==me){
+if(msgDiv){
 
+let textEl = msgDiv.querySelector(".msgText")
+if(textEl){
+
+let formatted = message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+
+textEl.innerHTML = formatted + (message.edited ? " <span>(edited)</span>" : "")
+}
+
+let me = localStorage.getItem("chatUser") || username
+if(message.name==me){
 let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-
 msgDiv.querySelector(".time").innerHTML =
 msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+}
 
 }
 
 })
+
+// rest unchanged...
 
 function markSeenMessages(){
 onValue(ref(db,"messages"),(snap)=>{
@@ -389,7 +429,6 @@ if(!data) return
 let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
 
 if(data[otherUser]){
-
 let last = data[otherUser].last
 let diff = Date.now() - last
 
@@ -417,7 +456,6 @@ statusText.innerText="Last seen yesterday at "+time
 let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
 statusText.innerText="Last seen "+date+" at "+time
 }
-
 }
 })
 

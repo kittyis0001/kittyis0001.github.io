@@ -224,6 +224,7 @@ const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
+let lastTelegramMsg="" // ✅ added
 
 window.unlock=function(){
 let key=document.getElementById("key").value
@@ -278,6 +279,10 @@ markSeenMessages()
 window.send=function(){
 let text=document.getElementById("msg").value.trim()
 if(text=="") return
+
+// ✅ insta auto clean (ADDED ONLY)
+text = text.replace(/\?[^ ]+/g,"")
+
 push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
 document.getElementById("msg").value=""
 }
@@ -315,10 +320,14 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
+/* 🔥 TELEGRAM FIXED */
 onChildAdded(ref(db,"messages"),(data)=>{
 
 let message = data.val()
+
+// ✅ duplicate fix
+if(lastTelegramMsg === message.text) return
+lastTelegramMsg = message.text
 
 if(message.name === "kittyis0001"){
 

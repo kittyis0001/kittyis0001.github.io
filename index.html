@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -313,19 +313,22 @@ document.getElementById("messages").appendChild(div)
 document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
 }
 
-/* ✅ FIX: দুটো onChildAdded মিলিয়ে একটা */
+onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
+
+/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
 onChildAdded(ref(db,"messages"),(data)=>{
 
 let message = data.val()
-
-createMessage(message, data.key)
 
 if(message.name === "kittyis0001"){
 
 let now = new Date()
 let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
 
-let text = `💬 Kitty:\n${message.text}\n\n🕒 Today at ${time}`
+let text = `💬 Kitty:
+${message.text}
+
+🕒 Today at ${time}`
 
 fetch("https://api.telegram.org/bot8706773948:AAGEEWhwYeP2e44k73DBFzQrEaFi5lGZj1c/sendMessage",{
 method:"POST",
@@ -427,6 +430,8 @@ remove(ref(db,"messages"))
 document.getElementById("messages").innerHTML=""
 }
 }
+
+/* emoji same */
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 

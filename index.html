@@ -196,7 +196,11 @@ Private Chat
 
 <div id="inputArea">
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
+
 <input id="msg" placeholder="Type message...">
+
+<button id="recordBtn" style="font-size:18px;background:none;border:none;margin-left:5px;">🎤</button>
+
 <button id="sendBtn" onclick="send()">➤</button>
 </div>
 
@@ -210,6 +214,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"
+
 const firebaseConfig = {
 apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
 authDomain: "private-chat-318a6.firebaseapp.com",
@@ -222,8 +229,52 @@ appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
 
 const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
+const storage = getStorage(app)
 
 let username=""
+
+/* 🎤 VOICE SYSTEM */
+let mediaRecorder
+let audioChunks=[]
+let recording=false
+
+document.getElementById("recordBtn").onclick=async()=>{
+
+if(!recording){
+
+let stream=await navigator.mediaDevices.getUserMedia({audio:true})
+mediaRecorder=new MediaRecorder(stream)
+
+mediaRecorder.ondataavailable=e=>audioChunks.push(e.data)
+
+mediaRecorder.onstop=async()=>{
+
+let blob=new Blob(audioChunks,{type:"audio/webm"})
+audioChunks=[]
+
+let fileRef=sRef(storage,"voice/"+Date.now()+".webm")
+
+await uploadBytes(fileRef,blob)
+let url=await getDownloadURL(fileRef)
+
+push(ref(db,"messages"),{
+name:username,
+audio:url,
+time:Date.now(),
+seen:false
+})
+
+}
+
+mediaRecorder.start()
+recording=true
+
+}else{
+mediaRecorder.stop()
+recording=false
+}
+
+}
 
 window.unlock=function(){
 let key=document.getElementById("key").value
@@ -260,14 +311,6 @@ const userRef=ref(db,"status/"+username)
 set(userRef,{online:true,last:Date.now()})
 onDisconnect(userRef).set({online:false,last:Date.now()})
 
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
-}else{
-set(userRef,{online:true,last:Date.now()})
-}
-})
-
 setInterval(()=>{
 set(userRef,{online:true,last:Date.now()})
 },10000)
@@ -299,7 +342,13 @@ if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+let text=message.text||""
+
+if(message.audio){
+text=`<audio controls src="${message.audio}"></audio>`
+}else{
+text=text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+}
 
 let tick=""
 if(message.name==me){
@@ -315,53 +364,6 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
-onChildAdded(ref(db,"messages"),(data)=>{
-
-let message = data.val()
-
-if(message.name === "kittyis0001"){
-
-let now = new Date()
-let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-
-let text = `💬 Kitty:
-${message.text}
-
-🕒 Today at ${time}`
-
-fetch("https://api.telegram.org/bot8706773948:AAGEEWhwYeP2e44k73DBFzQrEaFi5lGZj1c/sendMessage",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-chat_id:"8782681794",
-text:text
-})
-})
-
-}
-
-})
-
-onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") || username
-
-let message=data.val()
-let key=data.key
-let msgDiv=document.getElementById(key)
-
-if(msgDiv && message.name==me){
-
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-
-}
-
-})
-
 function markSeenMessages(){
 onValue(ref(db,"messages"),(snap)=>{
 let data=snap.val()
@@ -375,50 +377,6 @@ update(ref(db,"messages/"+key),{seen:true})
 })
 }
 
-function formatTime(ts){
-let d=new Date(ts)
-return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-}
-
-onValue(ref(db,"status"),(snap)=>{
-let data=snap.val()
-if(!data) return
-
-let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-
-if(data[otherUser]){
-
-let last = data[otherUser].last
-let diff = Date.now() - last
-
-if(diff < 12000){
-statusText.innerText="Online"
-return
-}
-
-let now=new Date()
-let d=new Date(last)
-
-let isToday = now.toDateString() === d.toDateString()
-
-let yesterday=new Date()
-yesterday.setDate(now.getDate()-1)
-let isYesterday = yesterday.toDateString() === d.toDateString()
-
-let time=formatTime(last)
-
-if(isToday){
-statusText.innerText="Last seen today at "+time
-}else if(isYesterday){
-statusText.innerText="Last seen yesterday at "+time
-}else{
-let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
-statusText.innerText="Last seen "+date+" at "+time
-}
-
-}
-})
-
 window.toggleMenu=function(){
 let m=document.getElementById("menuBox")
 m.style.display=m.style.display=="block"?"none":"block"
@@ -429,33 +387,6 @@ if(confirm("Delete all chat?")){
 remove(ref(db,"messages"))
 document.getElementById("messages").innerHTML=""
 }
-}
-
-/* emoji same */
-
-const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
-
-const box = document.getElementById("emojiBox")
-
-emojis.forEach(e=>{
-let span=document.createElement("span")
-span.innerText=e
-span.style.fontSize="22px"
-span.style.padding="6px"
-span.style.cursor="pointer"
-
-span.onclick=()=>{
-let input=document.getElementById("msg")
-input.value+=e
-input.focus()
-}
-
-box.appendChild(span)
-})
-
-window.toggleEmoji=function(){
-let box=document.getElementById("emojiBox")
-box.style.display = box.style.display=="block" ? "none" : "block"
 }
 
 </script>

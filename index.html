@@ -327,7 +327,7 @@ let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 let text=message.text
 
 if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || text.startsWith("http") && text.includes("/uploads/")){
-text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;" onclick="window.open('${text}','_blank')">`
+text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;" onclick="showImage('${text}')"`
 }else{
 text=text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
 }
@@ -455,10 +455,33 @@ m.style.display=m.style.display=="block"?"none":"block"
 }
 
 window.deleteAll=function(){
-if(confirm("Delete all chat?")){
-remove(ref(db,"messages"))
-document.getElementById("messages").innerHTML=""
+  if(confirm("Delete all chat?")){
+    remove(ref(db,"messages"))
+    document.getElementById("messages").innerHTML=""
+  }
 }
+
+window.showImage = function(src){
+  let viewer = document.getElementById("imgViewer")
+  let img = document.getElementById("fullImg")
+
+  viewer.style.display = "flex"
+  img.src = src
+
+  let scale = 1
+
+  img.onclick = function(){
+    scale = scale === 1 ? 2 : 1
+    img.style.transform = "scale(" + scale + ")"
+  }
+
+  viewer.onclick = function(e){
+    if(e.target.id === "imgViewer"){
+      viewer.style.display = "none"
+      scale = 1
+      img.style.transform = "scale(1)"
+    }
+  }
 }
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
@@ -514,6 +537,31 @@ window.uploadImage = async function(input) {
 }
 
 </script>
+<!-- 🔥 IMAGE VIEWER -->
+<div id="imgViewer" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+justify-content:center;
+align-items:center;
+z-index:999;
+overflow:hidden;
+touch-action:none;
+">
+
+<img id="fullImg" style="
+max-width:100%;
+max-height:100%;
+transform:scale(1);
+transition:transform 0.2s;
+">
+
+</div>
 
 </body>
 </html>
+

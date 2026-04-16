@@ -326,8 +326,8 @@ let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
 let text=message.text
 
-if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || text.startsWith("http") && text.includes("/uploads/")){
-text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;" onclick="showImage('${text}')"`
+if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && text.includes("/uploads/"))){
+text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;cursor:pointer;" onclick="showImage('${text}')">`
 }else{
 text=text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
 }
@@ -467,13 +467,43 @@ window.showImage = function(src){
 
   viewer.style.display = "flex"
   img.src = src
+  img.style.transform = "scale(1)"
+  img.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+  img.style.cursor = "zoom-in"
 
   let scale = 1
 
-  img.onclick = function(){
-    scale = scale === 1 ? 2 : 1
+  img.onclick = function(e){
+    e.stopPropagation()
+    scale = scale === 1 ? 2.5 : 1
     img.style.transform = "scale(" + scale + ")"
+    img.style.cursor = scale === 1 ? "zoom-in" : "zoom-out"
   }
+
+  let startDist = 0
+  let startScale = 1
+
+  viewer.addEventListener("touchstart", function(e){
+    if(e.touches.length === 2){
+      startDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      startScale = scale
+    }
+  }, {passive: true})
+
+  viewer.addEventListener("touchmove", function(e){
+    if(e.touches.length === 2){
+      e.preventDefault()
+      let dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      scale = Math.min(Math.max(startScale * (dist / startDist), 1), 4)
+      img.style.transform = "scale(" + scale + ")"
+    }
+  }, {passive: false})
 
   viewer.onclick = function(e){
     if(e.target.id === "imgViewer"){
@@ -509,7 +539,6 @@ let box=document.getElementById("emojiBox")
 box.style.display = box.style.display=="block" ? "none" : "block"
 }
 
-// ── IMAGE UPLOAD ──
 const BACKEND = "https://chat-backend-myvs.onrender.com"
 
 window.uploadImage = async function(input) {
@@ -537,7 +566,7 @@ window.uploadImage = async function(input) {
 }
 
 </script>
-<!-- 🔥 IMAGE VIEWER -->
+
 <div id="imgViewer" style="
 display:none;
 position:fixed;
@@ -545,10 +574,10 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:black;
+background:rgba(0,0,0,0.95);
 justify-content:center;
 align-items:center;
-z-index:999;
+z-index:9999;
 overflow:hidden;
 touch-action:none;
 ">
@@ -557,11 +586,11 @@ touch-action:none;
 max-width:100%;
 max-height:100%;
 transform:scale(1);
-transition:transform 0.2s;
+transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+cursor:zoom-in;
 ">
 
 </div>
 
 </body>
 </html>
-

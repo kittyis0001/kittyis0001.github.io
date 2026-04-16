@@ -75,7 +75,6 @@ flex-direction:column;
 background:#e5ddd5;
 }
 
-/* 🔥 UPDATED HEADER */
 #header{
 background:#075E54;
 color:white;
@@ -201,12 +200,12 @@ font-size:18px;
 
 <div id="chat">
 
-<!-- 🔥 NEW HEADER -->
 <div id="header">
 <div id="title">Private Chat</div>
 
 <div id="headerCenter">
-<span class="iconBtn">📷</span>
+<span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
+<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
 <span class="iconBtn">🎤</span>
 <div id="statusText">Offline</div>
 </div>
@@ -325,7 +324,13 @@ if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
 let time=new Date(message.time)
 let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
 
-let text=message.text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+let text=message.text
+
+if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || text.startsWith("http") && text.includes("/uploads/")){
+text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;" onclick="window.open('${text}','_blank')">`
+}else{
+text=text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+}
 
 let tick=""
 if(message.name==me){
@@ -341,7 +346,6 @@ document.getElementById("messages").scrollTop=document.getElementById("messages"
 
 onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
 
-/* 🔥 TELEGRAM FEATURE (ADDED ONLY) */
 onChildAdded(ref(db,"messages"),(data)=>{
 
 let message = data.val()
@@ -457,8 +461,6 @@ document.getElementById("messages").innerHTML=""
 }
 }
 
-/* emoji same */
-
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
 const box = document.getElementById("emojiBox")
@@ -482,6 +484,33 @@ box.appendChild(span)
 window.toggleEmoji=function(){
 let box=document.getElementById("emojiBox")
 box.style.display = box.style.display=="block" ? "none" : "block"
+}
+
+// ── IMAGE UPLOAD ──
+const BACKEND = "http://localhost:3000"
+
+window.uploadImage = async function(input) {
+  let file = input.files[0]
+  if (!file) return
+
+  let formData = new FormData()
+  formData.append("file", file)
+
+  let res = await fetch(BACKEND + "/upload", {
+    method: "POST",
+    body: formData
+  })
+
+  let data = await res.json()
+
+  push(ref(db, "messages"), {
+    name: username,
+    text: data.url,
+    time: Date.now(),
+    seen: false
+  })
+
+  input.value = ""
 }
 
 </script>

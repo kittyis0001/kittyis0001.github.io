@@ -75,22 +75,41 @@ flex-direction:column;
 background:#e5ddd5;
 }
 
+/* 🔥 UPDATED HEADER */
 #header{
 background:#075E54;
 color:white;
-padding:15px;
+padding:12px 15px;
 display:flex;
-justify-content:space-between;
 align-items:center;
+gap:10px;
+}
+
+#title{
+font-weight:bold;
+}
+
+#headerCenter{
+display:flex;
+align-items:center;
+gap:8px;
+flex:1;
+}
+
+.iconBtn{
+font-size:18px;
+cursor:pointer;
 }
 
 #statusText{
 font-size:12px;
+white-space:nowrap;
 }
 
 #menu{
 cursor:pointer;
 font-size:22px;
+margin-left:auto;
 }
 
 #menuBox{
@@ -182,9 +201,16 @@ font-size:18px;
 
 <div id="chat">
 
+<!-- 🔥 NEW HEADER -->
 <div id="header">
-Private Chat
+<div id="title">Private Chat</div>
+
+<div id="headerCenter">
+<span class="iconBtn">📷</span>
+<span class="iconBtn">🎤</span>
 <div id="statusText">Offline</div>
+</div>
+
 <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
 

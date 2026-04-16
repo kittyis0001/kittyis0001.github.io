@@ -1,3 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Chat</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background-image:url('Qe0hvO9ST0yp18ylzejiMQ.webp');
+background-size:cover;
+background-position:center;
+height:100vh;
+}
+
+#access{
+text-align:center;
+margin-top:120px;
+background:rgba(255,255,255,0.9);
+width:300px;
+margin-left:auto;
+margin-right:auto;
+padding:20px;
+border-radius:12px;
+}
+
+#login{
+display:none;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:85%;
+max-width:350px;
+background:rgba(255,255,255,0.95);
+padding:25px;
+border-radius:18px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.warning{
+font-size:13px;
+color:#555;
+margin-bottom:15px;
+}
+
+.loginInput{
+width:100%;
+padding:14px;
+margin-bottom:15px;
+border-radius:12px;
+border:none;
+background:#f0f0f0;
+font-size:16px;
+outline:none;
+}
+
+#loginBtn{
+width:100%;
+padding:14px;
+background:#075E54;
+color:white;
+border:none;
+border-radius:20px;
+font-size:16px;
+}
+
+#chat{
+display:none;
+height:100vh;
+flex-direction:column;
+background:#e5ddd5;
+}
+
+/* 🔥 UPDATED HEADER */
+#header{
+background:#075E54;
+color:white;
+padding:12px 15px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+#title{
+font-weight:bold;
+}
+
+#headerCenter{
+display:flex;
+align-items:center;
+gap:8px;
+flex:1;
+}
+
+.iconBtn{
+font-size:18px;
+cursor:pointer;
+}
+
+#statusText{
+font-size:12px;
+white-space:nowrap;
+}
+
+#menu{
+cursor:pointer;
+font-size:22px;
+margin-left:auto;
+}
+
+#menuBox{
+display:none;
+position:absolute;
+right:10px;
+top:60px;
+background:white;
+box-shadow:0 2px 10px rgba(0,0,0,0.3);
+}
+
+#menuBox div{
+padding:10px;
+cursor:pointer;
+}
+
+#messages{
+flex:1;
+overflow:auto;
+padding:10px;
+}
+
+.msg{
+padding:10px;
+margin:6px;
+max-width:65%;
+border-radius:8px;
+word-wrap:break-word;
+}
+
+.me{
+background:#dcf8c6;
+margin-left:auto;
+}
+
+.other{
+background:white;
+}
+
+.time{
+font-size:11px;
+color:gray;
+margin-top:3px;
+text-align:right;
+}
+
+#inputArea{
+display:flex;
+padding:10px;
+background:#f0f0f0;
+align-items:center;
+}
+
+#msg{
+flex:1;
+padding:12px;
+border-radius:20px;
+border:2px solid #000;
+}
+
+#sendBtn{
+background:#075E54;
+border:none;
+margin-left:8px;
+padding:10px 14px;
+border-radius:50%;
+color:white;
+font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="access">
+<h2>Enter Access Key</h2>
+<input id="key" placeholder="Access Key">
+<br><br>
+<button onclick="unlock()">Enter</button>
+</div>
+
+<div id="login">
+<h2>Login</h2>
+<div class="warning">⚠️ Always use incognito mode ⚠️</div>
+<input id="name" class="loginInput" placeholder="Username">
+<input id="code" type="password" class="loginInput" placeholder="Password">
+<button id="loginBtn" onclick="start()">Enter Chat</button>
+</div>
+
+<div id="chat">
+
+<!-- 🔥 NEW HEADER -->
+<div id="header">
+<div id="title">Private Chat</div>
+
+<div id="headerCenter">
+<span class="iconBtn">📷</span>
+<span class="iconBtn">🎤</span>
+<div id="statusText">Offline</div>
+</div>
+
+<div id="menu" onclick="toggleMenu()">⋮</div>
+</div>
+
+<div id="menuBox">
+<div onclick="deleteAll()">Delete All Chat</div>
+</div>
+
+<div id="messages"></div>
+
+<div id="inputArea">
+<button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
+<input id="msg" placeholder="Type message...">
+<button id="sendBtn" onclick="send()">➤</button>
+</div>
+
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
+
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
@@ -18,9 +250,6 @@ const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 let username=""
-
-/* ✅ FIX ADDED HERE */
-const statusText = document.getElementById("statusText")
 
 window.unlock=function(){
 let key=document.getElementById("key").value
@@ -216,4 +445,46 @@ statusText.innerText="Last seen "+date+" at "+time
 }
 })
 
+window.toggleMenu=function(){
+let m=document.getElementById("menuBox")
+m.style.display=m.style.display=="block"?"none":"block"
+}
+
+window.deleteAll=function(){
+if(confirm("Delete all chat?")){
+remove(ref(db,"messages"))
+document.getElementById("messages").innerHTML=""
+}
+}
+
+/* emoji same */
+
+const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+
+const box = document.getElementById("emojiBox")
+
+emojis.forEach(e=>{
+let span=document.createElement("span")
+span.innerText=e
+span.style.fontSize="22px"
+span.style.padding="6px"
+span.style.cursor="pointer"
+
+span.onclick=()=>{
+let input=document.getElementById("msg")
+input.value+=e
+input.focus()
+}
+
+box.appendChild(span)
+})
+
+window.toggleEmoji=function(){
+let box=document.getElementById("emojiBox")
+box.style.display = box.style.display=="block" ? "none" : "block"
+}
+
 </script>
+
+</body>
+</html>

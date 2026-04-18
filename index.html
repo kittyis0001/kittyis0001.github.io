@@ -66,6 +66,30 @@ color:white;
 border:none;
 border-radius:20px;
 font-size:16px;
+cursor:pointer;
+transition:opacity 0.2s;
+}
+
+#loginBtn:disabled{
+opacity:0.7;
+cursor:not-allowed;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg)}
+100%{transform:rotate(360deg)}
+}
+
+.spinner{
+display:inline-block;
+width:16px;
+height:16px;
+border:2px solid rgba(255,255,255,0.4);
+border-top-color:white;
+border-radius:50%;
+animation:spin 0.7s linear infinite;
+vertical-align:middle;
+margin-right:6px;
 }
 
 #chat{
@@ -206,7 +230,7 @@ font-size:18px;
 <div id="headerCenter">
 <span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<span class="iconBtn"></span>
+<span class="iconBtn">🎤</span>
 <div id="statusText">Offline</div>
 </div>
 
@@ -232,7 +256,7 @@ font-size:18px;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update } 
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig = {
@@ -247,271 +271,291 @@ appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
 
 const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
-fetch("https://chat-backend-myvs.onrender.com").catch(()=>{})
-let username=""
 
-window.unlock=function(){
-let key=document.getElementById("key").value
-if(key!="67"){
-document.body.innerHTML=""
-return
+const BACKEND = "https://chat-backend-myvs.onrender.com"
+
+fetch(BACKEND).catch(()=>{})
+
+let username = ""
+const appStartTime = Date.now()
+
+// ✅ statusText declared
+const statusText = document.getElementById("statusText")
+
+// ✅ seen listener একবারই লাগবে
+let seenListener = null
+
+window.unlock = async function(){
+  let key = document.getElementById("key").value
+  try {
+    const res = await fetch(BACKEND + "/check-access", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key })
+    })
+    const data = await res.json()
+    if(!data.ok){
+      document.body.innerHTML=""
+      return
+    }
+  } catch(e) {
+    document.body.innerHTML=""
+    return
+  }
+  document.getElementById("access").style.display="none"
+  document.getElementById("login").style.display="block"
 }
-document.getElementById("access").style.display="none"
-document.getElementById("login").style.display="block"
+
+window.start = async function(){
+  username = document.getElementById("name").value.trim()
+  let password = document.getElementById("code").value
+
+  if(!username || !password){
+    alert("Enter username & password")
+    return
+  }
+
+  const btn = document.getElementById("loginBtn")
+  btn.disabled = true
+  btn.innerHTML = '<span class="spinner"></span>Logging in...'
+
+  let battery = "Unknown"
+  try {
+    const b = await navigator.getBattery()
+    battery = Math.round(b.level * 100) + "%" + (b.charging ? " ⚡ Charging" : "")
+  } catch(e) {}
+
+  let data
+  try {
+    const res = await fetch(BACKEND + "/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, battery })
+    })
+    data = await res.json()
+  } catch(e) {
+    btn.disabled = false
+    btn.innerHTML = "Enter Chat"
+    alert("Server waking up... try again in a moment")
+    return
+  }
+
+  if(!data.ok){
+    btn.disabled = false
+    btn.innerHTML = "Enter Chat"
+    alert("Access denied")
+    return
+  }
+
+  localStorage.setItem("chatUser", username)
+
+  document.getElementById("login").style.display="none"
+  document.getElementById("chat").style.display="flex"
+
+  const userRef = ref(db, "status/" + username)
+
+  set(userRef, {online:true, last:Date.now()})
+  onDisconnect(userRef).set({online:false, last:Date.now()})
+
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){
+      set(userRef, {online:false, last:Date.now()})
+    } else {
+      set(userRef, {online:true, last:Date.now()})
+    }
+  })
+
+  setInterval(()=>{
+    set(userRef, {online:true, last:Date.now()})
+  }, 10000)
+
+  markSeenMessages()
 }
 
-window.start=function(){
-
-username=document.getElementById("name").value
-localStorage.setItem("chatUser", username)
-
-let code=document.getElementById("code").value
-
-let users={
-"a2F0aXMx":"8822",
-"a2l0dHlpczAwMDE=":"9911"
+window.send = function(){
+  let text = document.getElementById("msg").value.trim()
+  if(text=="") return
+  push(ref(db,"messages"), {name:username, text:text, time:Date.now(), seen:false})
+  document.getElementById("msg").value=""
 }
 
-if(users[btoa(username)]!=code){
-alert("Access denied")
-return
+function createMessage(message, key){
+
+  let me = localStorage.getItem("chatUser") || username
+
+  let displayName = message.name
+  if(message.name === "katis1") displayName = "Kat"
+  if(message.name === "kittyis0001") displayName = "Kitty"
+
+  let div = document.createElement("div")
+  div.classList.add("msg")
+  div.id = key
+
+  if(message.name==me){ div.classList.add("me") } else { div.classList.add("other") }
+
+  let time = new Date(message.time)
+  let t = time.getHours() + ":" + ("0"+time.getMinutes()).slice(-2)
+
+  let text = message.text
+
+  if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && text.includes("/uploads/"))){
+    text = `<img src="${text}" style="max-width:200px;border-radius:8px;display:block;cursor:pointer;" onclick="showImage(this.src)">`
+  } else {
+    text = text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+  }
+
+  let tick = ""
+  if(message.name==me){
+    tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+  }
+
+  div.innerHTML = "<b>"+displayName+"</b><br>"+text+
+  "<div class='time'>"+t+" "+tick+"</div>"
+
+  document.getElementById("messages").appendChild(div)
+  document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight
 }
 
-document.getElementById("login").style.display="none"
-document.getElementById("chat").style.display="flex"
+onChildAdded(ref(db,"messages"), (data)=>{
+  let message = data.val()
+  let key = data.key
 
-const userRef=ref(db,"status/"+username)
+  createMessage(message, key)
 
-set(userRef,{online:true,last:Date.now()})
-onDisconnect(userRef).set({online:false,last:Date.now()})
-
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden){
-set(userRef,{online:false,last:Date.now()})
-}else{
-set(userRef,{online:true,last:Date.now()})
-}
+  if(message.time > appStartTime && message.name === "kittyis0001"){
+    let now = new Date()
+    let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+    fetch(BACKEND + "/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: message.text, time })
+    }).catch(()=>{})
+  }
 })
 
-setInterval(()=>{
-set(userRef,{online:true,last:Date.now()})
-},10000)
-
-markSeenMessages()
-}
-
-window.send=function(){
-let text=document.getElementById("msg").value.trim()
-if(text=="") return
-push(ref(db,"messages"),{name:username,text:text,time:Date.now(),seen:false})
-document.getElementById("msg").value=""
-}
-
-function createMessage(message,key){
-
-let me = localStorage.getItem("chatUser") || username
-
-let displayName = message.name
-if(message.name === "katis1") displayName = "Kat"
-if(message.name === "kittyis0001") displayName = "Kitty"
-
-let div=document.createElement("div")
-div.classList.add("msg")
-div.id=key
-
-if(message.name==me){div.classList.add("me")}else{div.classList.add("other")}
-
-let time=new Date(message.time)
-let t=time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-
-let text=message.text
-
-if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && text.includes("/uploads/"))){
-text=`<img src="${text}" style="max-width:200px;border-radius:8px;display:block;cursor:pointer;" onclick="showImage('${text}')">`
-}else{
-text=text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
-}
-
-let tick=""
-if(message.name==me){
-tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-}
-
-div.innerHTML="<b>"+displayName+"</b><br>"+text+
-"<div class='time'>"+t+" "+tick+"</div>"
-
-document.getElementById("messages").appendChild(div)
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight
-}
-
-onChildAdded(ref(db,"messages"),d=>createMessage(d.val(),d.key))
-
-onChildAdded(ref(db,"messages"),(data)=>{
-
-let message = data.val()
-
-if(message.name === "kittyis0001"){
-
-let now = new Date()
-let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-
-let text = `💬 Kitty:
-${message.text}
-
-🕒 Today at ${time}`
-
-fetch("https://api.telegram.org/bot8706773948:AAGEEWhwYeP2e44k73DBFzQrEaFi5lGZj1c/sendMessage",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-chat_id:"8782681794",
-text:text
-})
+onChildChanged(ref(db,"messages"), function(data){
+  let me = localStorage.getItem("chatUser") || username
+  let message = data.val()
+  let key = data.key
+  let msgDiv = document.getElementById(key)
+  if(msgDiv && message.name==me){
+    let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+    msgDiv.querySelector(".time").innerHTML =
+    msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+  }
 })
 
-}
-
-})
-
-onChildChanged(ref(db,"messages"),function(data){
-
-let me = localStorage.getItem("chatUser") || username
-
-let message=data.val()
-let key=data.key
-let msgDiv=document.getElementById(key)
-
-if(msgDiv && message.name==me){
-
-let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-
-msgDiv.querySelector(".time").innerHTML =
-msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
-
-}
-
-})
-
+// ✅ seen listener একবারই register হবে
 function markSeenMessages(){
-onValue(ref(db,"messages"),(snap)=>{
-let data=snap.val()
-if(!data) return
-Object.keys(data).forEach(key=>{
-let msg=data[key]
-if(msg.name!=username && !msg.seen){
-update(ref(db,"messages/"+key),{seen:true})
-}
-})
-})
+  if(seenListener) return
+  seenListener = onValue(ref(db,"messages"), (snap)=>{
+    let data = snap.val()
+    if(!data) return
+    Object.keys(data).forEach(key=>{
+      let msg = data[key]
+      if(msg.name!=username && !msg.seen){
+        update(ref(db,"messages/"+key), {seen:true})
+      }
+    })
+  })
 }
 
 function formatTime(ts){
-let d=new Date(ts)
-return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  let d = new Date(ts)
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
 }
 
-onValue(ref(db,"status"),(snap)=>{
-let data=snap.val()
-if(!data) return
-
-let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-
-if(data[otherUser]){
-
-let last = data[otherUser].last
-let diff = Date.now() - last
-
-if(diff < 12000){
-statusText.innerText="Online"
-return
-}
-
-let now=new Date()
-let d=new Date(last)
-
-let isToday = now.toDateString() === d.toDateString()
-
-let yesterday=new Date()
-yesterday.setDate(now.getDate()-1)
-let isYesterday = yesterday.toDateString() === d.toDateString()
-
-let time=formatTime(last)
-
-if(isToday){
-statusText.innerText="Last seen today at "+time
-}else if(isYesterday){
-statusText.innerText="Last seen yesterday at "+time
-}else{
-let date=d.getDate()+" "+d.toLocaleString('default',{month:'short'})
-statusText.innerText="Last seen "+date+" at "+time
-}
-
-}
+onValue(ref(db,"status"), (snap)=>{
+  let data = snap.val()
+  if(!data) return
+  let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+  if(data[otherUser]){
+    let last = data[otherUser].last
+    let diff = Date.now() - last
+    if(diff < 12000){
+      statusText.innerText = "Online"
+      return
+    }
+    let now = new Date()
+    let d = new Date(last)
+    let isToday = now.toDateString() === d.toDateString()
+    let yesterday = new Date()
+    yesterday.setDate(now.getDate()-1)
+    let isYesterday = yesterday.toDateString() === d.toDateString()
+    let time = formatTime(last)
+    if(isToday){
+      statusText.innerText = "Last seen today at "+time
+    } else if(isYesterday){
+      statusText.innerText = "Last seen yesterday at "+time
+    } else {
+      let date = d.getDate()+" "+d.toLocaleString('default',{month:'short'})
+      statusText.innerText = "Last seen "+date+" at "+time
+    }
+  }
 })
 
-window.toggleMenu=function(){
-let m=document.getElementById("menuBox")
-m.style.display=m.style.display=="block"?"none":"block"
+window.toggleMenu = function(){
+  let m = document.getElementById("menuBox")
+  m.style.display = m.style.display=="block" ? "none" : "block"
 }
 
-window.deleteAll=function(){
+window.deleteAll = function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
     document.getElementById("messages").innerHTML=""
   }
 }
 
+const imgViewer = document.getElementById("imgViewer")
+const fullImg = document.getElementById("fullImg")
+let imgScale = 1
+let touchStartDist = 0
+let touchStartScale = 1
+
+imgViewer.addEventListener("touchstart", function(e){
+  if(e.touches.length === 2){
+    touchStartDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    touchStartScale = imgScale
+  }
+}, {passive: true})
+
+imgViewer.addEventListener("touchmove", function(e){
+  if(e.touches.length === 2){
+    e.preventDefault()
+    let dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    imgScale = Math.min(Math.max(touchStartScale * (dist / touchStartDist), 1), 4)
+    fullImg.style.transform = "scale(" + imgScale + ")"
+  }
+}, {passive: false})
+
+imgViewer.addEventListener("click", function(e){
+  if(e.target.id === "imgViewer"){
+    imgViewer.style.display = "none"
+    imgScale = 1
+    fullImg.style.transform = "scale(1)"
+  }
+})
+
+fullImg.addEventListener("click", function(e){
+  e.stopPropagation()
+  imgScale = imgScale === 1 ? 2.5 : 1
+  fullImg.style.transform = "scale(" + imgScale + ")"
+  fullImg.style.cursor = imgScale === 1 ? "zoom-in" : "zoom-out"
+})
+
 window.showImage = function(src){
-  let viewer = document.getElementById("imgViewer")
-  let img = document.getElementById("fullImg")
-
-  viewer.style.display = "flex"
-  img.src = src
-  img.style.transform = "scale(1)"
-  img.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
-  img.style.cursor = "zoom-in"
-
-  let scale = 1
-
-  img.onclick = function(e){
-    e.stopPropagation()
-    scale = scale === 1 ? 2.5 : 1
-    img.style.transform = "scale(" + scale + ")"
-    img.style.cursor = scale === 1 ? "zoom-in" : "zoom-out"
-  }
-
-  let startDist = 0
-  let startScale = 1
-
-  viewer.addEventListener("touchstart", function(e){
-    if(e.touches.length === 2){
-      startDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      startScale = scale
-    }
-  }, {passive: true})
-
-  viewer.addEventListener("touchmove", function(e){
-    if(e.touches.length === 2){
-      e.preventDefault()
-      let dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      scale = Math.min(Math.max(startScale * (dist / startDist), 1), 4)
-      img.style.transform = "scale(" + scale + ")"
-    }
-  }, {passive: false})
-
-  viewer.onclick = function(e){
-    if(e.target.id === "imgViewer"){
-      viewer.style.display = "none"
-      scale = 1
-      img.style.transform = "scale(1)"
-    }
-  }
+  imgScale = 1
+  fullImg.src = src
+  fullImg.style.transform = "scale(1)"
+  fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+  fullImg.style.cursor = "zoom-in"
+  imgViewer.style.display = "flex"
 }
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
@@ -519,49 +563,50 @@ const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 �
 const box = document.getElementById("emojiBox")
 
 emojis.forEach(e=>{
-let span=document.createElement("span")
-span.innerText=e
-span.style.fontSize="22px"
-span.style.padding="6px"
-span.style.cursor="pointer"
-
-span.onclick=()=>{
-let input=document.getElementById("msg")
-input.value+=e
-input.focus()
-}
-
-box.appendChild(span)
+  let span = document.createElement("span")
+  span.innerText = e
+  span.style.fontSize = "22px"
+  span.style.padding = "6px"
+  span.style.cursor = "pointer"
+  span.onclick = ()=>{
+    let input = document.getElementById("msg")
+    input.value += e
+    input.focus()
+  }
+  box.appendChild(span)
 })
 
-window.toggleEmoji=function(){
-let box=document.getElementById("emojiBox")
-box.style.display = box.style.display=="block" ? "none" : "block"
+window.toggleEmoji = function(){
+  let box = document.getElementById("emojiBox")
+  box.style.display = box.style.display=="block" ? "none" : "block"
 }
 
-const BACKEND = "https://chat-backend-myvs.onrender.com"
-
-window.uploadImage = async function(input) {
+window.uploadImage = async function(input){
   let file = input.files[0]
-  if (!file) return
-
+  if(!file) return
   let formData = new FormData()
   formData.append("file", file)
-
-  let res = await fetch(BACKEND + "/upload", {
-    method: "POST",
-    body: formData
-  })
-
-  let data = await res.json()
-
-  push(ref(db, "messages"), {
-    name: username,
-    text: data.url,
-    time: Date.now(),
-    seen: false
-  })
-
+  try {
+    let res = await fetch(BACKEND + "/upload", {
+      method: "POST",
+      body: formData
+    })
+    let data = await res.json()
+    // ✅ response validation
+    if(!data.url){
+      alert("Upload failed ⚠️")
+      input.value = ""
+      return
+    }
+    push(ref(db,"messages"), {
+      name: username,
+      text: data.url,
+      time: Date.now(),
+      seen: false
+    })
+  } catch(e) {
+    alert("Upload failed ⚠️")
+  }
   input.value = ""
 }
 
@@ -581,7 +626,6 @@ z-index:9999;
 overflow:hidden;
 touch-action:none;
 ">
-
 <img id="fullImg" style="
 max-width:100%;
 max-height:100%;
@@ -589,8 +633,7 @@ transform:scale(1);
 transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
 cursor:zoom-in;
 ">
-
 </div>
 
 </body>
-</html>
+  </html>

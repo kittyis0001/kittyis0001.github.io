@@ -93,7 +93,6 @@ text-shadow:0 1px 4px rgba(0,0,0,0.8);
 margin-bottom:12px;
 }
 
-/* ✅ ছোট input */
 .loginInput{
 width:100%;
 padding:10px 12px;
@@ -205,6 +204,7 @@ position:absolute;
 right:10px;top:60px;
 background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
+z-index:100;
 }
 
 #menuBox div{padding:10px;cursor:pointer;}
@@ -216,6 +216,7 @@ padding:10px;margin:6px;
 max-width:65%;
 border-radius:8px;
 word-wrap:break-word;
+position:relative;
 }
 
 .me{background:#dcf8c6;margin-left:auto;}
@@ -224,6 +225,48 @@ word-wrap:break-word;
 .time{
 font-size:11px;color:gray;
 margin-top:3px;text-align:right;
+}
+
+/* ✅ Reaction display */
+.reactionBar{
+display:flex;
+flex-wrap:wrap;
+gap:4px;
+margin-top:4px;
+}
+
+.reactionBadge{
+background:rgba(0,0,0,0.08);
+border-radius:20px;
+padding:2px 7px;
+font-size:14px;
+cursor:pointer;
+border:1px solid rgba(0,0,0,0.1);
+}
+
+/* ✅ Reaction picker popup */
+#reactionPicker{
+display:none;
+position:fixed;
+background:white;
+border-radius:30px;
+padding:8px 12px;
+box-shadow:0 4px 20px rgba(0,0,0,0.25);
+z-index:9998;
+gap:6px;
+flex-direction:row;
+}
+
+.reactionOption{
+font-size:24px;
+cursor:pointer;
+padding:4px;
+border-radius:50%;
+transition:transform 0.1s;
+}
+
+.reactionOption:active{
+transform:scale(1.3);
 }
 
 #inputArea{
@@ -295,10 +338,20 @@ border-radius:50%;color:white;font-size:18px;
 
 </div>
 
+<!-- ✅ Reaction Picker -->
+<div id="reactionPicker">
+  <span class="reactionOption">❤️</span>
+  <span class="reactionOption">😂</span>
+  <span class="reactionOption">😮</span>
+  <span class="reactionOption">😢</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update }
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig = {
@@ -315,7 +368,6 @@ const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 
 const BACKEND = "https://chat-backend-myvs.onrender.com"
-
 fetch(BACKEND).catch(()=>{})
 
 const bgCount = 59
@@ -329,6 +381,81 @@ const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
 let seenListener = null
 
+// ✅ Reaction picker logic
+const reactionPicker = document.getElementById("reactionPicker")
+let currentMsgKey = null
+let longPressTimer = null
+
+function showReactionPicker(msgDiv, key, e){
+  currentMsgKey = key
+  reactionPicker.style.display = "flex"
+
+  // position — message এর উপরে
+  const rect = msgDiv.getBoundingClientRect()
+  let top = rect.top - 60
+  let left = rect.left
+
+  if(top < 10) top = rect.bottom + 8
+  if(left + 280 > window.innerWidth) left = window.innerWidth - 290
+
+  reactionPicker.style.top = top + "px"
+  reactionPicker.style.left = left + "px"
+}
+
+// picker এর বাইরে click করলে বন্ধ হবে
+document.addEventListener("click", function(e){
+  if(!reactionPicker.contains(e.target)){
+    reactionPicker.style.display = "none"
+    currentMsgKey = null
+  }
+})
+
+// reaction select
+document.querySelectorAll(".reactionOption").forEach(el => {
+  el.addEventListener("click", async function(){
+    if(!currentMsgKey) return
+    const emoji = this.innerText
+    // ✅ Firebase এ save
+    await update(ref(db, "messages/" + currentMsgKey + "/reactions"), {
+      [username]: emoji
+    })
+    reactionPicker.style.display = "none"
+    currentMsgKey = null
+  })
+})
+
+// ✅ reaction render helper
+function renderReactions(reactions, msgKey, isMe){
+  if(!reactions) return ""
+  const counts = {}
+  Object.values(reactions).forEach(e => {
+    counts[e] = (counts[e] || 0) + 1
+  })
+  const myReaction = reactions[username] || null
+  let html = '<div class="reactionBar">'
+  Object.entries(counts).forEach(([emoji, count]) => {
+    const active = myReaction === emoji ? "border:1.5px solid #075E54;" : ""
+    html += `<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count > 1 ? " "+count : ""}</span>`
+  })
+  html += "</div>"
+  return html
+}
+
+window.toggleReaction = async function(msgKey, emoji){
+  const snap = await get(ref(db, "messages/" + msgKey + "/reactions"))
+  const reactions = snap.val() || {}
+  if(reactions[username] === emoji){
+    // same emoji → remove
+    await update(ref(db, "messages/" + msgKey + "/reactions"), {
+      [username]: null
+    })
+  } else {
+    await update(ref(db, "messages/" + msgKey + "/reactions"), {
+      [username]: emoji
+    })
+  }
+}
+
 window.unlock = async function(){
   let key = document.getElementById("key").value
   accessLoader.style.display = "flex"
@@ -340,10 +467,7 @@ window.unlock = async function(){
     })
     const data = await res.json()
     accessLoader.style.display = "none"
-    if(!data.ok){
-      document.body.innerHTML=""
-      return
-    }
+    if(!data.ok){ document.body.innerHTML=""; return }
   } catch(e) {
     accessLoader.style.display = "none"
     document.body.innerHTML=""
@@ -426,6 +550,7 @@ window.send = function(){
 
 function createMessage(message, key){
   let me = localStorage.getItem("chatUser") || username
+
   let displayName = message.name
   if(message.name === "katis1") displayName = "Kat"
   if(message.name === "kittyis0001") displayName = "Kitty"
@@ -451,8 +576,36 @@ function createMessage(message, key){
     tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
   }
 
+  const reactionsHtml = renderReactions(message.reactions, key, message.name==me)
+
   div.innerHTML = "<b>"+displayName+"</b><br>"+text+
-  "<div class='time'>"+t+" "+tick+"</div>"
+  "<div class='time'>"+t+" "+tick+"</div>"+reactionsHtml
+
+  // ✅ long press — 1 সেকেন্ড ধরে রাখলে reaction picker
+  div.addEventListener("touchstart", function(e){
+    longPressTimer = setTimeout(()=>{
+      showReactionPicker(div, key, e)
+    }, 600)
+  }, {passive: true})
+
+  div.addEventListener("touchend", function(){
+    clearTimeout(longPressTimer)
+  })
+
+  div.addEventListener("touchmove", function(){
+    clearTimeout(longPressTimer)
+  })
+
+  // desktop এ mouse hold
+  div.addEventListener("mousedown", function(e){
+    longPressTimer = setTimeout(()=>{
+      showReactionPicker(div, key, e)
+    }, 600)
+  })
+
+  div.addEventListener("mouseup", function(){
+    clearTimeout(longPressTimer)
+  })
 
   document.getElementById("messages").appendChild(div)
   document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight
@@ -473,15 +626,31 @@ onChildAdded(ref(db,"messages"), (data)=>{
   }
 })
 
+// ✅ onChildChanged — reaction + seen tick দুটোই handle
 onChildChanged(ref(db,"messages"), function(data){
   let me = localStorage.getItem("chatUser") || username
   let message = data.val()
   let key = data.key
   let msgDiv = document.getElementById(key)
-  if(msgDiv && message.name==me){
+  if(!msgDiv) return
+
+  // tick update
+  if(message.name==me){
     let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-    msgDiv.querySelector(".time").innerHTML =
-    msgDiv.querySelector(".time").innerHTML.split(" ")[0] + " " + tick
+    const timeDiv = msgDiv.querySelector(".time")
+    if(timeDiv){
+      timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0] + " " + tick
+    }
+  }
+
+  // ✅ reaction update — realtime
+  let reactionBar = msgDiv.querySelector(".reactionBar")
+  const newReactionHtml = renderReactions(message.reactions, key, message.name==me)
+
+  if(reactionBar){
+    reactionBar.outerHTML = newReactionHtml || ""
+  } else if(newReactionHtml) {
+    msgDiv.insertAdjacentHTML("beforeend", newReactionHtml)
   }
 })
 
@@ -511,10 +680,7 @@ onValue(ref(db,"status"), (snap)=>{
   if(data[otherUser]){
     let last = data[otherUser].last
     let diff = Date.now() - last
-    if(diff < 12000){
-      statusText.innerText = "Online"
-      return
-    }
+    if(diff < 12000){ statusText.innerText = "Online"; return }
     let now = new Date()
     let d = new Date(last)
     let isToday = now.toDateString() === d.toDateString()
@@ -626,22 +792,10 @@ window.uploadImage = async function(input){
   let formData = new FormData()
   formData.append("file", file)
   try {
-    let res = await fetch(BACKEND + "/upload", {
-      method: "POST",
-      body: formData
-    })
+    let res = await fetch(BACKEND + "/upload", { method:"POST", body:formData })
     let data = await res.json()
-    if(!data.url){
-      alert("Upload failed ⚠️")
-      input.value = ""
-      return
-    }
-    push(ref(db,"messages"), {
-      name: username,
-      text: data.url,
-      time: Date.now(),
-      seen: false
-    })
+    if(!data.url){ alert("Upload failed ⚠️"); input.value=""; return }
+    push(ref(db,"messages"), { name:username, text:data.url, time:Date.now(), seen:false })
   } catch(e) {
     alert("Upload failed ⚠️")
   }
@@ -651,24 +805,16 @@ window.uploadImage = async function(input){
 </script>
 
 <div id="imgViewer" style="
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
+display:none;position:fixed;
+top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.95);
-justify-content:center;
-align-items:center;
-z-index:9999;
-overflow:hidden;
-touch-action:none;
-">
+justify-content:center;align-items:center;
+z-index:9999;overflow:hidden;touch-action:none;">
 <img id="fullImg" style="
-max-width:100%;
-max-height:100%;
+max-width:100%;max-height:100%;
 transform:scale(1);
 transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
-cursor:zoom-in;
-">
+cursor:zoom-in;">
 </div>
 
 </body>

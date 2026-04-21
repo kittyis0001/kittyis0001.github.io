@@ -227,7 +227,6 @@ font-size:11px;color:gray;
 margin-top:3px;text-align:right;
 }
 
-/* ✅ Reaction display */
 .reactionBar{
 display:flex;
 flex-wrap:wrap;
@@ -244,7 +243,6 @@ cursor:pointer;
 border:1px solid rgba(0,0,0,0.1);
 }
 
-/* ✅ Reaction picker popup */
 #reactionPicker{
 display:none;
 position:fixed;
@@ -316,7 +314,7 @@ border-radius:50%;color:white;font-size:18px;
 <div id="headerCenter">
 <span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<span class="iconBtn"> </span>
+<span class="iconBtn">🎤</span>
 <div id="statusText">Offline</div>
 </div>
 <div id="menu" onclick="toggleMenu()">⋮</div>
@@ -338,7 +336,6 @@ border-radius:50%;color:white;font-size:18px;
 
 </div>
 
-<!-- ✅ Reaction Picker -->
 <div id="reactionPicker">
   <span class="reactionOption">❤️</span>
   <span class="reactionOption">😂</span>
@@ -381,7 +378,6 @@ const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
 let seenListener = null
 
-// ✅ Reaction picker logic
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey = null
 let longPressTimer = null
@@ -389,20 +385,15 @@ let longPressTimer = null
 function showReactionPicker(msgDiv, key, e){
   currentMsgKey = key
   reactionPicker.style.display = "flex"
-
-  // position — message এর উপরে
   const rect = msgDiv.getBoundingClientRect()
   let top = rect.top - 60
   let left = rect.left
-
   if(top < 10) top = rect.bottom + 8
   if(left + 280 > window.innerWidth) left = window.innerWidth - 290
-
   reactionPicker.style.top = top + "px"
   reactionPicker.style.left = left + "px"
 }
 
-// picker এর বাইরে click করলে বন্ধ হবে
 document.addEventListener("click", function(e){
   if(!reactionPicker.contains(e.target)){
     reactionPicker.style.display = "none"
@@ -410,12 +401,10 @@ document.addEventListener("click", function(e){
   }
 })
 
-// reaction select
 document.querySelectorAll(".reactionOption").forEach(el => {
   el.addEventListener("click", async function(){
     if(!currentMsgKey) return
     const emoji = this.innerText
-    // ✅ Firebase এ save
     await update(ref(db, "messages/" + currentMsgKey + "/reactions"), {
       [username]: emoji
     })
@@ -424,7 +413,6 @@ document.querySelectorAll(".reactionOption").forEach(el => {
   })
 })
 
-// ✅ reaction render helper
 function renderReactions(reactions, msgKey, isMe){
   if(!reactions) return ""
   const counts = {}
@@ -445,14 +433,9 @@ window.toggleReaction = async function(msgKey, emoji){
   const snap = await get(ref(db, "messages/" + msgKey + "/reactions"))
   const reactions = snap.val() || {}
   if(reactions[username] === emoji){
-    // same emoji → remove
-    await update(ref(db, "messages/" + msgKey + "/reactions"), {
-      [username]: null
-    })
+    await update(ref(db, "messages/" + msgKey + "/reactions"), { [username]: null })
   } else {
-    await update(ref(db, "messages/" + msgKey + "/reactions"), {
-      [username]: emoji
-    })
+    await update(ref(db, "messages/" + msgKey + "/reactions"), { [username]: emoji })
   }
 }
 
@@ -480,11 +463,7 @@ window.unlock = async function(){
 window.start = async function(){
   username = document.getElementById("name").value.trim()
   let password = document.getElementById("code").value
-
-  if(!username || !password){
-    alert("Enter username & password")
-    return
-  }
+  if(!username || !password){ alert("Enter username & password"); return }
 
   const btn = document.getElementById("loginBtn")
   btn.disabled = true
@@ -534,9 +513,7 @@ window.start = async function(){
     }
   })
 
-  setInterval(()=>{
-    set(userRef, {online:true, last:Date.now()})
-  }, 10000)
+  setInterval(()=>{ set(userRef, {online:true, last:Date.now()}) }, 10000)
 
   markSeenMessages()
 }
@@ -550,7 +527,6 @@ window.send = function(){
 
 function createMessage(message, key){
   let me = localStorage.getItem("chatUser") || username
-
   let displayName = message.name
   if(message.name === "katis1") displayName = "Kat"
   if(message.name === "kittyis0001") displayName = "Kitty"
@@ -558,7 +534,6 @@ function createMessage(message, key){
   let div = document.createElement("div")
   div.classList.add("msg")
   div.id = key
-
   if(message.name==me){ div.classList.add("me") } else { div.classList.add("other") }
 
   let time = new Date(message.time)
@@ -581,31 +556,15 @@ function createMessage(message, key){
   div.innerHTML = "<b>"+displayName+"</b><br>"+text+
   "<div class='time'>"+t+" "+tick+"</div>"+reactionsHtml
 
-  // ✅ long press — 1 সেকেন্ড ধরে রাখলে reaction picker
   div.addEventListener("touchstart", function(e){
-    longPressTimer = setTimeout(()=>{
-      showReactionPicker(div, key, e)
-    }, 600)
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key, e) }, 600)
   }, {passive: true})
-
-  div.addEventListener("touchend", function(){
-    clearTimeout(longPressTimer)
-  })
-
-  div.addEventListener("touchmove", function(){
-    clearTimeout(longPressTimer)
-  })
-
-  // desktop এ mouse hold
+  div.addEventListener("touchend", function(){ clearTimeout(longPressTimer) })
+  div.addEventListener("touchmove", function(){ clearTimeout(longPressTimer) })
   div.addEventListener("mousedown", function(e){
-    longPressTimer = setTimeout(()=>{
-      showReactionPicker(div, key, e)
-    }, 600)
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key, e) }, 600)
   })
-
-  div.addEventListener("mouseup", function(){
-    clearTimeout(longPressTimer)
-  })
+  div.addEventListener("mouseup", function(){ clearTimeout(longPressTimer) })
 
   document.getElementById("messages").appendChild(div)
   document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight
@@ -626,7 +585,6 @@ onChildAdded(ref(db,"messages"), (data)=>{
   }
 })
 
-// ✅ onChildChanged — reaction + seen tick দুটোই handle
 onChildChanged(ref(db,"messages"), function(data){
   let me = localStorage.getItem("chatUser") || username
   let message = data.val()
@@ -634,7 +592,6 @@ onChildChanged(ref(db,"messages"), function(data){
   let msgDiv = document.getElementById(key)
   if(!msgDiv) return
 
-  // tick update
   if(message.name==me){
     let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
     const timeDiv = msgDiv.querySelector(".time")
@@ -643,13 +600,11 @@ onChildChanged(ref(db,"messages"), function(data){
     }
   }
 
-  // ✅ reaction update — realtime
   let reactionBar = msgDiv.querySelector(".reactionBar")
   const newReactionHtml = renderReactions(message.reactions, key, message.name==me)
-
   if(reactionBar){
     reactionBar.outerHTML = newReactionHtml || ""
-  } else if(newReactionHtml) {
+  } else if(newReactionHtml){
     msgDiv.insertAdjacentHTML("beforeend", newReactionHtml)
   }
 })
@@ -668,9 +623,14 @@ function markSeenMessages(){
   })
 }
 
+// ✅ 12 hour format with AM/PM
 function formatTime(ts){
   let d = new Date(ts)
-  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  return d.toLocaleTimeString([], {
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12: true
+  })
 }
 
 onValue(ref(db,"status"), (snap)=>{
@@ -681,20 +641,24 @@ onValue(ref(db,"status"), (snap)=>{
     let last = data[otherUser].last
     let diff = Date.now() - last
     if(diff < 12000){ statusText.innerText = "Online"; return }
+
     let now = new Date()
     let d = new Date(last)
     let isToday = now.toDateString() === d.toDateString()
     let yesterday = new Date()
     yesterday.setDate(now.getDate()-1)
     let isYesterday = yesterday.toDateString() === d.toDateString()
+
+    // ✅ 12 hour format
     let time = formatTime(last)
+
     if(isToday){
-      statusText.innerText = "Last seen today at "+time
+      statusText.innerText = "Last seen today at " + time
     } else if(isYesterday){
-      statusText.innerText = "Last seen yesterday at "+time
+      statusText.innerText = "Last seen yesterday at " + time
     } else {
       let date = d.getDate()+" "+d.toLocaleString('default',{month:'short'})
-      statusText.innerText = "Last seen "+date+" at "+time
+      statusText.innerText = "Last seen " + date + " at " + time
     }
   }
 })
@@ -704,10 +668,12 @@ window.toggleMenu = function(){
   m.style.display = m.style.display=="block" ? "none" : "block"
 }
 
+// ✅ delete হলে menu auto close
 window.deleteAll = function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
     document.getElementById("messages").innerHTML=""
+    document.getElementById("menuBox").style.display = "none"
   }
 }
 
@@ -766,7 +732,6 @@ window.showImage = function(src){
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
 const box = document.getElementById("emojiBox")
-
 emojis.forEach(e=>{
   let span = document.createElement("span")
   span.innerText = e

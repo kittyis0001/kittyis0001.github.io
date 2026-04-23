@@ -267,6 +267,125 @@ transition:transform 0.1s;
 transform:scale(1.3);
 }
 
+/* ✅ Voice message UI */
+.voiceMsg{
+display:flex;
+align-items:center;
+gap:8px;
+min-width:180px;
+}
+
+.voicePlayBtn{
+background:#075E54;
+border:none;
+border-radius:50%;
+width:36px;height:36px;
+color:white;
+font-size:16px;
+cursor:pointer;
+flex-shrink:0;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.voiceWave{
+flex:1;
+height:3px;
+background:rgba(0,0,0,0.15);
+border-radius:3px;
+position:relative;
+overflow:hidden;
+}
+
+.voiceWaveFill{
+height:100%;
+background:#075E54;
+width:0%;
+border-radius:3px;
+transition:width 0.1s linear;
+}
+
+.voiceDuration{
+font-size:12px;
+color:gray;
+min-width:32px;
+}
+
+/* ✅ Recording UI */
+#voiceRecordBar{
+display:none;
+position:fixed;
+bottom:0;left:0;
+width:100%;
+background:#075E54;
+padding:14px 20px;
+box-sizing:border-box;
+align-items:center;
+justify-content:space-between;
+z-index:500;
+}
+
+#voiceRecordBar .recLeft{
+display:flex;
+align-items:center;
+gap:10px;
+color:white;
+}
+
+@keyframes pulse{
+0%,100%{opacity:1}
+50%{opacity:0.3}
+}
+
+.recDot{
+width:12px;height:12px;
+background:#ff4444;
+border-radius:50%;
+animation:pulse 1s infinite;
+}
+
+#recTimer{
+color:white;
+font-size:16px;
+font-weight:bold;
+}
+
+#voiceRecordBar .recRight{
+display:flex;
+gap:16px;
+align-items:center;
+}
+
+/* ✅ Voice preview bar */
+#voicePreviewBar{
+display:none;
+background:#f0f0f0;
+padding:10px 14px;
+align-items:center;
+gap:10px;
+border-top:1px solid #ddd;
+}
+
+#voicePreviewBar button{
+border:none;
+border-radius:50%;
+width:36px;height:36px;
+font-size:16px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+#previewPlayBtn{ background:#075E54; color:white; }
+#previewDeleteBtn{ background:#ff4444; color:white; }
+#previewSendBtn{ background:#075E54; color:white; }
+
+#voicePreviewBar audio{
+display:none;
+}
+
 #inputArea{
 display:flex;
 padding:8px 10px;
@@ -274,7 +393,6 @@ background:#f0f0f0;
 align-items:flex-end;
 }
 
-/* ✅ textarea — WhatsApp style auto expand */
 #msg{
 flex:1;
 padding:10px 14px;
@@ -300,6 +418,15 @@ border-radius:50%;
 color:white;
 font-size:18px;
 flex-shrink:0;
+}
+
+/* ✅ Typing indicator */
+#typingIndicator{
+display:none;
+padding:4px 14px;
+font-size:12px;
+color:#555;
+font-style:italic;
 }
 </style>
 </head>
@@ -332,7 +459,7 @@ flex-shrink:0;
 <div id="headerCenter">
 <span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<span class="iconBtn">🎤</span>
+<span class="iconBtn" id="micBtn">🎤</span>
 <div id="statusText">Offline</div>
 </div>
 <div id="menu" onclick="toggleMenu()">⋮</div>
@@ -342,16 +469,39 @@ flex-shrink:0;
 <div onclick="deleteAll()">Delete All Chat</div>
 </div>
 
+<!-- ✅ Typing indicator -->
+<div id="typingIndicator">typing...</div>
+
 <div id="messages"></div>
+
+<!-- ✅ Voice preview bar -->
+<div id="voicePreviewBar">
+  <button id="previewDeleteBtn" title="Delete">🗑️</button>
+  <button id="previewPlayBtn" title="Play">▶️</button>
+  <span id="previewDuration" style="font-size:13px;color:#555;flex:1;">0:00</span>
+  <button id="previewSendBtn" title="Send">➤</button>
+  <audio id="previewAudio"></audio>
+</div>
 
 <div id="inputArea">
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
-<!-- ✅ textarea -->
 <textarea id="msg" placeholder="Type message..." rows="1"></textarea>
 <button id="sendBtn" onclick="send()">➤</button>
 </div>
 
 <div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
+
+<!-- ✅ Recording bar -->
+<div id="voiceRecordBar">
+  <div class="recLeft">
+    <div class="recDot"></div>
+    <span id="recTimer">0:00</span>
+    <span style="color:rgba(255,255,255,0.8);font-size:13px;">Recording...</span>
+  </div>
+  <div class="recRight">
+    <span style="color:white;font-size:22px;cursor:pointer;" id="recCancelBtn">✕</span>
+  </div>
+</div>
 
 </div>
 
@@ -388,8 +538,7 @@ fetch(BACKEND).catch(()=>{})
 
 const bgCount = 59
 const bgIndex = Math.floor(Math.random() * bgCount) + 1
-const bgUrl = `https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg`
-document.body.style.backgroundImage = `url('${bgUrl}')`
+document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
 
 let username = ""
 const appStartTime = Date.now()
@@ -397,15 +546,184 @@ const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
 let seenListener = null
 
-// ✅ textarea auto expand
+// ─────────────────────────────────────────────
+// ✅ VOICE RECORDING
+// ─────────────────────────────────────────────
+let mediaRecorder = null
+let audioChunks = []
+let recordedBlob = null
+let recTimerInterval = null
+let recSeconds = 0
+let isRecording = false
+
+const micBtn = document.getElementById("micBtn")
+const voiceRecordBar = document.getElementById("voiceRecordBar")
+const voicePreviewBar = document.getElementById("voicePreviewBar")
+const recTimer = document.getElementById("recTimer")
+const recCancelBtn = document.getElementById("recCancelBtn")
+const previewAudio = document.getElementById("previewAudio")
+const previewPlayBtn = document.getElementById("previewPlayBtn")
+const previewDeleteBtn = document.getElementById("previewDeleteBtn")
+const previewSendBtn = document.getElementById("previewSendBtn")
+const previewDuration = document.getElementById("previewDuration")
+
+function formatRecTime(s){
+  return Math.floor(s/60) + ":" + ("0"+(s%60)).slice(-2)
+}
+
+async function startRecording(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    audioChunks = []
+    mediaRecorder = new MediaRecorder(stream)
+    mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data) }
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: "audio/webm" })
+      const url = URL.createObjectURL(recordedBlob)
+      previewAudio.src = url
+      previewDuration.innerText = formatRecTime(recSeconds)
+      voiceRecordBar.style.display = "none"
+      voicePreviewBar.style.display = "flex"
+      stream.getTracks().forEach(t => t.stop())
+    }
+    mediaRecorder.start()
+    isRecording = true
+    recSeconds = 0
+    recTimer.innerText = "0:00"
+    voiceRecordBar.style.display = "flex"
+    recTimerInterval = setInterval(()=>{
+      recSeconds++
+      recTimer.innerText = formatRecTime(recSeconds)
+    }, 1000)
+  } catch(e) {
+    alert("Microphone permission denied")
+  }
+}
+
+function stopRecording(){
+  if(mediaRecorder && isRecording){
+    clearInterval(recTimerInterval)
+    isRecording = false
+    mediaRecorder.stop()
+  }
+}
+
+function cancelRecording(){
+  if(mediaRecorder && isRecording){
+    clearInterval(recTimerInterval)
+    isRecording = false
+    mediaRecorder.stream.getTracks().forEach(t => t.stop())
+    mediaRecorder.stop()
+    recordedBlob = null
+    voiceRecordBar.style.display = "none"
+  }
+}
+
+// mic hold → record
+micBtn.addEventListener("touchstart", function(e){
+  e.preventDefault()
+  startRecording()
+}, {passive: false})
+
+micBtn.addEventListener("touchend", function(e){
+  e.preventDefault()
+  stopRecording()
+}, {passive: false})
+
+micBtn.addEventListener("mousedown", function(e){
+  e.preventDefault()
+  startRecording()
+})
+
+micBtn.addEventListener("mouseup", function(){
+  stopRecording()
+})
+
+// cancel recording
+recCancelBtn.addEventListener("click", function(){
+  cancelRecording()
+})
+
+// preview play/pause
+let isPlaying = false
+previewPlayBtn.addEventListener("click", function(){
+  if(isPlaying){
+    previewAudio.pause()
+    previewPlayBtn.innerText = "▶️"
+    isPlaying = false
+  } else {
+    previewAudio.play()
+    previewPlayBtn.innerText = "⏸️"
+    isPlaying = true
+  }
+})
+
+previewAudio.addEventListener("ended", function(){
+  previewPlayBtn.innerText = "▶️"
+  isPlaying = false
+})
+
+// delete preview
+previewDeleteBtn.addEventListener("click", function(){
+  recordedBlob = null
+  previewAudio.src = ""
+  voicePreviewBar.style.display = "none"
+  isPlaying = false
+})
+
+// send voice
+previewSendBtn.addEventListener("click", async function(){
+  if(!recordedBlob) return
+  previewSendBtn.disabled = true
+  previewSendBtn.innerText = "⏳"
+
+  try {
+    const formData = new FormData()
+    formData.append("file", recordedBlob, "voice.webm")
+    const res = await fetch(BACKEND + "/voice", { method: "POST", body: formData })
+    const data = await res.json()
+    if(!data.url) throw new Error("No URL")
+
+    push(ref(db, "messages"), {
+      name: username,
+      text: "__voice__" + data.url,
+      time: Date.now(),
+      seen: false
+    })
+
+    recordedBlob = null
+    previewAudio.src = ""
+    voicePreviewBar.style.display = "none"
+    isPlaying = false
+  } catch(e) {
+    alert("Voice send failed ⚠️")
+  }
+  previewSendBtn.disabled = false
+  previewSendBtn.innerText = "➤"
+})
+
+// ─────────────────────────────────────────────
+// ✅ TYPING INDICATOR
+// ─────────────────────────────────────────────
+const typingIndicator = document.getElementById("typingIndicator")
+let typingTimeout = null
+
 const msgBox = document.getElementById("msg")
 
 msgBox.addEventListener("input", function(){
   this.style.height = "auto"
   this.style.height = Math.min(this.scrollHeight, 120) + "px"
+
+  // typing status set
+  if(username){
+    set(ref(db, "typing/" + username), true)
+    clearTimeout(typingTimeout)
+    typingTimeout = setTimeout(()=>{
+      set(ref(db, "typing/" + username), false)
+    }, 2000)
+  }
 })
 
-// ✅ Enter = send, Shift+Enter = new line
 msgBox.addEventListener("keydown", function(e){
   if(e.key === "Enter" && !e.shiftKey){
     e.preventDefault()
@@ -413,11 +731,14 @@ msgBox.addEventListener("keydown", function(e){
   }
 })
 
+// ─────────────────────────────────────────────
+// Reaction picker
+// ─────────────────────────────────────────────
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey = null
 let longPressTimer = null
 
-function showReactionPicker(msgDiv, key, e){
+function showReactionPicker(msgDiv, key){
   currentMsgKey = key
   reactionPicker.style.display = "flex"
   const rect = msgDiv.getBoundingClientRect()
@@ -439,41 +760,36 @@ document.addEventListener("click", function(e){
 document.querySelectorAll(".reactionOption").forEach(el => {
   el.addEventListener("click", async function(){
     if(!currentMsgKey) return
-    const emoji = this.innerText
-    await update(ref(db, "messages/" + currentMsgKey + "/reactions"), {
-      [username]: emoji
-    })
+    await update(ref(db, "messages/" + currentMsgKey + "/reactions"), { [username]: this.innerText })
     reactionPicker.style.display = "none"
     currentMsgKey = null
   })
 })
 
-function renderReactions(reactions, msgKey, isMe){
+function renderReactions(reactions, msgKey){
   if(!reactions) return ""
   const counts = {}
-  Object.values(reactions).forEach(e => {
-    counts[e] = (counts[e] || 0) + 1
-  })
+  Object.values(reactions).forEach(e => { counts[e] = (counts[e]||0)+1 })
   const myReaction = reactions[username] || null
   let html = '<div class="reactionBar">'
   Object.entries(counts).forEach(([emoji, count]) => {
     const active = myReaction === emoji ? "border:1.5px solid #075E54;" : ""
     html += `<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count > 1 ? " "+count : ""}</span>`
   })
-  html += "</div>"
-  return html
+  return html + "</div>"
 }
 
 window.toggleReaction = async function(msgKey, emoji){
   const snap = await get(ref(db, "messages/" + msgKey + "/reactions"))
   const reactions = snap.val() || {}
-  if(reactions[username] === emoji){
-    await update(ref(db, "messages/" + msgKey + "/reactions"), { [username]: null })
-  } else {
-    await update(ref(db, "messages/" + msgKey + "/reactions"), { [username]: emoji })
-  }
+  await update(ref(db, "messages/" + msgKey + "/reactions"), {
+    [username]: reactions[username] === emoji ? null : emoji
+  })
 }
 
+// ─────────────────────────────────────────────
+// Auth
+// ─────────────────────────────────────────────
 window.unlock = async function(){
   let key = document.getElementById("key").value
   accessLoader.style.display = "flex"
@@ -539,6 +855,8 @@ window.start = async function(){
   const userRef = ref(db, "status/" + username)
   set(userRef, {online:true, last:Date.now()})
   onDisconnect(userRef).set({online:false, last:Date.now()})
+  // typing status cleanup on disconnect
+  onDisconnect(ref(db, "typing/" + username)).set(false)
 
   document.addEventListener("visibilitychange", ()=>{
     if(document.hidden){
@@ -550,16 +868,93 @@ window.start = async function(){
 
   setInterval(()=>{ set(userRef, {online:true, last:Date.now()}) }, 10000)
 
+  // ✅ Typing indicator listener
+  const otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+  const otherName = otherUser === "kittyis0001" ? "Kitty" : "Kat"
+
+  onValue(ref(db, "typing/" + otherUser), (snap)=>{
+    const isTyping = snap.val()
+    typingIndicator.style.display = isTyping ? "block" : "none"
+    typingIndicator.innerText = isTyping ? otherName + " is typing..." : ""
+  })
+
   markSeenMessages()
 }
 
+// ─────────────────────────────────────────────
+// Messages
+// ─────────────────────────────────────────────
 window.send = function(){
   let text = msgBox.value.trim()
   if(text=="") return
   push(ref(db,"messages"), {name:username, text:text, time:Date.now(), seen:false})
-  // ✅ send এর পরে textarea reset
   msgBox.value = ""
   msgBox.style.height = "auto"
+  set(ref(db, "typing/" + username), false)
+  clearTimeout(typingTimeout)
+}
+
+function createVoicePlayer(url, msgKey){
+  const audio = new Audio(url)
+  let playing = false
+  let progressInterval = null
+
+  const wrapper = document.createElement("div")
+  wrapper.className = "voiceMsg"
+
+  const playBtn = document.createElement("button")
+  playBtn.className = "voicePlayBtn"
+  playBtn.innerText = "▶"
+
+  const wave = document.createElement("div")
+  wave.className = "voiceWave"
+  const fill = document.createElement("div")
+  fill.className = "voiceWaveFill"
+  wave.appendChild(fill)
+
+  const dur = document.createElement("span")
+  dur.className = "voiceDuration"
+  dur.innerText = "0:00"
+
+  audio.addEventListener("loadedmetadata", ()=>{
+    if(isFinite(audio.duration)){
+      dur.innerText = formatRecTime(Math.round(audio.duration))
+    }
+  })
+
+  playBtn.addEventListener("click", ()=>{
+    if(playing){
+      audio.pause()
+      playBtn.innerText = "▶"
+      clearInterval(progressInterval)
+      playing = false
+    } else {
+      audio.play()
+      playBtn.innerText = "⏸"
+      playing = true
+      progressInterval = setInterval(()=>{
+        if(audio.duration){
+          fill.style.width = (audio.currentTime / audio.duration * 100) + "%"
+          dur.innerText = formatRecTime(Math.round(audio.currentTime))
+        }
+      }, 100)
+    }
+  })
+
+  audio.addEventListener("ended", ()=>{
+    playBtn.innerText = "▶"
+    fill.style.width = "0%"
+    playing = false
+    clearInterval(progressInterval)
+    if(isFinite(audio.duration)){
+      dur.innerText = formatRecTime(Math.round(audio.duration))
+    }
+  })
+
+  wrapper.appendChild(playBtn)
+  wrapper.appendChild(wave)
+  wrapper.appendChild(dur)
+  return wrapper
 }
 
 function createMessage(message, key){
@@ -577,33 +972,41 @@ function createMessage(message, key){
   let t = time.getHours() + ":" + ("0"+time.getMinutes()).slice(-2)
   let text = message.text
 
-  if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && text.includes("/uploads/"))){
-    text = `<img src="${text}" style="max-width:200px;border-radius:8px;display:block;cursor:pointer;" onclick="showImage(this.src)">`
+  let tick = message.name==me ? (message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔") : ""
+  const reactionsHtml = renderReactions(message.reactions, key)
+
+  div.innerHTML = "<b>"+displayName+"</b><br>"
+  div.innerHTML += "<div class='time'>"+t+" "+tick+"</div>"
+  div.innerHTML += reactionsHtml
+
+  // content insert before time
+  const timeDiv = div.querySelector(".time")
+
+  if(text.startsWith("__voice__")){
+    const url = text.replace("__voice__", "")
+    const player = createVoicePlayer(url, key)
+    div.insertBefore(player, timeDiv)
+  } else if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && !text.startsWith("__"))){
+    const img = document.createElement("img")
+    img.src = text
+    img.style.cssText = "max-width:200px;border-radius:8px;display:block;cursor:pointer;"
+    img.onclick = function(){ showImage(this.src) }
+    div.insertBefore(img, timeDiv)
   } else {
-    // ✅ newline support
-    text = text.replace(/\n/g, "<br>")
-    text = text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+    const textNode = document.createElement("span")
+    textNode.innerHTML = text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+    div.insertBefore(textNode, timeDiv)
   }
-
-  let tick = ""
-  if(message.name==me){
-    tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
-  }
-
-  const reactionsHtml = renderReactions(message.reactions, key, message.name==me)
-
-  div.innerHTML = "<b>"+displayName+"</b><br>"+text+
-  "<div class='time'>"+t+" "+tick+"</div>"+reactionsHtml
 
   div.addEventListener("touchstart", function(e){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key, e) }, 600)
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key) }, 600)
   }, {passive: true})
-  div.addEventListener("touchend", function(){ clearTimeout(longPressTimer) })
-  div.addEventListener("touchmove", function(){ clearTimeout(longPressTimer) })
-  div.addEventListener("mousedown", function(e){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key, e) }, 600)
+  div.addEventListener("touchend", ()=>clearTimeout(longPressTimer))
+  div.addEventListener("touchmove", ()=>clearTimeout(longPressTimer))
+  div.addEventListener("mousedown", function(){
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key) }, 600)
   })
-  div.addEventListener("mouseup", function(){ clearTimeout(longPressTimer) })
+  div.addEventListener("mouseup", ()=>clearTimeout(longPressTimer))
 
   document.getElementById("messages").appendChild(div)
   document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight
@@ -619,7 +1022,7 @@ onChildAdded(ref(db,"messages"), (data)=>{
     fetch(BACKEND + "/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: message.text, time })
+      body: JSON.stringify({ text: message.text.startsWith("__voice__") ? "🎤 Voice message" : message.text, time })
     }).catch(()=>{})
   }
 })
@@ -634,13 +1037,11 @@ onChildChanged(ref(db,"messages"), function(data){
   if(message.name==me){
     let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
     const timeDiv = msgDiv.querySelector(".time")
-    if(timeDiv){
-      timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0] + " " + tick
-    }
+    if(timeDiv) timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0] + " " + tick
   }
 
   let reactionBar = msgDiv.querySelector(".reactionBar")
-  const newReactionHtml = renderReactions(message.reactions, key, message.name==me)
+  const newReactionHtml = renderReactions(message.reactions, key)
   if(reactionBar){
     reactionBar.outerHTML = newReactionHtml || ""
   } else if(newReactionHtml){
@@ -663,12 +1064,7 @@ function markSeenMessages(){
 }
 
 function formatTime(ts){
-  let d = new Date(ts)
-  return d.toLocaleTimeString([], {
-    hour:'2-digit',
-    minute:'2-digit',
-    hour12: true
-  })
+  return new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:true })
 }
 
 onValue(ref(db,"status"), (snap)=>{
@@ -686,14 +1082,9 @@ onValue(ref(db,"status"), (snap)=>{
     yesterday.setDate(now.getDate()-1)
     let isYesterday = yesterday.toDateString() === d.toDateString()
     let time = formatTime(last)
-    if(isToday){
-      statusText.innerText = "Last seen today at " + time
-    } else if(isYesterday){
-      statusText.innerText = "Last seen yesterday at " + time
-    } else {
-      let date = d.getDate()+" "+d.toLocaleString('default',{month:'short'})
-      statusText.innerText = "Last seen " + date + " at " + time
-    }
+    if(isToday) statusText.innerText = "Last seen today at " + time
+    else if(isYesterday) statusText.innerText = "Last seen yesterday at " + time
+    else statusText.innerText = "Last seen " + d.getDate()+" "+d.toLocaleString('default',{month:'short'}) + " at " + time
   }
 })
 
@@ -712,54 +1103,41 @@ window.deleteAll = function(){
 
 const imgViewer = document.getElementById("imgViewer")
 const fullImg = document.getElementById("fullImg")
-let imgScale = 1
-let touchStartDist = 0
-let touchStartScale = 1
+let imgScale = 1, touchStartDist = 0, touchStartScale = 1
 
 imgViewer.addEventListener("touchstart", function(e){
-  if(e.touches.length === 2){
-    touchStartDist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    )
+  if(e.touches.length===2){
+    touchStartDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
     touchStartScale = imgScale
   }
-}, {passive: true})
+}, {passive:true})
 
 imgViewer.addEventListener("touchmove", function(e){
-  if(e.touches.length === 2){
+  if(e.touches.length===2){
     e.preventDefault()
-    let dist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    )
-    imgScale = Math.min(Math.max(touchStartScale * (dist / touchStartDist), 1), 4)
-    fullImg.style.transform = "scale(" + imgScale + ")"
+    let dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    imgScale = Math.min(Math.max(touchStartScale*(dist/touchStartDist),1),4)
+    fullImg.style.transform = "scale("+imgScale+")"
   }
-}, {passive: false})
+}, {passive:false})
 
 imgViewer.addEventListener("click", function(e){
-  if(e.target.id === "imgViewer"){
-    imgViewer.style.display = "none"
-    imgScale = 1
-    fullImg.style.transform = "scale(1)"
-  }
+  if(e.target.id==="imgViewer"){ imgViewer.style.display="none"; imgScale=1; fullImg.style.transform="scale(1)" }
 })
 
 fullImg.addEventListener("click", function(e){
   e.stopPropagation()
-  imgScale = imgScale === 1 ? 2.5 : 1
-  fullImg.style.transform = "scale(" + imgScale + ")"
-  fullImg.style.cursor = imgScale === 1 ? "zoom-in" : "zoom-out"
+  imgScale = imgScale===1 ? 2.5 : 1
+  fullImg.style.transform = "scale("+imgScale+")"
+  fullImg.style.cursor = imgScale===1 ? "zoom-in" : "zoom-out"
 })
 
 window.showImage = function(src){
-  imgScale = 1
-  fullImg.src = src
-  fullImg.style.transform = "scale(1)"
-  fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
-  fullImg.style.cursor = "zoom-in"
-  imgViewer.style.display = "flex"
+  imgScale=1; fullImg.src=src
+  fullImg.style.transform="scale(1)"
+  fullImg.style.transition="transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+  fullImg.style.cursor="zoom-in"
+  imgViewer.style.display="flex"
 }
 
 const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
@@ -768,22 +1146,19 @@ const box = document.getElementById("emojiBox")
 emojis.forEach(e=>{
   let span = document.createElement("span")
   span.innerText = e
-  span.style.fontSize = "22px"
-  span.style.padding = "6px"
-  span.style.cursor = "pointer"
+  span.style.cssText = "font-size:22px;padding:6px;cursor:pointer;"
   span.onclick = ()=>{
     msgBox.value += e
     msgBox.focus()
-    // ✅ emoji add এর পরেও height update
     msgBox.style.height = "auto"
-    msgBox.style.height = Math.min(msgBox.scrollHeight, 120) + "px"
+    msgBox.style.height = Math.min(msgBox.scrollHeight,120) + "px"
   }
   box.appendChild(span)
 })
 
 window.toggleEmoji = function(){
-  let box = document.getElementById("emojiBox")
-  box.style.display = box.style.display=="block" ? "none" : "block"
+  let b = document.getElementById("emojiBox")
+  b.style.display = b.style.display=="block" ? "none" : "block"
 }
 
 window.uploadImage = async function(input){
@@ -796,25 +1171,14 @@ window.uploadImage = async function(input){
     let data = await res.json()
     if(!data.url){ alert("Upload failed ⚠️"); input.value=""; return }
     push(ref(db,"messages"), { name:username, text:data.url, time:Date.now(), seen:false })
-  } catch(e) {
-    alert("Upload failed ⚠️")
-  }
+  } catch(e) { alert("Upload failed ⚠️") }
   input.value = ""
 }
 
 </script>
 
-<div id="imgViewer" style="
-display:none;position:fixed;
-top:0;left:0;width:100%;height:100%;
-background:rgba(0,0,0,0.95);
-justify-content:center;align-items:center;
-z-index:9999;overflow:hidden;touch-action:none;">
-<img id="fullImg" style="
-max-width:100%;max-height:100%;
-transform:scale(1);
-transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
-cursor:zoom-in;">
+<div id="imgViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;z-index:9999;overflow:hidden;touch-action:none;">
+<img id="fullImg" style="max-width:100%;max-height:100%;transform:scale(1);transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);cursor:zoom-in;">
 </div>
 
 </body>

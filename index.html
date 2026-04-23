@@ -268,20 +268,38 @@ transform:scale(1.3);
 }
 
 #inputArea{
-display:flex;padding:10px;
-background:#f0f0f0;align-items:center;
+display:flex;
+padding:8px 10px;
+background:#f0f0f0;
+align-items:flex-end;
 }
 
+/* ✅ textarea — WhatsApp style auto expand */
 #msg{
-flex:1;padding:12px;
+flex:1;
+padding:10px 14px;
 border-radius:20px;
 border:2px solid #000;
+resize:none;
+overflow:hidden;
+min-height:40px;
+max-height:120px;
+font-size:15px;
+font-family:Arial;
+line-height:1.4;
+outline:none;
+box-sizing:border-box;
 }
 
 #sendBtn{
-background:#075E54;border:none;
-margin-left:8px;padding:10px 14px;
-border-radius:50%;color:white;font-size:18px;
+background:#075E54;
+border:none;
+margin-left:8px;
+padding:10px 14px;
+border-radius:50%;
+color:white;
+font-size:18px;
+flex-shrink:0;
 }
 </style>
 </head>
@@ -314,7 +332,7 @@ border-radius:50%;color:white;font-size:18px;
 <div id="headerCenter">
 <span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<span class="iconBtn"> </span>
+<span class="iconBtn">🎤</span>
 <div id="statusText">Offline</div>
 </div>
 <div id="menu" onclick="toggleMenu()">⋮</div>
@@ -327,8 +345,9 @@ border-radius:50%;color:white;font-size:18px;
 <div id="messages"></div>
 
 <div id="inputArea">
-<button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;">😊</button>
-<input id="msg" placeholder="Type message...">
+<button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
+<!-- ✅ textarea -->
+<textarea id="msg" placeholder="Type message..." rows="1"></textarea>
 <button id="sendBtn" onclick="send()">➤</button>
 </div>
 
@@ -341,8 +360,8 @@ border-radius:50%;color:white;font-size:18px;
   <span class="reactionOption">😂</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">😡</span>
-  <span class="reactionOption">🌚</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
 </div>
 
 <script type="module">
@@ -377,6 +396,22 @@ const appStartTime = Date.now()
 const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
 let seenListener = null
+
+// ✅ textarea auto expand
+const msgBox = document.getElementById("msg")
+
+msgBox.addEventListener("input", function(){
+  this.style.height = "auto"
+  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+})
+
+// ✅ Enter = send, Shift+Enter = new line
+msgBox.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault()
+    send()
+  }
+})
 
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey = null
@@ -519,10 +554,12 @@ window.start = async function(){
 }
 
 window.send = function(){
-  let text = document.getElementById("msg").value.trim()
+  let text = msgBox.value.trim()
   if(text=="") return
   push(ref(db,"messages"), {name:username, text:text, time:Date.now(), seen:false})
-  document.getElementById("msg").value=""
+  // ✅ send এর পরে textarea reset
+  msgBox.value = ""
+  msgBox.style.height = "auto"
 }
 
 function createMessage(message, key){
@@ -543,6 +580,8 @@ function createMessage(message, key){
   if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && text.includes("/uploads/"))){
     text = `<img src="${text}" style="max-width:200px;border-radius:8px;display:block;cursor:pointer;" onclick="showImage(this.src)">`
   } else {
+    // ✅ newline support
+    text = text.replace(/\n/g, "<br>")
     text = text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
   }
 
@@ -623,7 +662,6 @@ function markSeenMessages(){
   })
 }
 
-// ✅ 12 hour format with AM/PM
 function formatTime(ts){
   let d = new Date(ts)
   return d.toLocaleTimeString([], {
@@ -641,17 +679,13 @@ onValue(ref(db,"status"), (snap)=>{
     let last = data[otherUser].last
     let diff = Date.now() - last
     if(diff < 12000){ statusText.innerText = "Online"; return }
-
     let now = new Date()
     let d = new Date(last)
     let isToday = now.toDateString() === d.toDateString()
     let yesterday = new Date()
     yesterday.setDate(now.getDate()-1)
     let isYesterday = yesterday.toDateString() === d.toDateString()
-
-    // ✅ 12 hour format
     let time = formatTime(last)
-
     if(isToday){
       statusText.innerText = "Last seen today at " + time
     } else if(isYesterday){
@@ -668,7 +702,6 @@ window.toggleMenu = function(){
   m.style.display = m.style.display=="block" ? "none" : "block"
 }
 
-// ✅ delete হলে menu auto close
 window.deleteAll = function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
@@ -739,9 +772,11 @@ emojis.forEach(e=>{
   span.style.padding = "6px"
   span.style.cursor = "pointer"
   span.onclick = ()=>{
-    let input = document.getElementById("msg")
-    input.value += e
-    input.focus()
+    msgBox.value += e
+    msgBox.focus()
+    // ✅ emoji add এর পরেও height update
+    msgBox.style.height = "auto"
+    msgBox.style.height = Math.min(msgBox.scrollHeight, 120) + "px"
   }
   box.appendChild(span)
 })

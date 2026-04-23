@@ -507,11 +507,11 @@ font-style:italic;
 
 <div id="reactionPicker">
   <span class="reactionOption">❤️</span>
-  <span class="reactionOption">😂</span>
+  <span class="reactionOption">🤣</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">👍</span>
-  <span class="reactionOption">🔥</span>
+  <span class="reactionOption">🙃</span>
+  <span class="reactionOption">😑</span>
 </div>
 
 <script type="module">
@@ -1022,7 +1022,7 @@ onChildAdded(ref(db,"messages"), (data)=>{
     fetch(BACKEND + "/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: message.text.startsWith("__voice__") ? "🎤 Voice message" : message.text, time })
+      body: JSON.stringify({ text: message.text.startsWith("__voice__") ? "🎶 Voice message" : message.text, time })
     }).catch(()=>{})
   }
 })

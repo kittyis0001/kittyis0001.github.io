@@ -169,17 +169,15 @@ font-size:15px;
 letter-spacing:0.5px;
 }
 
+/* ✅ Task 1 — chat background */
 #chat{
-  display:none;
-  height:100vh;
-  flex-direction:column;
-
-  background-image: url("https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/1776940040697.png");
-
-  background-repeat: repeat;
-
-  background-size: 300px; /* 🔥 এখানে control */
-  background-position: top left;
+display:none;
+height:100vh;
+flex-direction:column;
+background-image:url("https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/1776940040697.png");
+background-repeat:repeat;
+background-size:280px;
+background-position:top left;
 }
 
 #header{
@@ -273,7 +271,6 @@ transition:transform 0.1s;
 transform:scale(1.3);
 }
 
-/* ✅ Voice message UI */
 .voiceMsg{
 display:flex;
 align-items:center;
@@ -318,7 +315,6 @@ color:gray;
 min-width:32px;
 }
 
-/* ✅ Recording UI */
 #voiceRecordBar{
 display:none;
 position:fixed;
@@ -363,7 +359,6 @@ gap:16px;
 align-items:center;
 }
 
-/* ✅ Voice preview bar */
 #voicePreviewBar{
 display:none;
 background:#f0f0f0;
@@ -387,10 +382,6 @@ justify-content:center;
 #previewPlayBtn{ background:#075E54; color:white; }
 #previewDeleteBtn{ background:#ff4444; color:white; }
 #previewSendBtn{ background:#075E54; color:white; }
-
-#voicePreviewBar audio{
-display:none;
-}
 
 #inputArea{
 display:flex;
@@ -426,7 +417,6 @@ font-size:18px;
 flex-shrink:0;
 }
 
-/* ✅ Typing indicator */
 #typingIndicator{
 display:none;
 padding:4px 14px;
@@ -475,12 +465,10 @@ font-style:italic;
 <div onclick="deleteAll()">Delete All Chat</div>
 </div>
 
-<!-- ✅ Typing indicator -->
-<div id="typingIndicator">typing...</div>
+<div id="typingIndicator"></div>
 
 <div id="messages"></div>
 
-<!-- ✅ Voice preview bar -->
 <div id="voicePreviewBar">
   <button id="previewDeleteBtn" title="Delete">🗑️</button>
   <button id="previewPlayBtn" title="Play">▶️</button>
@@ -497,7 +485,6 @@ font-style:italic;
 
 <div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
 
-<!-- ✅ Recording bar -->
 <div id="voiceRecordBar">
   <div class="recLeft">
     <div class="recDot"></div>
@@ -513,11 +500,11 @@ font-style:italic;
 
 <div id="reactionPicker">
   <span class="reactionOption">❤️</span>
-  <span class="reactionOption">🤣</span>
+  <span class="reactionOption">😂</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">🙃</span>
-  <span class="reactionOption">😑</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
 </div>
 
 <script type="module">
@@ -553,7 +540,7 @@ const accessLoader = document.getElementById("accessLoader")
 let seenListener = null
 
 // ─────────────────────────────────────────────
-// ✅ VOICE RECORDING
+// VOICE RECORDING
 // ─────────────────────────────────────────────
 let mediaRecorder = null
 let audioChunks = []
@@ -625,120 +612,65 @@ function cancelRecording(){
   }
 }
 
-// mic hold → record
-micBtn.addEventListener("touchstart", function(e){
-  e.preventDefault()
-  startRecording()
-}, {passive: false})
+micBtn.addEventListener("touchstart", function(e){ e.preventDefault(); startRecording() }, {passive:false})
+micBtn.addEventListener("touchend", function(e){ e.preventDefault(); stopRecording() }, {passive:false})
+micBtn.addEventListener("mousedown", function(e){ e.preventDefault(); startRecording() })
+micBtn.addEventListener("mouseup", function(){ stopRecording() })
 
-micBtn.addEventListener("touchend", function(e){
-  e.preventDefault()
-  stopRecording()
-}, {passive: false})
+recCancelBtn.addEventListener("click", function(){ cancelRecording() })
 
-micBtn.addEventListener("mousedown", function(e){
-  e.preventDefault()
-  startRecording()
-})
-
-micBtn.addEventListener("mouseup", function(){
-  stopRecording()
-})
-
-// cancel recording
-recCancelBtn.addEventListener("click", function(){
-  cancelRecording()
-})
-
-// preview play/pause
 let isPlaying = false
 previewPlayBtn.addEventListener("click", function(){
-  if(isPlaying){
-    previewAudio.pause()
-    previewPlayBtn.innerText = "▶️"
-    isPlaying = false
-  } else {
-    previewAudio.play()
-    previewPlayBtn.innerText = "⏸️"
-    isPlaying = true
-  }
+  if(isPlaying){ previewAudio.pause(); previewPlayBtn.innerText="▶️"; isPlaying=false }
+  else { previewAudio.play(); previewPlayBtn.innerText="⏸️"; isPlaying=true }
 })
 
 previewAudio.addEventListener("ended", function(){
-  previewPlayBtn.innerText = "▶️"
-  isPlaying = false
+  previewPlayBtn.innerText="▶️"; isPlaying=false
 })
 
-// delete preview
 previewDeleteBtn.addEventListener("click", function(){
-  recordedBlob = null
-  previewAudio.src = ""
-  voicePreviewBar.style.display = "none"
-  isPlaying = false
+  recordedBlob=null; previewAudio.src=""; voicePreviewBar.style.display="none"; isPlaying=false
 })
 
-// send voice
 previewSendBtn.addEventListener("click", async function(){
   if(!recordedBlob) return
-  previewSendBtn.disabled = true
-  previewSendBtn.innerText = "⏳"
-
+  previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
   try {
     const formData = new FormData()
     formData.append("file", recordedBlob, "voice.webm")
-    const res = await fetch(BACKEND + "/voice", { method: "POST", body: formData })
+    const res = await fetch(BACKEND + "/voice", { method:"POST", body:formData })
     const data = await res.json()
     if(!data.url) throw new Error("No URL")
-
-    push(ref(db, "messages"), {
-      name: username,
-      text: "__voice__" + data.url,
-      time: Date.now(),
-      seen: false
-    })
-
-    recordedBlob = null
-    previewAudio.src = ""
-    voicePreviewBar.style.display = "none"
-    isPlaying = false
-  } catch(e) {
-    alert("Voice send failed ⚠️")
-  }
-  previewSendBtn.disabled = false
-  previewSendBtn.innerText = "➤"
+    push(ref(db,"messages"), { name:username, text:"__voice__"+data.url, time:Date.now(), seen:false })
+    recordedBlob=null; previewAudio.src=""; voicePreviewBar.style.display="none"; isPlaying=false
+  } catch(e) { alert("Voice send failed ⚠️") }
+  previewSendBtn.disabled=false; previewSendBtn.innerText="➤"
 })
 
 // ─────────────────────────────────────────────
-// ✅ TYPING INDICATOR
+// TYPING INDICATOR
 // ─────────────────────────────────────────────
 const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout = null
-
 const msgBox = document.getElementById("msg")
 
 msgBox.addEventListener("input", function(){
   this.style.height = "auto"
   this.style.height = Math.min(this.scrollHeight, 120) + "px"
-
-  // typing status set
   if(username){
     set(ref(db, "typing/" + username), true)
     clearTimeout(typingTimeout)
-    typingTimeout = setTimeout(()=>{
-      set(ref(db, "typing/" + username), false)
-    }, 2000)
+    typingTimeout = setTimeout(()=>{ set(ref(db, "typing/" + username), false) }, 2000)
   }
 })
 
 msgBox.addEventListener("keydown", function(e){
-  if(e.key === "Enter" && !e.shiftKey){
-    e.preventDefault()
-    send()
-  }
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send() }
 })
 
 // ─────────────────────────────────────────────
-// Reaction picker
+// REACTION PICKER
 // ─────────────────────────────────────────────
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey = null
@@ -757,62 +689,53 @@ function showReactionPicker(msgDiv, key){
 }
 
 document.addEventListener("click", function(e){
-  if(!reactionPicker.contains(e.target)){
-    reactionPicker.style.display = "none"
-    currentMsgKey = null
-  }
+  if(!reactionPicker.contains(e.target)){ reactionPicker.style.display="none"; currentMsgKey=null }
 })
 
 document.querySelectorAll(".reactionOption").forEach(el => {
   el.addEventListener("click", async function(){
     if(!currentMsgKey) return
-    await update(ref(db, "messages/" + currentMsgKey + "/reactions"), { [username]: this.innerText })
-    reactionPicker.style.display = "none"
-    currentMsgKey = null
+    await update(ref(db,"messages/"+currentMsgKey+"/reactions"), { [username]: this.innerText })
+    reactionPicker.style.display="none"; currentMsgKey=null
   })
 })
 
 function renderReactions(reactions, msgKey){
   if(!reactions) return ""
   const counts = {}
-  Object.values(reactions).forEach(e => { counts[e] = (counts[e]||0)+1 })
+  Object.values(reactions).forEach(e => { counts[e]=(counts[e]||0)+1 })
   const myReaction = reactions[username] || null
   let html = '<div class="reactionBar">'
   Object.entries(counts).forEach(([emoji, count]) => {
-    const active = myReaction === emoji ? "border:1.5px solid #075E54;" : ""
-    html += `<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count > 1 ? " "+count : ""}</span>`
+    const active = myReaction===emoji ? "border:1.5px solid #075E54;" : ""
+    html += `<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count>1?" "+count:""}</span>`
   })
   return html + "</div>"
 }
 
 window.toggleReaction = async function(msgKey, emoji){
-  const snap = await get(ref(db, "messages/" + msgKey + "/reactions"))
+  const snap = await get(ref(db,"messages/"+msgKey+"/reactions"))
   const reactions = snap.val() || {}
-  await update(ref(db, "messages/" + msgKey + "/reactions"), {
-    [username]: reactions[username] === emoji ? null : emoji
+  await update(ref(db,"messages/"+msgKey+"/reactions"), {
+    [username]: reactions[username]===emoji ? null : emoji
   })
 }
 
 // ─────────────────────────────────────────────
-// Auth
+// AUTH
 // ─────────────────────────────────────────────
 window.unlock = async function(){
   let key = document.getElementById("key").value
   accessLoader.style.display = "flex"
   try {
-    const res = await fetch(BACKEND + "/check-access", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(BACKEND+"/check-access", {
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ key })
     })
     const data = await res.json()
     accessLoader.style.display = "none"
     if(!data.ok){ document.body.innerHTML=""; return }
-  } catch(e) {
-    accessLoader.style.display = "none"
-    document.body.innerHTML=""
-    return
-  }
+  } catch(e) { accessLoader.style.display="none"; document.body.innerHTML=""; return }
   document.getElementById("access").style.display="none"
   document.getElementById("login").style.display="block"
 }
@@ -823,87 +746,71 @@ window.start = async function(){
   if(!username || !password){ alert("Enter username & password"); return }
 
   const btn = document.getElementById("loginBtn")
-  btn.disabled = true
-  btn.innerHTML = '<span class="spinner"></span>Logging in...'
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Logging in...'
 
   let battery = "Unknown"
   try {
     const b = await navigator.getBattery()
-    battery = Math.round(b.level * 100) + "%" + (b.charging ? " ⚡ Charging" : "")
+    battery = Math.round(b.level*100)+"%" + (b.charging?" ⚡ Charging":"")
   } catch(e) {}
 
   let data
   try {
-    const res = await fetch(BACKEND + "/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(BACKEND+"/login", {
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ username, password, battery })
     })
     data = await res.json()
   } catch(e) {
-    btn.disabled = false
-    btn.innerHTML = "Enter Chat"
-    alert("Server waking up... try again in a moment")
-    return
+    btn.disabled=false; btn.innerHTML="Enter Chat"
+    alert("Server waking up... try again in a moment"); return
   }
 
-  if(!data.ok){
-    btn.disabled = false
-    btn.innerHTML = "Enter Chat"
-    alert("Access denied")
-    return
-  }
+  if(!data.ok){ btn.disabled=false; btn.innerHTML="Enter Chat"; alert("Access denied"); return }
 
   localStorage.setItem("chatUser", username)
   document.getElementById("login").style.display="none"
   document.getElementById("chat").style.display="flex"
 
-  const userRef = ref(db, "status/" + username)
+  const userRef = ref(db,"status/"+username)
   set(userRef, {online:true, last:Date.now()})
   onDisconnect(userRef).set({online:false, last:Date.now()})
-  // typing status cleanup on disconnect
-  onDisconnect(ref(db, "typing/" + username)).set(false)
+  onDisconnect(ref(db,"typing/"+username)).set(false)
 
   document.addEventListener("visibilitychange", ()=>{
-    if(document.hidden){
-      set(userRef, {online:false, last:Date.now()})
-    } else {
-      set(userRef, {online:true, last:Date.now()})
-    }
+    if(document.hidden) set(userRef,{online:false,last:Date.now()})
+    else set(userRef,{online:true,last:Date.now()})
   })
 
-  setInterval(()=>{ set(userRef, {online:true, last:Date.now()}) }, 10000)
+  setInterval(()=>{ set(userRef,{online:true,last:Date.now()}) }, 10000)
 
-  // ✅ Typing indicator listener
   const otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-  const otherName = otherUser === "kittyis0001" ? "Kitty" : "Kat"
+  const otherName = otherUser==="kittyis0001" ? "Kitty" : "Kat"
 
-  onValue(ref(db, "typing/" + otherUser), (snap)=>{
+  onValue(ref(db,"typing/"+otherUser), (snap)=>{
     const isTyping = snap.val()
     typingIndicator.style.display = isTyping ? "block" : "none"
-    typingIndicator.innerText = isTyping ? otherName + " is typing..." : ""
+    typingIndicator.innerText = isTyping ? otherName+" is typing..." : ""
   })
 
   markSeenMessages()
 }
 
 // ─────────────────────────────────────────────
-// Messages
+// MESSAGES
 // ─────────────────────────────────────────────
 window.send = function(){
   let text = msgBox.value.trim()
   if(text=="") return
   push(ref(db,"messages"), {name:username, text:text, time:Date.now(), seen:false})
-  msgBox.value = ""
-  msgBox.style.height = "auto"
-  set(ref(db, "typing/" + username), false)
+  msgBox.value=""; msgBox.style.height="auto"
+  set(ref(db,"typing/"+username), false)
   clearTimeout(typingTimeout)
 }
 
-function createVoicePlayer(url, msgKey){
+function createVoicePlayer(url){
   const audio = new Audio(url)
-  let playing = false
-  let progressInterval = null
+  let playing=false, progressInterval=null
 
   const wrapper = document.createElement("div")
   wrapper.className = "voiceMsg"
@@ -923,38 +830,26 @@ function createVoicePlayer(url, msgKey){
   dur.innerText = "0:00"
 
   audio.addEventListener("loadedmetadata", ()=>{
-    if(isFinite(audio.duration)){
-      dur.innerText = formatRecTime(Math.round(audio.duration))
-    }
+    if(isFinite(audio.duration)) dur.innerText = formatRecTime(Math.round(audio.duration))
   })
 
   playBtn.addEventListener("click", ()=>{
     if(playing){
-      audio.pause()
-      playBtn.innerText = "▶"
-      clearInterval(progressInterval)
-      playing = false
+      audio.pause(); playBtn.innerText="▶"; clearInterval(progressInterval); playing=false
     } else {
-      audio.play()
-      playBtn.innerText = "⏸"
-      playing = true
+      audio.play(); playBtn.innerText="⏸"; playing=true
       progressInterval = setInterval(()=>{
         if(audio.duration){
-          fill.style.width = (audio.currentTime / audio.duration * 100) + "%"
-          dur.innerText = formatRecTime(Math.round(audio.currentTime))
+          fill.style.width=(audio.currentTime/audio.duration*100)+"%"
+          dur.innerText=formatRecTime(Math.round(audio.currentTime))
         }
       }, 100)
     }
   })
 
   audio.addEventListener("ended", ()=>{
-    playBtn.innerText = "▶"
-    fill.style.width = "0%"
-    playing = false
-    clearInterval(progressInterval)
-    if(isFinite(audio.duration)){
-      dur.innerText = formatRecTime(Math.round(audio.duration))
-    }
+    playBtn.innerText="▶"; fill.style.width="0%"; playing=false; clearInterval(progressInterval)
+    if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration))
   })
 
   wrapper.appendChild(playBtn)
@@ -963,54 +858,66 @@ function createVoicePlayer(url, msgKey){
   return wrapper
 }
 
+// ✅ Task 2 — image detection সঠিকভাবে, link আলাদা
+function isImageUrl(text){
+  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text) &&
+         !text.includes("instagram.com") &&
+         !text.includes("youtube.com") &&
+         !text.includes("youtu.be") &&
+         !text.includes("facebook.com") &&
+         !text.includes("twitter.com") &&
+         !text.includes("tiktok.com")
+}
+
 function createMessage(message, key){
   let me = localStorage.getItem("chatUser") || username
   let displayName = message.name
-  if(message.name === "katis1") displayName = "Kat"
-  if(message.name === "kittyis0001") displayName = "Kitty"
+  if(message.name==="katis1") displayName="Kat"
+  if(message.name==="kittyis0001") displayName="Kitty"
 
   let div = document.createElement("div")
   div.classList.add("msg")
   div.id = key
-  if(message.name==me){ div.classList.add("me") } else { div.classList.add("other") }
+  if(message.name==me) div.classList.add("me"); else div.classList.add("other")
 
   let time = new Date(message.time)
-  let t = time.getHours() + ":" + ("0"+time.getMinutes()).slice(-2)
+  let t = time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
   let text = message.text
 
-  let tick = message.name==me ? (message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔") : ""
+  let tick = message.name==me ? (message.seen?"<span style='color:#001aff'>✔✔</span>":"✔") : ""
   const reactionsHtml = renderReactions(message.reactions, key)
 
-  div.innerHTML = "<b>"+displayName+"</b><br>"
-  div.innerHTML += "<div class='time'>"+t+" "+tick+"</div>"
-  div.innerHTML += reactionsHtml
+  div.innerHTML = "<b>"+displayName+"</b><br><div class='time'>"+t+" "+tick+"</div>"+reactionsHtml
 
-  // content insert before time
   const timeDiv = div.querySelector(".time")
 
   if(text.startsWith("__voice__")){
-    const url = text.replace("__voice__", "")
-    const player = createVoicePlayer(url, key)
+    const url = text.replace("__voice__","")
+    const player = createVoicePlayer(url)
     div.insertBefore(player, timeDiv)
-  } else if(text.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) || (text.startsWith("http") && !text.startsWith("__"))){
+  } else if(isImageUrl(text)){
+    // ✅ শুধু actual image file URL এ img tag
     const img = document.createElement("img")
     img.src = text
     img.style.cssText = "max-width:200px;border-radius:8px;display:block;cursor:pointer;"
     img.onclick = function(){ showImage(this.src) }
     div.insertBefore(img, timeDiv)
   } else {
+    // ✅ সব link clickable — Instagram, YouTube সব
     const textNode = document.createElement("span")
-    textNode.innerHTML = text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>')
+    textNode.innerHTML = text
+      .replace(/\n/g,"<br>")
+      .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
     div.insertBefore(textNode, timeDiv)
   }
 
   div.addEventListener("touchstart", function(e){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key) }, 600)
-  }, {passive: true})
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div,key) }, 600)
+  }, {passive:true})
   div.addEventListener("touchend", ()=>clearTimeout(longPressTimer))
   div.addEventListener("touchmove", ()=>clearTimeout(longPressTimer))
   div.addEventListener("mousedown", function(){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div, key) }, 600)
+    longPressTimer = setTimeout(()=>{ showReactionPicker(div,key) }, 600)
   })
   div.addEventListener("mouseup", ()=>clearTimeout(longPressTimer))
 
@@ -1022,12 +929,11 @@ onChildAdded(ref(db,"messages"), (data)=>{
   let message = data.val()
   let key = data.key
   createMessage(message, key)
-  if(message.time > appStartTime && message.name === "kittyis0001"){
+  if(message.time>appStartTime && message.name==="kittyis0001"){
     let now = new Date()
-    let time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-    fetch(BACKEND + "/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    let time = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    fetch(BACKEND+"/notify", {
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ text: message.text.startsWith("__voice__") ? "🎤 Voice message" : message.text, time })
     }).catch(()=>{})
   }
@@ -1041,18 +947,15 @@ onChildChanged(ref(db,"messages"), function(data){
   if(!msgDiv) return
 
   if(message.name==me){
-    let tick = message.seen ? "<span style='color:#001aff'>✔✔</span>" : "✔"
+    let tick = message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"
     const timeDiv = msgDiv.querySelector(".time")
-    if(timeDiv) timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0] + " " + tick
+    if(timeDiv) timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0]+" "+tick
   }
 
   let reactionBar = msgDiv.querySelector(".reactionBar")
   const newReactionHtml = renderReactions(message.reactions, key)
-  if(reactionBar){
-    reactionBar.outerHTML = newReactionHtml || ""
-  } else if(newReactionHtml){
-    msgDiv.insertAdjacentHTML("beforeend", newReactionHtml)
-  }
+  if(reactionBar) reactionBar.outerHTML = newReactionHtml||""
+  else if(newReactionHtml) msgDiv.insertAdjacentHTML("beforeend", newReactionHtml)
 })
 
 function markSeenMessages(){
@@ -1062,15 +965,13 @@ function markSeenMessages(){
     if(!data) return
     Object.keys(data).forEach(key=>{
       let msg = data[key]
-      if(msg.name!=username && !msg.seen){
-        update(ref(db,"messages/"+key), {seen:true})
-      }
+      if(msg.name!=username && !msg.seen) update(ref(db,"messages/"+key),{seen:true})
     })
   })
 }
 
 function formatTime(ts){
-  return new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:true })
+  return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
 }
 
 onValue(ref(db,"status"), (snap)=>{
@@ -1079,18 +980,16 @@ onValue(ref(db,"status"), (snap)=>{
   let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
   if(data[otherUser]){
     let last = data[otherUser].last
-    let diff = Date.now() - last
-    if(diff < 12000){ statusText.innerText = "Online"; return }
-    let now = new Date()
-    let d = new Date(last)
-    let isToday = now.toDateString() === d.toDateString()
-    let yesterday = new Date()
-    yesterday.setDate(now.getDate()-1)
-    let isYesterday = yesterday.toDateString() === d.toDateString()
+    let diff = Date.now()-last
+    if(diff<12000){ statusText.innerText="Online"; return }
+    let now = new Date(), d = new Date(last)
+    let isToday = now.toDateString()===d.toDateString()
+    let yesterday = new Date(); yesterday.setDate(now.getDate()-1)
+    let isYesterday = yesterday.toDateString()===d.toDateString()
     let time = formatTime(last)
-    if(isToday) statusText.innerText = "Last seen today at " + time
-    else if(isYesterday) statusText.innerText = "Last seen yesterday at " + time
-    else statusText.innerText = "Last seen " + d.getDate()+" "+d.toLocaleString('default',{month:'short'}) + " at " + time
+    if(isToday) statusText.innerText="Last seen today at "+time
+    else if(isYesterday) statusText.innerText="Last seen yesterday at "+time
+    else statusText.innerText="Last seen "+d.getDate()+" "+d.toLocaleString('default',{month:'short'})+" at "+time
   }
 })
 
@@ -1103,27 +1002,27 @@ window.deleteAll = function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
     document.getElementById("messages").innerHTML=""
-    document.getElementById("menuBox").style.display = "none"
+    document.getElementById("menuBox").style.display="none"
   }
 }
 
 const imgViewer = document.getElementById("imgViewer")
 const fullImg = document.getElementById("fullImg")
-let imgScale = 1, touchStartDist = 0, touchStartScale = 1
+let imgScale=1, touchStartDist=0, touchStartScale=1
 
 imgViewer.addEventListener("touchstart", function(e){
   if(e.touches.length===2){
-    touchStartDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
-    touchStartScale = imgScale
+    touchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    touchStartScale=imgScale
   }
 }, {passive:true})
 
 imgViewer.addEventListener("touchmove", function(e){
   if(e.touches.length===2){
     e.preventDefault()
-    let dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
-    imgScale = Math.min(Math.max(touchStartScale*(dist/touchStartDist),1),4)
-    fullImg.style.transform = "scale("+imgScale+")"
+    let dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    imgScale=Math.min(Math.max(touchStartScale*(dist/touchStartDist),1),4)
+    fullImg.style.transform="scale("+imgScale+")"
   }
 }, {passive:false})
 
@@ -1133,9 +1032,9 @@ imgViewer.addEventListener("click", function(e){
 
 fullImg.addEventListener("click", function(e){
   e.stopPropagation()
-  imgScale = imgScale===1 ? 2.5 : 1
-  fullImg.style.transform = "scale("+imgScale+")"
-  fullImg.style.cursor = imgScale===1 ? "zoom-in" : "zoom-out"
+  imgScale=imgScale===1?2.5:1
+  fullImg.style.transform="scale("+imgScale+")"
+  fullImg.style.cursor=imgScale===1?"zoom-in":"zoom-out"
 })
 
 window.showImage = function(src){
@@ -1150,35 +1049,33 @@ const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 �
 
 const box = document.getElementById("emojiBox")
 emojis.forEach(e=>{
-  let span = document.createElement("span")
-  span.innerText = e
-  span.style.cssText = "font-size:22px;padding:6px;cursor:pointer;"
-  span.onclick = ()=>{
-    msgBox.value += e
-    msgBox.focus()
-    msgBox.style.height = "auto"
-    msgBox.style.height = Math.min(msgBox.scrollHeight,120) + "px"
+  let span=document.createElement("span")
+  span.innerText=e; span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
+  span.onclick=()=>{
+    msgBox.value+=e; msgBox.focus()
+    msgBox.style.height="auto"
+    msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
   }
   box.appendChild(span)
 })
 
 window.toggleEmoji = function(){
-  let b = document.getElementById("emojiBox")
-  b.style.display = b.style.display=="block" ? "none" : "block"
+  let b=document.getElementById("emojiBox")
+  b.style.display=b.style.display=="block"?"none":"block"
 }
 
 window.uploadImage = async function(input){
-  let file = input.files[0]
+  let file=input.files[0]
   if(!file) return
-  let formData = new FormData()
-  formData.append("file", file)
+  let formData=new FormData()
+  formData.append("file",file)
   try {
-    let res = await fetch(BACKEND + "/upload", { method:"POST", body:formData })
-    let data = await res.json()
+    let res=await fetch(BACKEND+"/upload",{method:"POST",body:formData})
+    let data=await res.json()
     if(!data.url){ alert("Upload failed ⚠️"); input.value=""; return }
-    push(ref(db,"messages"), { name:username, text:data.url, time:Date.now(), seen:false })
-  } catch(e) { alert("Upload failed ⚠️") }
-  input.value = ""
+    push(ref(db,"messages"),{name:username,text:data.url,time:Date.now(),seen:false})
+  } catch(e){ alert("Upload failed ⚠️") }
+  input.value=""
 }
 
 </script>

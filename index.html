@@ -120,10 +120,7 @@ backdrop-filter:blur(4px);
 transition:opacity 0.2s;
 }
 
-#loginBtn:disabled{
-opacity:0.5;
-cursor:not-allowed;
-}
+#loginBtn:disabled{ opacity:0.5; cursor:not-allowed; }
 
 @keyframes spin{
 0%{transform:rotate(0deg)}
@@ -132,8 +129,7 @@ cursor:not-allowed;
 
 .spinner{
 display:inline-block;
-width:14px;
-height:14px;
+width:14px; height:14px;
 border:2px solid rgba(255,255,255,0.4);
 border-top-color:white;
 border-radius:50%;
@@ -163,13 +159,8 @@ border-radius:50%;
 animation:spin 0.8s linear infinite;
 }
 
-#accessLoader .loaderText{
-color:white;
-font-size:15px;
-letter-spacing:0.5px;
-}
+#accessLoader .loaderText{ color:white; font-size:15px; letter-spacing:0.5px; }
 
-/* ✅ Task 1 — chat background */
 #chat{
 display:none;
 height:100vh;
@@ -189,7 +180,7 @@ align-items:center;
 gap:10px;
 }
 
-#title{font-weight:bold;}
+#title{ font-weight:bold; }
 
 #headerCenter{
 display:flex;
@@ -198,45 +189,69 @@ gap:8px;
 flex:1;
 }
 
-.iconBtn{font-size:18px;cursor:pointer;}
-#statusText{font-size:12px;white-space:nowrap;}
-#menu{cursor:pointer;font-size:22px;margin-left:auto;}
+.iconBtn{ font-size:18px; cursor:pointer; }
+#statusText{ font-size:12px; white-space:nowrap; }
+#menu{ cursor:pointer; font-size:22px; margin-left:auto; }
 
 #menuBox{
 display:none;
 position:absolute;
-right:10px;top:60px;
+right:10px; top:60px;
 background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
 z-index:100;
+border-radius:8px;
+overflow:hidden;
 }
 
-#menuBox div{padding:10px;cursor:pointer;}
+#menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
+#menuBox div:hover{ background:#f5f5f5; }
 
-#messages{flex:1;overflow:auto;padding:10px;}
+#messages{ flex:1; overflow:auto; padding:10px; }
 
 .msg{
-padding:10px;margin:6px;
+padding:10px; margin:6px;
 max-width:65%;
 border-radius:8px;
 word-wrap:break-word;
 position:relative;
+transition:transform 0.2s ease;
 }
 
-.me{background:#dcf8c6;margin-left:auto;}
-.other{background:white;}
+.me{ background:#dcf8c6; margin-left:auto; }
+.other{ background:white; }
 
-.time{
-font-size:11px;color:gray;
-margin-top:3px;text-align:right;
+.replyQuote{
+background:rgba(0,0,0,0.07);
+border-left:3px solid #075E54;
+border-radius:4px;
+padding:5px 8px;
+margin-bottom:6px;
+font-size:12px;
+color:#444;
+max-width:100%;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
+cursor:pointer;
 }
 
-.reactionBar{
-display:flex;
-flex-wrap:wrap;
-gap:4px;
-margin-top:4px;
+.replyQuote .replyName{
+font-weight:bold;
+color:#075E54;
+font-size:11px;
+margin-bottom:2px;
 }
+
+.editedLabel{
+font-size:10px;
+color:#888;
+margin-left:4px;
+}
+
+.time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
+
+.reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
 
 .reactionBadge{
 background:rgba(0,0,0,0.08);
@@ -246,6 +261,31 @@ font-size:14px;
 cursor:pointer;
 border:1px solid rgba(0,0,0,0.1);
 }
+
+#actionMenu{
+display:none;
+position:fixed;
+background:white;
+border-radius:14px;
+padding:6px;
+box-shadow:0 4px 24px rgba(0,0,0,0.2);
+z-index:9997;
+flex-direction:column;
+min-width:150px;
+}
+
+.actionMenuItem{
+padding:10px 16px;
+font-size:14px;
+cursor:pointer;
+border-radius:8px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.actionMenuItem:hover{ background:#f5f5f5; }
+.actionMenuItem.danger{ color:#e53935; }
 
 #reactionPicker{
 display:none;
@@ -267,22 +307,65 @@ border-radius:50%;
 transition:transform 0.1s;
 }
 
-.reactionOption:active{
-transform:scale(1.3);
-}
+.reactionOption:active{ transform:scale(1.3); }
 
-.voiceMsg{
-display:flex;
+#replyBar{
+display:none;
+background:#e8f5e9;
+padding:8px 14px;
+border-top:2px solid #075E54;
 align-items:center;
 gap:8px;
-min-width:180px;
 }
+
+#replyBar .replyBarContent{
+flex:1;
+font-size:12px;
+color:#333;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
+}
+
+#replyBar .replyBarName{ font-weight:bold; color:#075E54; font-size:11px; }
+
+#replyBarClose{
+background:none;
+border:none;
+font-size:20px;
+cursor:pointer;
+color:#555;
+padding:0;
+}
+
+#editBar{
+display:none;
+background:#fff9c4;
+padding:8px 14px;
+border-top:2px solid #f9a825;
+align-items:center;
+gap:8px;
+font-size:12px;
+color:#555;
+}
+
+#editBarClose{
+background:none;
+border:none;
+font-size:20px;
+cursor:pointer;
+color:#555;
+padding:0;
+margin-left:auto;
+}
+
+.voiceMsg{ display:flex; align-items:center; gap:8px; min-width:180px; }
 
 .voicePlayBtn{
 background:#075E54;
 border:none;
 border-radius:50%;
-width:36px;height:36px;
+width:36px; height:36px;
 color:white;
 font-size:16px;
 cursor:pointer;
@@ -292,28 +375,9 @@ align-items:center;
 justify-content:center;
 }
 
-.voiceWave{
-flex:1;
-height:3px;
-background:rgba(0,0,0,0.15);
-border-radius:3px;
-position:relative;
-overflow:hidden;
-}
-
-.voiceWaveFill{
-height:100%;
-background:#075E54;
-width:0%;
-border-radius:3px;
-transition:width 0.1s linear;
-}
-
-.voiceDuration{
-font-size:12px;
-color:gray;
-min-width:32px;
-}
+.voiceWave{ flex:1; height:3px; background:rgba(0,0,0,0.15); border-radius:3px; overflow:hidden; }
+.voiceWaveFill{ height:100%; background:#075E54; width:0%; border-radius:3px; transition:width 0.1s linear; }
+.voiceDuration{ font-size:12px; color:gray; min-width:32px; }
 
 #voiceRecordBar{
 display:none;
@@ -328,36 +392,16 @@ justify-content:space-between;
 z-index:500;
 }
 
-#voiceRecordBar .recLeft{
-display:flex;
-align-items:center;
-gap:10px;
-color:white;
-}
+#voiceRecordBar .recLeft{ display:flex; align-items:center; gap:10px; color:white; }
 
 @keyframes pulse{
 0%,100%{opacity:1}
 50%{opacity:0.3}
 }
 
-.recDot{
-width:12px;height:12px;
-background:#ff4444;
-border-radius:50%;
-animation:pulse 1s infinite;
-}
-
-#recTimer{
-color:white;
-font-size:16px;
-font-weight:bold;
-}
-
-#voiceRecordBar .recRight{
-display:flex;
-gap:16px;
-align-items:center;
-}
+.recDot{ width:12px; height:12px; background:#ff4444; border-radius:50%; animation:pulse 1s infinite; }
+#recTimer{ color:white; font-size:16px; font-weight:bold; }
+#voiceRecordBar .recRight{ display:flex; gap:16px; align-items:center; }
 
 #voicePreviewBar{
 display:none;
@@ -369,14 +413,10 @@ border-top:1px solid #ddd;
 }
 
 #voicePreviewBar button{
-border:none;
-border-radius:50%;
-width:36px;height:36px;
-font-size:16px;
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
+border:none; border-radius:50%;
+width:36px; height:36px;
+font-size:16px; cursor:pointer;
+display:flex; align-items:center; justify-content:center;
 }
 
 #previewPlayBtn{ background:#075E54; color:white; }
@@ -466,15 +506,27 @@ font-style:italic;
 </div>
 
 <div id="typingIndicator"></div>
-
 <div id="messages"></div>
 
 <div id="voicePreviewBar">
-  <button id="previewDeleteBtn" title="Delete">🗑️</button>
-  <button id="previewPlayBtn" title="Play">▶️</button>
+  <button id="previewDeleteBtn">🗑️</button>
+  <button id="previewPlayBtn">▶️</button>
   <span id="previewDuration" style="font-size:13px;color:#555;flex:1;">0:00</span>
-  <button id="previewSendBtn" title="Send">➤</button>
+  <button id="previewSendBtn">➤</button>
   <audio id="previewAudio"></audio>
+</div>
+
+<div id="replyBar">
+  <div class="replyBarContent">
+    <div class="replyBarName" id="replyBarName"></div>
+    <div id="replyBarText"></div>
+  </div>
+  <button id="replyBarClose">✕</button>
+</div>
+
+<div id="editBar">
+  ✏️ Editing message
+  <button id="editBarClose">✕</button>
 </div>
 
 <div id="inputArea">
@@ -498,13 +550,20 @@ font-style:italic;
 
 </div>
 
+<div id="actionMenu">
+  <div class="actionMenuItem" id="actionReact">😊 React</div>
+  <div class="actionMenuItem" id="actionReply">↩️ Reply</div>
+  <div class="actionMenuItem" id="actionEdit">✏️ Edit</div>
+  <div class="actionMenuItem danger" id="actionDelete">🗑️ Delete</div>
+</div>
+
 <div id="reactionPicker">
   <span class="reactionOption">❤️</span>
   <span class="reactionOption">😂</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">👍</span>
-  <span class="reactionOption">🔥</span>
+  <span class="reactionOption">😑</span>
+  <span class="reactionOption">🤬</span>
 </div>
 
 <script type="module">
@@ -514,13 +573,13 @@ import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onVa
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig = {
-apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
-authDomain: "private-chat-318a6.firebaseapp.com",
-databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "private-chat-318a6",
-storageBucket: "private-chat-318a6.appspot.com",
-messagingSenderId: "1082000480834",
-appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
+  apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+  authDomain: "private-chat-318a6.firebaseapp.com",
+  databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "private-chat-318a6",
+  storageBucket: "private-chat-318a6.appspot.com",
+  messagingSenderId: "1082000480834",
+  appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
 }
 
 const app = initializeApp(firebaseConfig)
@@ -537,17 +596,19 @@ let username = ""
 const appStartTime = Date.now()
 const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
+const messagesEl = document.getElementById("messages")
 let seenListener = null
+
+// ✅ smooth scroll helper — fix scroll performance
+function scrollToBottom(){
+  setTimeout(()=>{ messagesEl.scrollTop = messagesEl.scrollHeight }, 50)
+}
 
 // ─────────────────────────────────────────────
 // VOICE RECORDING
 // ─────────────────────────────────────────────
-let mediaRecorder = null
-let audioChunks = []
-let recordedBlob = null
-let recTimerInterval = null
-let recSeconds = 0
-let isRecording = false
+let mediaRecorder=null, audioChunks=[], recordedBlob=null
+let recTimerInterval=null, recSeconds=0, isRecording=false
 
 const micBtn = document.getElementById("micBtn")
 const voiceRecordBar = document.getElementById("voiceRecordBar")
@@ -560,412 +621,496 @@ const previewDeleteBtn = document.getElementById("previewDeleteBtn")
 const previewSendBtn = document.getElementById("previewSendBtn")
 const previewDuration = document.getElementById("previewDuration")
 
-function formatRecTime(s){
-  return Math.floor(s/60) + ":" + ("0"+(s%60)).slice(-2)
-}
+function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 async function startRecording(){
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    audioChunks = []
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true})
+    audioChunks=[]
     mediaRecorder = new MediaRecorder(stream)
-    mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data) }
-    mediaRecorder.onstop = () => {
-      recordedBlob = new Blob(audioChunks, { type: "audio/webm" })
-      const url = URL.createObjectURL(recordedBlob)
-      previewAudio.src = url
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) audioChunks.push(e.data) }
+    mediaRecorder.onstop = ()=>{
+      recordedBlob = new Blob(audioChunks,{type:"audio/webm"})
+      previewAudio.src = URL.createObjectURL(recordedBlob)
       previewDuration.innerText = formatRecTime(recSeconds)
-      voiceRecordBar.style.display = "none"
-      voicePreviewBar.style.display = "flex"
-      stream.getTracks().forEach(t => t.stop())
+      voiceRecordBar.style.display="none"
+      voicePreviewBar.style.display="flex"
+      stream.getTracks().forEach(t=>t.stop())
     }
     mediaRecorder.start()
-    isRecording = true
-    recSeconds = 0
-    recTimer.innerText = "0:00"
-    voiceRecordBar.style.display = "flex"
-    recTimerInterval = setInterval(()=>{
-      recSeconds++
-      recTimer.innerText = formatRecTime(recSeconds)
-    }, 1000)
-  } catch(e) {
-    alert("Microphone permission denied")
-  }
+    isRecording=true; recSeconds=0; recTimer.innerText="0:00"
+    voiceRecordBar.style.display="flex"
+    recTimerInterval = setInterval(()=>{ recSeconds++; recTimer.innerText=formatRecTime(recSeconds) },1000)
+  } catch(e){ alert("Microphone permission denied") }
 }
 
 function stopRecording(){
-  if(mediaRecorder && isRecording){
-    clearInterval(recTimerInterval)
-    isRecording = false
-    mediaRecorder.stop()
-  }
+  if(mediaRecorder&&isRecording){ clearInterval(recTimerInterval); isRecording=false; mediaRecorder.stop() }
 }
 
 function cancelRecording(){
-  if(mediaRecorder && isRecording){
-    clearInterval(recTimerInterval)
-    isRecording = false
-    mediaRecorder.stream.getTracks().forEach(t => t.stop())
-    mediaRecorder.stop()
-    recordedBlob = null
-    voiceRecordBar.style.display = "none"
+  if(mediaRecorder&&isRecording){
+    clearInterval(recTimerInterval); isRecording=false
+    mediaRecorder.stream.getTracks().forEach(t=>t.stop())
+    mediaRecorder.stop(); recordedBlob=null
+    voiceRecordBar.style.display="none"
   }
 }
 
-micBtn.addEventListener("touchstart", function(e){ e.preventDefault(); startRecording() }, {passive:false})
-micBtn.addEventListener("touchend", function(e){ e.preventDefault(); stopRecording() }, {passive:false})
-micBtn.addEventListener("mousedown", function(e){ e.preventDefault(); startRecording() })
-micBtn.addEventListener("mouseup", function(){ stopRecording() })
+micBtn.addEventListener("touchstart",e=>{e.preventDefault();startRecording()},{passive:false})
+micBtn.addEventListener("touchend",e=>{e.preventDefault();stopRecording()},{passive:false})
+micBtn.addEventListener("mousedown",e=>{e.preventDefault();startRecording()})
+micBtn.addEventListener("mouseup",()=>stopRecording())
+recCancelBtn.addEventListener("click",()=>cancelRecording())
 
-recCancelBtn.addEventListener("click", function(){ cancelRecording() })
-
-let isPlaying = false
-previewPlayBtn.addEventListener("click", function(){
-  if(isPlaying){ previewAudio.pause(); previewPlayBtn.innerText="▶️"; isPlaying=false }
-  else { previewAudio.play(); previewPlayBtn.innerText="⏸️"; isPlaying=true }
+let isPlaying=false
+previewPlayBtn.addEventListener("click",()=>{
+  if(isPlaying){previewAudio.pause();previewPlayBtn.innerText="▶️";isPlaying=false}
+  else{previewAudio.play();previewPlayBtn.innerText="⏸️";isPlaying=true}
 })
-
-previewAudio.addEventListener("ended", function(){
-  previewPlayBtn.innerText="▶️"; isPlaying=false
+previewAudio.addEventListener("ended",()=>{previewPlayBtn.innerText="▶️";isPlaying=false})
+previewDeleteBtn.addEventListener("click",()=>{
+  recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
 })
-
-previewDeleteBtn.addEventListener("click", function(){
-  recordedBlob=null; previewAudio.src=""; voicePreviewBar.style.display="none"; isPlaying=false
-})
-
-previewSendBtn.addEventListener("click", async function(){
+previewSendBtn.addEventListener("click",async()=>{
   if(!recordedBlob) return
   previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
   try {
-    const formData = new FormData()
-    formData.append("file", recordedBlob, "voice.webm")
-    const res = await fetch(BACKEND + "/voice", { method:"POST", body:formData })
-    const data = await res.json()
-    if(!data.url) throw new Error("No URL")
-    push(ref(db,"messages"), { name:username, text:"__voice__"+data.url, time:Date.now(), seen:false })
-    recordedBlob=null; previewAudio.src=""; voicePreviewBar.style.display="none"; isPlaying=false
-  } catch(e) { alert("Voice send failed ⚠️") }
-  previewSendBtn.disabled=false; previewSendBtn.innerText="➤"
+    const formData=new FormData()
+    formData.append("file",recordedBlob,"voice.webm")
+    const res=await fetch(BACKEND+"/voice",{method:"POST",body:formData})
+    const data=await res.json()
+    if(!data.url) throw new Error()
+    push(ref(db,"messages"),{name:username,text:"__voice__"+data.url,time:Date.now(),seen:false})
+    recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
+  } catch(e){alert("Voice send failed ⚠️")}
+  previewSendBtn.disabled=false;previewSendBtn.innerText="➤"
 })
 
 // ─────────────────────────────────────────────
 // TYPING INDICATOR
 // ─────────────────────────────────────────────
 const typingIndicator = document.getElementById("typingIndicator")
-let typingTimeout = null
+let typingTimeout=null
 const msgBox = document.getElementById("msg")
 
-msgBox.addEventListener("input", function(){
-  this.style.height = "auto"
-  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+msgBox.addEventListener("input",function(){
+  this.style.height="auto"
+  this.style.height=Math.min(this.scrollHeight,120)+"px"
   if(username){
-    set(ref(db, "typing/" + username), true)
+    set(ref(db,"typing/"+username),true)
     clearTimeout(typingTimeout)
-    typingTimeout = setTimeout(()=>{ set(ref(db, "typing/" + username), false) }, 2000)
+    typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
   }
 })
 
-msgBox.addEventListener("keydown", function(e){
-  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send() }
+msgBox.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
 })
 
 // ─────────────────────────────────────────────
-// REACTION PICKER
+// REPLY
 // ─────────────────────────────────────────────
-const reactionPicker = document.getElementById("reactionPicker")
-let currentMsgKey = null
-let longPressTimer = null
+let replyingTo = null
 
-function showReactionPicker(msgDiv, key){
-  currentMsgKey = key
-  reactionPicker.style.display = "flex"
-  const rect = msgDiv.getBoundingClientRect()
-  let top = rect.top - 60
-  let left = rect.left
-  if(top < 10) top = rect.bottom + 8
-  if(left + 280 > window.innerWidth) left = window.innerWidth - 290
-  reactionPicker.style.top = top + "px"
-  reactionPicker.style.left = left + "px"
+const replyBar = document.getElementById("replyBar")
+const replyBarName = document.getElementById("replyBarName")
+const replyBarText = document.getElementById("replyBarText")
+const replyBarClose = document.getElementById("replyBarClose")
+
+replyBarClose.addEventListener("click",()=>{
+  replyingTo=null; replyBar.style.display="none"
+})
+
+function startReply(key, name, text){
+  replyingTo={key,name,text}
+  replyBarName.innerText = name==="katis1"?"Kat":"Kitty"
+  replyBarText.innerText = text.startsWith("__voice__")?"🎤 Voice message":text.substring(0,60)
+  replyBar.style.display="flex"
+  msgBox.focus()
 }
 
-document.addEventListener("click", function(e){
-  if(!reactionPicker.contains(e.target)){ reactionPicker.style.display="none"; currentMsgKey=null }
+function addSwipeReply(div, key, message){
+  let startX=0, moved=false
+  div.addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; moved=false },{passive:true})
+  div.addEventListener("touchmove",e=>{
+    const dx=e.touches[0].clientX-startX
+    if(Math.abs(dx)>10){ moved=true; const clamp=Math.min(Math.max(dx,-60),60); div.style.transform=`translateX(${clamp}px)` }
+  },{passive:true})
+  div.addEventListener("touchend",e=>{
+    const dx=e.changedTouches[0].clientX-startX
+    div.style.transform=""
+    if(Math.abs(dx)>50&&moved) startReply(key,message.name,message.text)
+  },{passive:true})
+}
+
+// ─────────────────────────────────────────────
+// EDIT
+// ─────────────────────────────────────────────
+let editingKey = null
+
+const editBar = document.getElementById("editBar")
+const editBarClose = document.getElementById("editBarClose")
+
+editBarClose.addEventListener("click",()=>{
+  editingKey=null; editBar.style.display="none"
+  msgBox.value=""; msgBox.style.height="auto"
+  document.getElementById("sendBtn").innerText="➤"
 })
 
-document.querySelectorAll(".reactionOption").forEach(el => {
-  el.addEventListener("click", async function(){
+function startEdit(key, currentText){
+  editingKey=key
+  msgBox.value=currentText
+  msgBox.style.height="auto"
+  msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
+  editBar.style.display="flex"
+  document.getElementById("sendBtn").innerText="✓"
+  msgBox.focus()
+}
+
+// ─────────────────────────────────────────────
+// ACTION MENU
+// ─────────────────────────────────────────────
+const actionMenu = document.getElementById("actionMenu")
+const reactionPicker = document.getElementById("reactionPicker")
+let currentMsgKey=null, currentMsgIsMe=false, currentMsgData=null
+let longPressTimer=null
+
+function showActionMenu(msgDiv, key, isMe, message){
+  currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
+  document.getElementById("actionEdit").style.display = (isMe&&!message.text.startsWith("__voice__"))?"flex":"none"
+  document.getElementById("actionDelete").style.display = isMe?"flex":"none"
+  actionMenu.style.display="flex"
+  const rect=msgDiv.getBoundingClientRect()
+  let top=rect.top-10
+  let left=isMe?rect.right-160:rect.left
+  if(top+180>window.innerHeight) top=rect.bottom-180
+  if(top<10) top=10
+  if(left+160>window.innerWidth) left=window.innerWidth-165
+  if(left<5) left=5
+  actionMenu.style.top=top+"px"
+  actionMenu.style.left=left+"px"
+}
+
+document.addEventListener("click",e=>{
+  if(!actionMenu.contains(e.target)&&!reactionPicker.contains(e.target)){
+    actionMenu.style.display="none"
+    reactionPicker.style.display="none"
+    currentMsgKey=null
+  }
+})
+
+document.getElementById("actionReact").addEventListener("click",()=>{
+  if(!currentMsgKey) return
+  actionMenu.style.display="none"
+  const am=actionMenu.getBoundingClientRect()
+  reactionPicker.style.display="flex"
+  reactionPicker.style.top=(am.top-55)+"px"
+  reactionPicker.style.left=am.left+"px"
+})
+
+document.getElementById("actionReply").addEventListener("click",()=>{
+  if(!currentMsgData) return
+  actionMenu.style.display="none"
+  startReply(currentMsgKey,currentMsgData.name,currentMsgData.text)
+})
+
+document.getElementById("actionEdit").addEventListener("click",()=>{
+  if(!currentMsgKey||!currentMsgIsMe) return
+  actionMenu.style.display="none"
+  startEdit(currentMsgKey,currentMsgData.text)
+})
+
+// ✅ Fix 3: WhatsApp style soft delete — remove() নয়, update() দিয়ে
+document.getElementById("actionDelete").addEventListener("click",async()=>{
+  if(!currentMsgKey||!currentMsgIsMe) return
+  actionMenu.style.display="none"
+  if(confirm("Delete this message?")){
+    await update(ref(db,"messages/"+currentMsgKey),{
+      text:"__deleted__",
+      deleted:true
+    })
+  }
+})
+
+document.querySelectorAll(".reactionOption").forEach(el=>{
+  el.addEventListener("click",async function(){
     if(!currentMsgKey) return
-    await update(ref(db,"messages/"+currentMsgKey+"/reactions"), { [username]: this.innerText })
+    await update(ref(db,"messages/"+currentMsgKey+"/reactions"),{[username]:this.innerText})
     reactionPicker.style.display="none"; currentMsgKey=null
   })
 })
 
-function renderReactions(reactions, msgKey){
+function renderReactions(reactions,msgKey){
   if(!reactions) return ""
-  const counts = {}
-  Object.values(reactions).forEach(e => { counts[e]=(counts[e]||0)+1 })
-  const myReaction = reactions[username] || null
-  let html = '<div class="reactionBar">'
-  Object.entries(counts).forEach(([emoji, count]) => {
-    const active = myReaction===emoji ? "border:1.5px solid #075E54;" : ""
-    html += `<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count>1?" "+count:""}</span>`
+  const counts={}
+  Object.values(reactions).forEach(e=>{counts[e]=(counts[e]||0)+1})
+  const myReaction=reactions[username]||null
+  let html='<div class="reactionBar">'
+  Object.entries(counts).forEach(([emoji,count])=>{
+    const active=myReaction===emoji?"border:1.5px solid #075E54;":""
+    html+=`<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count>1?" "+count:""}</span>`
   })
-  return html + "</div>"
+  return html+"</div>"
 }
 
-window.toggleReaction = async function(msgKey, emoji){
-  const snap = await get(ref(db,"messages/"+msgKey+"/reactions"))
-  const reactions = snap.val() || {}
-  await update(ref(db,"messages/"+msgKey+"/reactions"), {
-    [username]: reactions[username]===emoji ? null : emoji
+window.toggleReaction=async function(msgKey,emoji){
+  const snap=await get(ref(db,"messages/"+msgKey+"/reactions"))
+  const reactions=snap.val()||{}
+  await update(ref(db,"messages/"+msgKey+"/reactions"),{
+    [username]:reactions[username]===emoji?null:emoji
   })
 }
 
 // ─────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────
-window.unlock = async function(){
-  let key = document.getElementById("key").value
-  accessLoader.style.display = "flex"
+window.unlock=async function(){
+  let key=document.getElementById("key").value
+  accessLoader.style.display="flex"
   try {
-    const res = await fetch(BACKEND+"/check-access", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ key })
-    })
-    const data = await res.json()
-    accessLoader.style.display = "none"
-    if(!data.ok){ document.body.innerHTML=""; return }
-  } catch(e) { accessLoader.style.display="none"; document.body.innerHTML=""; return }
+    const res=await fetch(BACKEND+"/check-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key})})
+    const data=await res.json()
+    accessLoader.style.display="none"
+    if(!data.ok){document.body.innerHTML="";return}
+  } catch(e){accessLoader.style.display="none";document.body.innerHTML="";return}
   document.getElementById("access").style.display="none"
   document.getElementById("login").style.display="block"
 }
 
-window.start = async function(){
-  username = document.getElementById("name").value.trim()
-  let password = document.getElementById("code").value
-  if(!username || !password){ alert("Enter username & password"); return }
+window.start=async function(){
+  username=document.getElementById("name").value.trim()
+  let password=document.getElementById("code").value
+  if(!username||!password){alert("Enter username & password");return}
 
-  const btn = document.getElementById("loginBtn")
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Logging in...'
+  const btn=document.getElementById("loginBtn")
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Logging in...'
 
-  let battery = "Unknown"
-  try {
-    const b = await navigator.getBattery()
-    battery = Math.round(b.level*100)+"%" + (b.charging?" ⚡ Charging":"")
-  } catch(e) {}
+  let battery="Unknown"
+  try{const b=await navigator.getBattery();battery=Math.round(b.level*100)+"%"+(b.charging?" ⚡ Charging":"")}catch(e){}
 
   let data
-  try {
-    const res = await fetch(BACKEND+"/login", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ username, password, battery })
-    })
-    data = await res.json()
-  } catch(e) {
-    btn.disabled=false; btn.innerHTML="Enter Chat"
-    alert("Server waking up... try again in a moment"); return
-  }
+  try{
+    const res=await fetch(BACKEND+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password,battery})})
+    data=await res.json()
+  }catch(e){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Server waking up... try again in a moment");return}
 
-  if(!data.ok){ btn.disabled=false; btn.innerHTML="Enter Chat"; alert("Access denied"); return }
+  if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
-  localStorage.setItem("chatUser", username)
+  localStorage.setItem("chatUser",username)
   document.getElementById("login").style.display="none"
   document.getElementById("chat").style.display="flex"
 
-  const userRef = ref(db,"status/"+username)
-  set(userRef, {online:true, last:Date.now()})
-  onDisconnect(userRef).set({online:false, last:Date.now()})
+  const userRef=ref(db,"status/"+username)
+  set(userRef,{online:true,last:Date.now()})
+  onDisconnect(userRef).set({online:false,last:Date.now()})
   onDisconnect(ref(db,"typing/"+username)).set(false)
 
-  document.addEventListener("visibilitychange", ()=>{
+  document.addEventListener("visibilitychange",()=>{
     if(document.hidden) set(userRef,{online:false,last:Date.now()})
     else set(userRef,{online:true,last:Date.now()})
   })
+  setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
 
-  setInterval(()=>{ set(userRef,{online:true,last:Date.now()}) }, 10000)
+  const otherUser=username=="katis1"?"kittyis0001":"katis1"
+  const otherName=otherUser==="kittyis0001"?"Kitty":"Kat"
 
-  const otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-  const otherName = otherUser==="kittyis0001" ? "Kitty" : "Kat"
-
-  onValue(ref(db,"typing/"+otherUser), (snap)=>{
-    const isTyping = snap.val()
-    typingIndicator.style.display = isTyping ? "block" : "none"
-    typingIndicator.innerText = isTyping ? otherName+" is typing..." : ""
+  onValue(ref(db,"typing/"+otherUser),snap=>{
+    const isTyping=snap.val()
+    typingIndicator.style.display=isTyping?"block":"none"
+    typingIndicator.innerText=isTyping?otherName+" is typing...":""
   })
 
   markSeenMessages()
 }
 
 // ─────────────────────────────────────────────
-// MESSAGES
+// SEND
 // ─────────────────────────────────────────────
-window.send = function(){
-  let text = msgBox.value.trim()
-  if(text=="") return
-  push(ref(db,"messages"), {name:username, text:text, time:Date.now(), seen:false})
+window.send=async function(){
+  const text=msgBox.value.trim()
+  if(!text) return
+
+  if(editingKey){
+    await update(ref(db,"messages/"+editingKey),{text:text,edited:true})
+    editingKey=null; editBar.style.display="none"
+    document.getElementById("sendBtn").innerText="➤"
+    msgBox.value=""; msgBox.style.height="auto"
+    return
+  }
+
+  const msgData={name:username,text:text,time:Date.now(),seen:false}
+
+  if(replyingTo){
+    msgData.replyTo={
+      key:replyingTo.key,
+      name:replyingTo.name,
+      text:replyingTo.text.startsWith("__voice__")?"🎤 Voice message":replyingTo.text.substring(0,80)
+    }
+    replyingTo=null; replyBar.style.display="none"
+  }
+
+  push(ref(db,"messages"),msgData)
   msgBox.value=""; msgBox.style.height="auto"
-  set(ref(db,"typing/"+username), false)
+  set(ref(db,"typing/"+username),false)
   clearTimeout(typingTimeout)
 }
 
+// ─────────────────────────────────────────────
+// CREATE MESSAGE
+// ─────────────────────────────────────────────
+function isImageUrl(text){
+  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text)&&
+    !text.includes("instagram.com")&&!text.includes("youtube.com")&&
+    !text.includes("youtu.be")&&!text.includes("facebook.com")&&
+    !text.includes("twitter.com")&&!text.includes("tiktok.com")
+}
+
 function createVoicePlayer(url){
-  const audio = new Audio(url)
-  let playing=false, progressInterval=null
-
-  const wrapper = document.createElement("div")
-  wrapper.className = "voiceMsg"
-
-  const playBtn = document.createElement("button")
-  playBtn.className = "voicePlayBtn"
-  playBtn.innerText = "▶"
-
-  const wave = document.createElement("div")
-  wave.className = "voiceWave"
-  const fill = document.createElement("div")
-  fill.className = "voiceWaveFill"
-  wave.appendChild(fill)
-
-  const dur = document.createElement("span")
-  dur.className = "voiceDuration"
-  dur.innerText = "0:00"
-
-  audio.addEventListener("loadedmetadata", ()=>{
-    if(isFinite(audio.duration)) dur.innerText = formatRecTime(Math.round(audio.duration))
-  })
-
-  playBtn.addEventListener("click", ()=>{
-    if(playing){
-      audio.pause(); playBtn.innerText="▶"; clearInterval(progressInterval); playing=false
-    } else {
-      audio.play(); playBtn.innerText="⏸"; playing=true
-      progressInterval = setInterval(()=>{
-        if(audio.duration){
-          fill.style.width=(audio.currentTime/audio.duration*100)+"%"
-          dur.innerText=formatRecTime(Math.round(audio.currentTime))
-        }
-      }, 100)
+  const audio=new Audio(url)
+  let playing=false,progressInterval=null
+  const wrapper=document.createElement("div");wrapper.className="voiceMsg"
+  const playBtn=document.createElement("button");playBtn.className="voicePlayBtn";playBtn.innerText="▶"
+  const wave=document.createElement("div");wave.className="voiceWave"
+  const fill=document.createElement("div");fill.className="voiceWaveFill";wave.appendChild(fill)
+  const dur=document.createElement("span");dur.className="voiceDuration";dur.innerText="0:00"
+  audio.addEventListener("loadedmetadata",()=>{ if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration)) })
+  playBtn.addEventListener("click",()=>{
+    if(playing){audio.pause();playBtn.innerText="▶";clearInterval(progressInterval);playing=false}
+    else{
+      audio.play();playBtn.innerText="⏸";playing=true
+      progressInterval=setInterval(()=>{
+        if(audio.duration){fill.style.width=(audio.currentTime/audio.duration*100)+"%";dur.innerText=formatRecTime(Math.round(audio.currentTime))}
+      },100)
     }
   })
-
-  audio.addEventListener("ended", ()=>{
-    playBtn.innerText="▶"; fill.style.width="0%"; playing=false; clearInterval(progressInterval)
+  audio.addEventListener("ended",()=>{
+    playBtn.innerText="▶";fill.style.width="0%";playing=false;clearInterval(progressInterval)
     if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration))
   })
-
-  wrapper.appendChild(playBtn)
-  wrapper.appendChild(wave)
-  wrapper.appendChild(dur)
+  wrapper.appendChild(playBtn);wrapper.appendChild(wave);wrapper.appendChild(dur)
   return wrapper
 }
 
-// ✅ Task 2 — image detection সঠিকভাবে, link আলাদা
-function isImageUrl(text){
-  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text) &&
-         !text.includes("instagram.com") &&
-         !text.includes("youtube.com") &&
-         !text.includes("youtu.be") &&
-         !text.includes("facebook.com") &&
-         !text.includes("twitter.com") &&
-         !text.includes("tiktok.com")
+function buildTimeHtml(message, isMe){
+  const t=new Date(message.time).getHours()+":"+("0"+new Date(message.time).getMinutes()).slice(-2)
+  const editedLabel=message.edited?`<span class="editedLabel">(edited)</span>`:""
+  const tick=isMe?(message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"):""
+  return `${t} ${editedLabel} ${tick}`
 }
 
 function createMessage(message, key){
-  let me = localStorage.getItem("chatUser") || username
-  let displayName = message.name
-  if(message.name==="katis1") displayName="Kat"
-  if(message.name==="kittyis0001") displayName="Kitty"
+  const me=localStorage.getItem("chatUser")||username
+  const isMe=message.name==me
+  const displayName=message.name==="katis1"?"Kat":"Kitty"
 
-  let div = document.createElement("div")
+  const div=document.createElement("div")
   div.classList.add("msg")
-  div.id = key
-  if(message.name==me) div.classList.add("me"); else div.classList.add("other")
+  div.id=key
+  div.classList.add(isMe?"me":"other")
 
-  let time = new Date(message.time)
-  let t = time.getHours()+":"+("0"+time.getMinutes()).slice(-2)
-  let text = message.text
-
-  let tick = message.name==me ? (message.seen?"<span style='color:#001aff'>✔✔</span>":"✔") : ""
-  const reactionsHtml = renderReactions(message.reactions, key)
-
-  div.innerHTML = "<b>"+displayName+"</b><br><div class='time'>"+t+" "+tick+"</div>"+reactionsHtml
-
-  const timeDiv = div.querySelector(".time")
-
-  if(text.startsWith("__voice__")){
-    const url = text.replace("__voice__","")
-    const player = createVoicePlayer(url)
-    div.insertBefore(player, timeDiv)
-  } else if(isImageUrl(text)){
-    // ✅ শুধু actual image file URL এ img tag
-    const img = document.createElement("img")
-    img.src = text
-    img.style.cssText = "max-width:200px;border-radius:8px;display:block;cursor:pointer;"
-    img.onclick = function(){ showImage(this.src) }
-    div.insertBefore(img, timeDiv)
-  } else {
-    // ✅ সব link clickable — Instagram, YouTube সব
-    const textNode = document.createElement("span")
-    textNode.innerHTML = text
-      .replace(/\n/g,"<br>")
-      .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
-    div.insertBefore(textNode, timeDiv)
+  // ✅ Deleted message
+  if(message.deleted){
+    div.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,isMe)}</div>`
+    messagesEl.appendChild(div)
+    scrollToBottom()
+    return
   }
 
-  div.addEventListener("touchstart", function(e){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div,key) }, 600)
-  }, {passive:true})
-  div.addEventListener("touchend", ()=>clearTimeout(longPressTimer))
-  div.addEventListener("touchmove", ()=>clearTimeout(longPressTimer))
-  div.addEventListener("mousedown", function(){
-    longPressTimer = setTimeout(()=>{ showReactionPicker(div,key) }, 600)
-  })
-  div.addEventListener("mouseup", ()=>clearTimeout(longPressTimer))
+  // reply quote
+  let replyHtml=""
+  if(message.replyTo){
+    const rName=message.replyTo.name==="katis1"?"Kat":"Kitty"
+    replyHtml=`<div class="replyQuote"><div class="replyName">${rName}</div>${message.replyTo.text||""}</div>`
+  }
 
-  document.getElementById("messages").appendChild(div)
-  document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight
+  div.innerHTML=`<b>${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
+
+  const timeDiv=div.querySelector(".time")
+
+  if(message.text.startsWith("__voice__")){
+    div.insertBefore(createVoicePlayer(message.text.replace("__voice__","")),timeDiv)
+  } else if(isImageUrl(message.text)){
+    const img=document.createElement("img")
+    img.src=message.text
+    img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
+    img.onclick=function(){showImage(this.src)}
+    div.insertBefore(img,timeDiv)
+  } else {
+    // ✅ Fix 1: class="msgText" দিয়ে safe selector
+    const textNode=document.createElement("span")
+    textNode.className="msgText"
+    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
+    div.insertBefore(textNode,timeDiv)
+  }
+
+  div.addEventListener("touchstart",e=>{
+    longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
+  },{passive:true})
+  div.addEventListener("touchend",()=>clearTimeout(longPressTimer))
+  div.addEventListener("touchmove",()=>clearTimeout(longPressTimer))
+  div.addEventListener("mousedown",()=>{ longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600) })
+  div.addEventListener("mouseup",()=>clearTimeout(longPressTimer))
+
+  addSwipeReply(div,key,message)
+
+  messagesEl.appendChild(div)
+  scrollToBottom()
 }
 
-onChildAdded(ref(db,"messages"), (data)=>{
-  let message = data.val()
-  let key = data.key
-  createMessage(message, key)
-  if(message.time>appStartTime && message.name==="kittyis0001"){
-    let now = new Date()
-    let time = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
-    fetch(BACKEND+"/notify", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ text: message.text.startsWith("__voice__") ? "🎤 Voice message" : message.text, time })
+onChildAdded(ref(db,"messages"),data=>{
+  createMessage(data.val(),data.key)
+  const message=data.val()
+  if(message.time>appStartTime&&message.name==="kittyis0001"){
+    const now=new Date()
+    const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    fetch(BACKEND+"/notify",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:message.text.startsWith("__voice__")?"🎤 Voice message":message.text,time})
     }).catch(()=>{})
   }
 })
 
-onChildChanged(ref(db,"messages"), function(data){
-  let me = localStorage.getItem("chatUser") || username
-  let message = data.val()
-  let key = data.key
-  let msgDiv = document.getElementById(key)
+onChildChanged(ref(db,"messages"),data=>{
+  const me=localStorage.getItem("chatUser")||username
+  const message=data.val()
+  const key=data.key
+  const msgDiv=document.getElementById(key)
   if(!msgDiv) return
 
-  if(message.name==me){
-    let tick = message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"
-    const timeDiv = msgDiv.querySelector(".time")
-    if(timeDiv) timeDiv.innerHTML = timeDiv.innerHTML.split(" ")[0]+" "+tick
+  // ✅ Fix 3: deleted → update UI
+  if(message.deleted){
+    msgDiv.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,message.name==me)}</div>`
+    return
   }
 
-  let reactionBar = msgDiv.querySelector(".reactionBar")
-  const newReactionHtml = renderReactions(message.reactions, key)
-  if(reactionBar) reactionBar.outerHTML = newReactionHtml||""
-  else if(newReactionHtml) msgDiv.insertAdjacentHTML("beforeend", newReactionHtml)
+  // ✅ Fix 2: timeDiv update সবার জন্য (both users)
+  const timeDiv=msgDiv.querySelector(".time")
+  if(timeDiv) timeDiv.innerHTML=buildTimeHtml(message,message.name==me)
+
+  // ✅ Fix 1: safe .msgText selector দিয়ে edit update
+  if(message.edited){
+    const textSpan=msgDiv.querySelector(".msgText")
+    if(textSpan){
+      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
+    }
+  }
+
+  // reaction update
+  const reactionBar=msgDiv.querySelector(".reactionBar")
+  const newReactionHtml=renderReactions(message.reactions,key)
+  if(reactionBar) reactionBar.outerHTML=newReactionHtml||""
+  else if(newReactionHtml) msgDiv.insertAdjacentHTML("beforeend",newReactionHtml)
 })
 
 function markSeenMessages(){
   if(seenListener) return
-  seenListener = onValue(ref(db,"messages"), (snap)=>{
-    let data = snap.val()
+  seenListener=onValue(ref(db,"messages"),snap=>{
+    const data=snap.val()
     if(!data) return
     Object.keys(data).forEach(key=>{
-      let msg = data[key]
-      if(msg.name!=username && !msg.seen) update(ref(db,"messages/"+key),{seen:true})
+      const msg=data[key]
+      if(msg.name!=username&&!msg.seen&&!msg.deleted) update(ref(db,"messages/"+key),{seen:true})
     })
   })
 }
@@ -974,107 +1119,107 @@ function formatTime(ts){
   return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
 }
 
-onValue(ref(db,"status"), (snap)=>{
-  let data = snap.val()
+onValue(ref(db,"status"),snap=>{
+  const data=snap.val()
   if(!data) return
-  let otherUser = username=="katis1" ? "kittyis0001" : "katis1"
+  const otherUser=username=="katis1"?"kittyis0001":"katis1"
   if(data[otherUser]){
-    let last = data[otherUser].last
-    let diff = Date.now()-last
-    if(diff<12000){ statusText.innerText="Online"; return }
-    let now = new Date(), d = new Date(last)
-    let isToday = now.toDateString()===d.toDateString()
-    let yesterday = new Date(); yesterday.setDate(now.getDate()-1)
-    let isYesterday = yesterday.toDateString()===d.toDateString()
-    let time = formatTime(last)
+    const last=data[otherUser].last
+    const diff=Date.now()-last
+    if(diff<12000){statusText.innerText="Online";return}
+    const now=new Date(),d=new Date(last)
+    const isToday=now.toDateString()===d.toDateString()
+    const yesterday=new Date();yesterday.setDate(now.getDate()-1)
+    const isYesterday=yesterday.toDateString()===d.toDateString()
+    const time=formatTime(last)
     if(isToday) statusText.innerText="Last seen today at "+time
     else if(isYesterday) statusText.innerText="Last seen yesterday at "+time
     else statusText.innerText="Last seen "+d.getDate()+" "+d.toLocaleString('default',{month:'short'})+" at "+time
   }
 })
 
-window.toggleMenu = function(){
-  let m = document.getElementById("menuBox")
-  m.style.display = m.style.display=="block" ? "none" : "block"
+window.toggleMenu=function(){
+  const m=document.getElementById("menuBox")
+  m.style.display=m.style.display=="block"?"none":"block"
 }
 
-window.deleteAll = function(){
+window.deleteAll=function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
-    document.getElementById("messages").innerHTML=""
+    messagesEl.innerHTML=""
     document.getElementById("menuBox").style.display="none"
   }
 }
 
-const imgViewer = document.getElementById("imgViewer")
-const fullImg = document.getElementById("fullImg")
-let imgScale=1, touchStartDist=0, touchStartScale=1
+const imgViewer=document.getElementById("imgViewer")
+const fullImg=document.getElementById("fullImg")
+let imgScale=1,touchStartDist=0,touchStartScale=1
 
-imgViewer.addEventListener("touchstart", function(e){
+imgViewer.addEventListener("touchstart",e=>{
   if(e.touches.length===2){
-    touchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    touchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)
     touchStartScale=imgScale
   }
-}, {passive:true})
+},{passive:true})
 
-imgViewer.addEventListener("touchmove", function(e){
+imgViewer.addEventListener("touchmove",e=>{
   if(e.touches.length===2){
     e.preventDefault()
-    let dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)
     imgScale=Math.min(Math.max(touchStartScale*(dist/touchStartDist),1),4)
     fullImg.style.transform="scale("+imgScale+")"
   }
-}, {passive:false})
+},{passive:false})
 
-imgViewer.addEventListener("click", function(e){
-  if(e.target.id==="imgViewer"){ imgViewer.style.display="none"; imgScale=1; fullImg.style.transform="scale(1)" }
+imgViewer.addEventListener("click",e=>{
+  if(e.target.id==="imgViewer"){imgViewer.style.display="none";imgScale=1;fullImg.style.transform="scale(1)"}
 })
 
-fullImg.addEventListener("click", function(e){
+fullImg.addEventListener("click",e=>{
   e.stopPropagation()
   imgScale=imgScale===1?2.5:1
   fullImg.style.transform="scale("+imgScale+")"
   fullImg.style.cursor=imgScale===1?"zoom-in":"zoom-out"
 })
 
-window.showImage = function(src){
-  imgScale=1; fullImg.src=src
+window.showImage=function(src){
+  imgScale=1;fullImg.src=src
   fullImg.style.transform="scale(1)"
   fullImg.style.transition="transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
   fullImg.style.cursor="zoom-in"
   imgViewer.style.display="flex"
 }
 
-const emojis = "😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+const emojis="😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
 
-const box = document.getElementById("emojiBox")
+const box=document.getElementById("emojiBox")
 emojis.forEach(e=>{
-  let span=document.createElement("span")
-  span.innerText=e; span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
+  const span=document.createElement("span")
+  span.innerText=e;span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
   span.onclick=()=>{
-    msgBox.value+=e; msgBox.focus()
+    msgBox.value+=e;msgBox.focus()
     msgBox.style.height="auto"
     msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
   }
   box.appendChild(span)
 })
 
-window.toggleEmoji = function(){
-  let b=document.getElementById("emojiBox")
+window.toggleEmoji=function(){
+  const b=document.getElementById("emojiBox")
   b.style.display=b.style.display=="block"?"none":"block"
 }
 
-window.uploadImage = async function(input){
-  let file=input.files[0]
+window.uploadImage=async function(input){
+  const file=input.files[0]
   if(!file) return
-  let formData=new FormData()
+  const formData=new FormData()
   formData.append("file",file)
-  try {
-    let res=await fetch(BACKEND+"/upload",{method:"POST",body:formData})
-    let data=await res.json()
-    if(!data.url){ alert("Upload failed ⚠️"); input.value=""; return }
+  try{
+    const res=await fetch(BACKEND+"/upload",{method:"POST",body:formData})
+    const data=await res.json()
+    if(!data.url){alert("Upload failed ⚠️");input.value="";return}
     push(ref(db,"messages"),{name:username,text:data.url,time:Date.now(),seen:false})
-  } catch(e){ alert("Upload failed ⚠️") }
+  }catch(e){alert("Upload failed ⚠️")}
   input.value=""
 }
 

@@ -243,12 +243,7 @@ font-size:11px;
 margin-bottom:2px;
 }
 
-.editedLabel{
-font-size:10px;
-color:#888;
-margin-left:4px;
-}
-
+.editedLabel{ font-size:10px; color:#888; margin-left:4px; }
 .time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
 
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -262,6 +257,7 @@ cursor:pointer;
 border:1px solid rgba(0,0,0,0.1);
 }
 
+/* ✅ action menu — React option সরানো হয়েছে */
 #actionMenu{
 display:none;
 position:fixed;
@@ -294,7 +290,7 @@ background:white;
 border-radius:30px;
 padding:8px 12px;
 box-shadow:0 4px 20px rgba(0,0,0,0.25);
-z-index:9998;
+z-index:9999;
 gap:6px;
 flex-direction:row;
 }
@@ -304,10 +300,11 @@ font-size:24px;
 cursor:pointer;
 padding:4px;
 border-radius:50%;
-transition:transform 0.1s;
+transition:transform 0.15s;
 }
 
-.reactionOption:active{ transform:scale(1.3); }
+.reactionOption:hover{ transform:scale(1.3); }
+.reactionOption:active{ transform:scale(1.1); }
 
 #replyBar{
 display:none;
@@ -550,8 +547,8 @@ font-style:italic;
 
 </div>
 
+<!-- ✅ Action menu — React সরানো হয়েছে -->
 <div id="actionMenu">
-  <div class="actionMenuItem" id="actionReact">😊 React</div>
   <div class="actionMenuItem" id="actionReply">↩️ Reply</div>
   <div class="actionMenuItem" id="actionEdit">✏️ Edit</div>
   <div class="actionMenuItem danger" id="actionDelete">🗑️ Delete</div>
@@ -599,7 +596,6 @@ const accessLoader = document.getElementById("accessLoader")
 const messagesEl = document.getElementById("messages")
 let seenListener = null
 
-// ✅ smooth scroll helper — fix scroll performance
 function scrollToBottom(){
   setTimeout(()=>{ messagesEl.scrollTop = messagesEl.scrollHeight }, 50)
 }
@@ -769,17 +765,32 @@ function startEdit(key, currentText){
 }
 
 // ─────────────────────────────────────────────
-// ACTION MENU
+// ACTION MENU + REACTION PICKER
 // ─────────────────────────────────────────────
 const actionMenu = document.getElementById("actionMenu")
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey=null, currentMsgIsMe=false, currentMsgData=null
 let longPressTimer=null
+// ✅ long press fired flag — click event ignore করার জন্য
+let longPressFired=false
+
+function showReactionPickerForMsg(div){
+  const rect=div.getBoundingClientRect()
+  let rTop=rect.top-60
+  let rLeft=currentMsgIsMe ? rect.right-310 : rect.left
+  if(rTop<10) rTop=rect.bottom+8
+  if(rLeft+300>window.innerWidth) rLeft=window.innerWidth-310
+  if(rLeft<5) rLeft=5
+  reactionPicker.style.top=rTop+"px"
+  reactionPicker.style.left=rLeft+"px"
+  reactionPicker.style.display="flex"
+}
 
 function showActionMenu(msgDiv, key, isMe, message){
+  longPressFired=true
   currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
-  document.getElementById("actionEdit").style.display = (isMe&&!message.text.startsWith("__voice__"))?"flex":"none"
-  document.getElementById("actionDelete").style.display = isMe?"flex":"none"
+  document.getElementById("actionEdit").style.display=(isMe&&!message.text.startsWith("__voice__"))?"flex":"none"
+  document.getElementById("actionDelete").style.display=isMe?"flex":"none"
   actionMenu.style.display="flex"
   const rect=msgDiv.getBoundingClientRect()
   let top=rect.top-10
@@ -800,44 +811,36 @@ document.addEventListener("click",e=>{
   }
 })
 
-document.getElementById("actionReact").addEventListener("click",()=>{
-  if(!currentMsgKey) return
-  actionMenu.style.display="none"
-  const am=actionMenu.getBoundingClientRect()
-  reactionPicker.style.display="flex"
-  reactionPicker.style.top=(am.top-55)+"px"
-  reactionPicker.style.left=am.left+"px"
-})
-
-document.getElementById("actionReply").addEventListener("click",()=>{
+document.getElementById("actionReply").addEventListener("click",e=>{
+  e.stopPropagation()
   if(!currentMsgData) return
   actionMenu.style.display="none"
   startReply(currentMsgKey,currentMsgData.name,currentMsgData.text)
 })
 
-document.getElementById("actionEdit").addEventListener("click",()=>{
+document.getElementById("actionEdit").addEventListener("click",e=>{
+  e.stopPropagation()
   if(!currentMsgKey||!currentMsgIsMe) return
   actionMenu.style.display="none"
   startEdit(currentMsgKey,currentMsgData.text)
 })
 
-// ✅ Fix 3: WhatsApp style soft delete — remove() নয়, update() দিয়ে
-document.getElementById("actionDelete").addEventListener("click",async()=>{
+document.getElementById("actionDelete").addEventListener("click",async e=>{
+  e.stopPropagation()
   if(!currentMsgKey||!currentMsgIsMe) return
   actionMenu.style.display="none"
   if(confirm("Delete this message?")){
-    await update(ref(db,"messages/"+currentMsgKey),{
-      text:"__deleted__",
-      deleted:true
-    })
+    await update(ref(db,"messages/"+currentMsgKey),{text:"__deleted__",deleted:true})
   }
 })
 
 document.querySelectorAll(".reactionOption").forEach(el=>{
-  el.addEventListener("click",async function(){
+  el.addEventListener("click",async function(e){
+    e.stopPropagation()
     if(!currentMsgKey) return
     await update(ref(db,"messages/"+currentMsgKey+"/reactions"),{[username]:this.innerText})
-    reactionPicker.style.display="none"; currentMsgKey=null
+    reactionPicker.style.display="none"
+    currentMsgKey=null
   })
 })
 
@@ -975,7 +978,8 @@ function createVoicePlayer(url){
   const fill=document.createElement("div");fill.className="voiceWaveFill";wave.appendChild(fill)
   const dur=document.createElement("span");dur.className="voiceDuration";dur.innerText="0:00"
   audio.addEventListener("loadedmetadata",()=>{ if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration)) })
-  playBtn.addEventListener("click",()=>{
+  playBtn.addEventListener("click",e=>{
+    e.stopPropagation()
     if(playing){audio.pause();playBtn.innerText="▶";clearInterval(progressInterval);playing=false}
     else{
       audio.play();playBtn.innerText="⏸";playing=true
@@ -992,14 +996,14 @@ function createVoicePlayer(url){
   return wrapper
 }
 
-function buildTimeHtml(message, isMe){
+function buildTimeHtml(message,isMe){
   const t=new Date(message.time).getHours()+":"+("0"+new Date(message.time).getMinutes()).slice(-2)
   const editedLabel=message.edited?`<span class="editedLabel">(edited)</span>`:""
   const tick=isMe?(message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"):""
   return `${t} ${editedLabel} ${tick}`
 }
 
-function createMessage(message, key){
+function createMessage(message,key){
   const me=localStorage.getItem("chatUser")||username
   const isMe=message.name==me
   const displayName=message.name==="katis1"?"Kat":"Kitty"
@@ -1009,7 +1013,6 @@ function createMessage(message, key){
   div.id=key
   div.classList.add(isMe?"me":"other")
 
-  // ✅ Deleted message
   if(message.deleted){
     div.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,isMe)}</div>`
     messagesEl.appendChild(div)
@@ -1017,7 +1020,6 @@ function createMessage(message, key){
     return
   }
 
-  // reply quote
   let replyHtml=""
   if(message.replyTo){
     const rName=message.replyTo.name==="katis1"?"Kat":"Kitty"
@@ -1034,22 +1036,43 @@ function createMessage(message, key){
     const img=document.createElement("img")
     img.src=message.text
     img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
-    img.onclick=function(){showImage(this.src)}
+    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
     div.insertBefore(img,timeDiv)
   } else {
-    // ✅ Fix 1: class="msgText" দিয়ে safe selector
     const textNode=document.createElement("span")
     textNode.className="msgText"
-    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
+    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
     div.insertBefore(textNode,timeDiv)
   }
 
+  // ✅ single tap → reaction picker
+  div.addEventListener("click",e=>{
+    if(longPressFired){ longPressFired=false; return }
+    // link বা img click ignore
+    if(e.target.tagName==="A"||e.target.tagName==="IMG"||e.target.closest(".reactionBar")||e.target.closest(".voicePlayBtn")) return
+    currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
+    actionMenu.style.display="none"
+    showReactionPickerForMsg(div)
+  })
+
+  // ✅ 1.5s hold → action menu
   div.addEventListener("touchstart",e=>{
-    longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
+    longPressFired=false
+    longPressTimer=setTimeout(()=>{
+      reactionPicker.style.display="none"
+      showActionMenu(div,key,isMe,message)
+    },1500)
   },{passive:true})
   div.addEventListener("touchend",()=>clearTimeout(longPressTimer))
   div.addEventListener("touchmove",()=>clearTimeout(longPressTimer))
-  div.addEventListener("mousedown",()=>{ longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600) })
+  div.addEventListener("mousedown",e=>{
+    if(e.button!==0) return
+    longPressFired=false
+    longPressTimer=setTimeout(()=>{
+      reactionPicker.style.display="none"
+      showActionMenu(div,key,isMe,message)
+    },1500)
+  })
   div.addEventListener("mouseup",()=>clearTimeout(longPressTimer))
 
   addSwipeReply(div,key,message)
@@ -1078,25 +1101,21 @@ onChildChanged(ref(db,"messages"),data=>{
   const msgDiv=document.getElementById(key)
   if(!msgDiv) return
 
-  // ✅ Fix 3: deleted → update UI
   if(message.deleted){
     msgDiv.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,message.name==me)}</div>`
     return
   }
 
-  // ✅ Fix 2: timeDiv update সবার জন্য (both users)
   const timeDiv=msgDiv.querySelector(".time")
   if(timeDiv) timeDiv.innerHTML=buildTimeHtml(message,message.name==me)
 
-  // ✅ Fix 1: safe .msgText selector দিয়ে edit update
   if(message.edited){
     const textSpan=msgDiv.querySelector(".msgText")
     if(textSpan){
-      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
+      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
     }
   }
 
-  // reaction update
   const reactionBar=msgDiv.querySelector(".reactionBar")
   const newReactionHtml=renderReactions(message.reactions,key)
   if(reactionBar) reactionBar.outerHTML=newReactionHtml||""

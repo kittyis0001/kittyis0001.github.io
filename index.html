@@ -244,6 +244,7 @@ margin-bottom:2px;
 }
 
 .editedLabel{ font-size:10px; color:#888; margin-left:4px; }
+
 .time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
 
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -257,7 +258,6 @@ cursor:pointer;
 border:1px solid rgba(0,0,0,0.1);
 }
 
-/* ✅ action menu — React option সরানো হয়েছে */
 #actionMenu{
 display:none;
 position:fixed;
@@ -300,11 +300,10 @@ font-size:24px;
 cursor:pointer;
 padding:4px;
 border-radius:50%;
-transition:transform 0.15s;
+transition:transform 0.1s;
 }
 
-.reactionOption:hover{ transform:scale(1.3); }
-.reactionOption:active{ transform:scale(1.1); }
+.reactionOption:active{ transform:scale(1.3); }
 
 #replyBar{
 display:none;
@@ -547,8 +546,8 @@ font-style:italic;
 
 </div>
 
-<!-- ✅ Action menu — React সরানো হয়েছে -->
 <div id="actionMenu">
+  <div class="actionMenuItem" id="actionReact">😊 React</div>
   <div class="actionMenuItem" id="actionReply">↩️ Reply</div>
   <div class="actionMenuItem" id="actionEdit">✏️ Edit</div>
   <div class="actionMenuItem danger" id="actionDelete">🗑️ Delete</div>
@@ -559,8 +558,8 @@ font-style:italic;
   <span class="reactionOption">😂</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">😑</span>
-  <span class="reactionOption">🤬</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
 </div>
 
 <script type="module">
@@ -765,29 +764,14 @@ function startEdit(key, currentText){
 }
 
 // ─────────────────────────────────────────────
-// ACTION MENU + REACTION PICKER
+// ACTION MENU
 // ─────────────────────────────────────────────
 const actionMenu = document.getElementById("actionMenu")
 const reactionPicker = document.getElementById("reactionPicker")
 let currentMsgKey=null, currentMsgIsMe=false, currentMsgData=null
 let longPressTimer=null
-// ✅ long press fired flag — click event ignore করার জন্য
-let longPressFired=false
-
-function showReactionPickerForMsg(div){
-  const rect=div.getBoundingClientRect()
-  let rTop=rect.top-60
-  let rLeft=currentMsgIsMe ? rect.right-310 : rect.left
-  if(rTop<10) rTop=rect.bottom+8
-  if(rLeft+300>window.innerWidth) rLeft=window.innerWidth-310
-  if(rLeft<5) rLeft=5
-  reactionPicker.style.top=rTop+"px"
-  reactionPicker.style.left=rLeft+"px"
-  reactionPicker.style.display="flex"
-}
 
 function showActionMenu(msgDiv, key, isMe, message){
-  longPressFired=true
   currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
   document.getElementById("actionEdit").style.display=(isMe&&!message.text.startsWith("__voice__"))?"flex":"none"
   document.getElementById("actionDelete").style.display=isMe?"flex":"none"
@@ -795,7 +779,7 @@ function showActionMenu(msgDiv, key, isMe, message){
   const rect=msgDiv.getBoundingClientRect()
   let top=rect.top-10
   let left=isMe?rect.right-160:rect.left
-  if(top+180>window.innerHeight) top=rect.bottom-180
+  if(top+200>window.innerHeight) top=rect.bottom-200
   if(top<10) top=10
   if(left+160>window.innerWidth) left=window.innerWidth-165
   if(left<5) left=5
@@ -809,6 +793,22 @@ document.addEventListener("click",e=>{
     reactionPicker.style.display="none"
     currentMsgKey=null
   }
+})
+
+// ✅ BUG FIX — position আগে নাও, তারপর actionMenu hide করো
+document.getElementById("actionReact").addEventListener("click",e=>{
+  e.stopPropagation()
+  if(!currentMsgKey) return
+  const am = actionMenu.getBoundingClientRect()
+  let rTop = am.top - 60
+  let rLeft = am.left
+  if(rTop < 10) rTop = am.bottom + 8
+  if(rLeft + 300 > window.innerWidth) rLeft = window.innerWidth - 310
+  if(rLeft < 5) rLeft = 5
+  actionMenu.style.display="none"
+  reactionPicker.style.display="flex"
+  reactionPicker.style.top=rTop+"px"
+  reactionPicker.style.left=rLeft+"px"
 })
 
 document.getElementById("actionReply").addEventListener("click",e=>{
@@ -978,8 +978,7 @@ function createVoicePlayer(url){
   const fill=document.createElement("div");fill.className="voiceWaveFill";wave.appendChild(fill)
   const dur=document.createElement("span");dur.className="voiceDuration";dur.innerText="0:00"
   audio.addEventListener("loadedmetadata",()=>{ if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration)) })
-  playBtn.addEventListener("click",e=>{
-    e.stopPropagation()
+  playBtn.addEventListener("click",()=>{
     if(playing){audio.pause();playBtn.innerText="▶";clearInterval(progressInterval);playing=false}
     else{
       audio.play();playBtn.innerText="⏸";playing=true
@@ -1036,43 +1035,21 @@ function createMessage(message,key){
     const img=document.createElement("img")
     img.src=message.text
     img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
-    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
+    img.onclick=function(){showImage(this.src)}
     div.insertBefore(img,timeDiv)
   } else {
     const textNode=document.createElement("span")
     textNode.className="msgText"
-    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
+    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
     div.insertBefore(textNode,timeDiv)
   }
 
-  // ✅ single tap → reaction picker
-  div.addEventListener("click",e=>{
-    if(longPressFired){ longPressFired=false; return }
-    // link বা img click ignore
-    if(e.target.tagName==="A"||e.target.tagName==="IMG"||e.target.closest(".reactionBar")||e.target.closest(".voicePlayBtn")) return
-    currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
-    actionMenu.style.display="none"
-    showReactionPickerForMsg(div)
-  })
-
-  // ✅ 1.5s hold → action menu
   div.addEventListener("touchstart",e=>{
-    longPressFired=false
-    longPressTimer=setTimeout(()=>{
-      reactionPicker.style.display="none"
-      showActionMenu(div,key,isMe,message)
-    },1500)
+    longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
   },{passive:true})
   div.addEventListener("touchend",()=>clearTimeout(longPressTimer))
   div.addEventListener("touchmove",()=>clearTimeout(longPressTimer))
-  div.addEventListener("mousedown",e=>{
-    if(e.button!==0) return
-    longPressFired=false
-    longPressTimer=setTimeout(()=>{
-      reactionPicker.style.display="none"
-      showActionMenu(div,key,isMe,message)
-    },1500)
-  })
+  div.addEventListener("mousedown",()=>{ longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600) })
   div.addEventListener("mouseup",()=>clearTimeout(longPressTimer))
 
   addSwipeReply(div,key,message)
@@ -1112,7 +1089,7 @@ onChildChanged(ref(db,"messages"),data=>{
   if(message.edited){
     const textSpan=msgDiv.querySelector(".msgText")
     if(textSpan){
-      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
+      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;">$1</a>')
     }
   }
 

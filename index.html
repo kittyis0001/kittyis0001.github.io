@@ -644,51 +644,89 @@ function scrollToBottom(){
 // ─────────────────────────────────────────────
 // ✅ BLOCK SYSTEM
 // ─────────────────────────────────────────────
+
+let blockTime = null
+
+function formatBlockTime(ts){
+  if(!ts) return ""
+  const d = new Date(ts)
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+}
+
 function updateBlockUI(){
-  // আমি block করেছি → button text "Unblock User"
+
+  // button text change
   blockBtn.innerText = iBlockedOther ? "Unblock User" : "Block User"
 
-  // other আমাকে block করেছে → input disable + banner দেখাও
-  if(otherBlockedMe){
+  // 🔒 যদি যেকোনো দিক থেকে block থাকে
+  if(otherBlockedMe || iBlockedOther){
+
     msgBox.disabled = true
-    msgBox.placeholder = "You are blocked 🚫"
     sendBtn.disabled = true
-    blockedBanner.style.display = "block"
     micBtn.style.pointerEvents = "none"
     micBtn.style.opacity = "0.4"
+
+    blockedBanner.style.display = "block"
+
+    if(iBlockedOther){
+      blockedBanner.innerText =
+        "🚫 You blocked this contact at " +
+        formatBlockTime(blockTime) +
+        ". Tap to unblock."
+      msgBox.placeholder = "You blocked this contact"
+    } else {
+      blockedBanner.innerText = "🚫 You are blocked"
+      msgBox.placeholder = "You are blocked"
+    }
+
   } else {
+
     msgBox.disabled = false
-    msgBox.placeholder = "Type message..."
     sendBtn.disabled = false
-    blockedBanner.style.display = "none"
     micBtn.style.pointerEvents = "auto"
     micBtn.style.opacity = "1"
+
+    msgBox.placeholder = "Type message..."
+    blockedBanner.style.display = "none"
   }
 }
 
+
 function listenBlockStatus(){
-  // আমি other কে block করেছি কিনা — realtime
+
+  // আমি block করেছি কিনা
   onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
-    iBlockedOther = snap.exists() && snap.val() === true
+    if(snap.exists()){
+      iBlockedOther = true
+      blockTime = snap.val().time || null
+    } else {
+      iBlockedOther = false
+      blockTime = null
+    }
     updateBlockUI()
   })
 
-  // other আমাকে block করেছে কিনা — realtime
+  // অন্যজন আমাকে block করেছে কিনা
   onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
-    otherBlockedMe = snap.exists() && snap.val() === true
+    otherBlockedMe = snap.exists()
     updateBlockUI()
   })
 }
 
+
 window.toggleBlock = async function(){
   document.getElementById("menuBox").style.display = "none"
+
   if(iBlockedOther){
-    // Unblock
+    // 🔓 Unblock
     await remove(ref(db, "blocks/"+username+"/"+otherUser))
   } else {
-    // Block
+    // 🔒 Block
     if(confirm("Block this user?")){
-      await set(ref(db, "blocks/"+username+"/"+otherUser), true)
+      await set(ref(db, "blocks/"+username+"/"+otherUser), {
+        blocked: true,
+        time: Date.now()
+      })
     }
   }
 }

@@ -202,7 +202,7 @@ box-shadow:0 2px 10px rgba(0,0,0,0.3);
 z-index:100;
 border-radius:8px;
 overflow:hidden;
-min-width:160px;
+min-width:180px;
 }
 
 #menuBox div{
@@ -215,6 +215,19 @@ font-size:14px;
 #blockBtn{ color:#e53935; }
 
 #messages{ flex:1; overflow:auto; padding:10px; }
+
+/* ✅ Block system message style */
+.sysMsg{
+text-align:center;
+margin:8px auto;
+font-size:12px;
+color:#555;
+background:rgba(255,255,255,0.75);
+border-radius:12px;
+padding:6px 14px;
+max-width:80%;
+display:table;
+}
 
 .msg{
 padding:10px; margin:6px;
@@ -251,7 +264,6 @@ margin-bottom:2px;
 
 .editedLabel{ font-size:10px; color:#888; margin-left:4px; }
 .time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
-
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
 
 .reactionBadge{
@@ -370,7 +382,71 @@ font-size:13px;
 color:#c62828;
 font-weight:bold;
 border-top:1px solid #ef9a9a;
+cursor:pointer;
 }
+
+/* ✅ Nickname modal */
+#nickModal{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.5);
+z-index:9999;
+justify-content:center;
+align-items:center;
+}
+
+#nickModalBox{
+background:white;
+border-radius:16px;
+padding:24px;
+width:80%;
+max-width:300px;
+}
+
+#nickModalBox h3{
+margin:0 0 16px 0;
+font-size:16px;
+color:#075E54;
+}
+
+#nickModalBox label{
+font-size:12px;
+color:#555;
+display:block;
+margin-bottom:4px;
+}
+
+#nickModalBox input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:14px;
+box-sizing:border-box;
+margin-bottom:12px;
+outline:none;
+}
+
+#nickModalBox input:focus{ border-color:#075E54; }
+
+.nickModalBtns{
+display:flex;
+gap:8px;
+justify-content:flex-end;
+}
+
+.nickModalBtns button{
+padding:8px 18px;
+border:none;
+border-radius:8px;
+font-size:13px;
+cursor:pointer;
+}
+
+#nickCancelBtn{ background:#f0f0f0; color:#333; }
+#nickSaveBtn{ background:#075E54; color:white; }
 
 .voiceMsg{ display:flex; align-items:center; gap:8px; min-width:180px; }
 
@@ -527,8 +603,9 @@ font-style:italic;
 </div>
 
 <div id="menuBox">
-<div onclick="deleteAll()">Delete All Chat</div>
-<div id="blockBtn" onclick="toggleBlock()">Block User</div>
+  <div onclick="deleteAll()">Delete All Chat</div>
+  <div onclick="openNickModal()">✏️ Change Nick Name</div>
+  <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
 
 <div id="typingIndicator"></div>
@@ -555,8 +632,7 @@ font-style:italic;
   <button id="editBarClose">✕</button>
 </div>
 
-<!-- ✅ Blocked banner -->
-<div id="blockedBanner">🚫 You are blocked Bby. You cannot send messages☺️.</div>
+<div id="blockedBanner"></div>
 
 <div id="inputArea">
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
@@ -591,8 +667,23 @@ font-style:italic;
   <span class="reactionOption">😂</span>
   <span class="reactionOption">😮</span>
   <span class="reactionOption">😢</span>
-  <span class="reactionOption">😑</span>
-  <span class="reactionOption">😡</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
+</div>
+
+<!-- ✅ Nick Name Modal -->
+<div id="nickModal">
+  <div id="nickModalBox">
+    <h3>✏️ Change Nick Name</h3>
+    <label id="myNickLabel">Your Nick Name</label>
+    <input id="myNickInput" placeholder="Enter your nick name">
+    <label id="otherNickLabel">Other's Nick Name</label>
+    <input id="otherNickInput" placeholder="Enter other's nick name">
+    <div class="nickModalBtns">
+      <button id="nickCancelBtn" onclick="closeNickModal()">Cancel</button>
+      <button id="nickSaveBtn" onclick="saveNickNames()">Save</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -622,6 +713,7 @@ const bgIndex = Math.floor(Math.random() * bgCount) + 1
 document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
 
 let username = ""
+let otherUser = ""
 const appStartTime = Date.now()
 const statusText = document.getElementById("statusText")
 const accessLoader = document.getElementById("accessLoader")
@@ -630,105 +722,153 @@ const msgBox = document.getElementById("msg")
 const sendBtn = document.getElementById("sendBtn")
 const blockedBanner = document.getElementById("blockedBanner")
 const blockBtn = document.getElementById("blockBtn")
+const micBtn = document.getElementById("micBtn")
 let seenListener = null
-let otherUser = ""
-
-// ✅ Block state
-let iBlockedOther = false   // আমি other কে block করেছি কিনা
-let otherBlockedMe = false  // other আমাকে block করেছে কিনা
-
-function scrollToBottom(){
-  setTimeout(()=>{ messagesEl.scrollTop = messagesEl.scrollHeight }, 50)
-}
 
 // ─────────────────────────────────────────────
-// ✅ BLOCK SYSTEM
+// ✅ BLOCK STATE
 // ─────────────────────────────────────────────
+let iBlockedOther = false
+let otherBlockedMe = false
 
-let blockTime = null
+function isBlocked(){ return iBlockedOther || otherBlockedMe }
 
 function formatBlockTime(ts){
   if(!ts) return ""
   const d = new Date(ts)
-  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) +
+    " at " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
 }
 
 function updateBlockUI(){
-
-  // button text change
+  // ✅ dynamic button text
   blockBtn.innerText = iBlockedOther ? "Unblock User" : "Block User"
 
-  // 🔒 যদি যেকোনো দিক থেকে block থাকে
-  if(otherBlockedMe || iBlockedOther){
+  const blocked = isBlocked()
 
-    msgBox.disabled = true
-    sendBtn.disabled = true
-    micBtn.style.pointerEvents = "none"
-    micBtn.style.opacity = "0.4"
+  // ✅ input/send disable
+  msgBox.disabled = blocked
+  sendBtn.disabled = blocked
+  msgBox.placeholder = blocked ? "🚫 Messaging is blocked" : "Type message..."
+  micBtn.style.pointerEvents = blocked ? "none" : "auto"
+  micBtn.style.opacity = blocked ? "0.4" : "1"
 
+  // ✅ banner
+  if(iBlockedOther){
     blockedBanner.style.display = "block"
-
-    if(iBlockedOther){
-      blockedBanner.innerText =
-        "🚫 You blocked this contact at " +
-        formatBlockTime(blockTime) +
-        ". Tap to unblock."
-      msgBox.placeholder = "You blocked this contact"
-    } else {
-      blockedBanner.innerText = "🚫 You are blocked"
-      msgBox.placeholder = "You are blocked"
-    }
-
+    blockedBanner.innerHTML = `🚫 You blocked this person. <span style="color:#075E54;cursor:pointer;text-decoration:underline;" onclick="toggleBlock()">Tap to unblock.</span>`
+  } else if(otherBlockedMe){
+    blockedBanner.style.display = "block"
+    blockedBanner.innerHTML = `🚫 You are blocked. You cannot send messages.`
   } else {
-
-    msgBox.disabled = false
-    sendBtn.disabled = false
-    micBtn.style.pointerEvents = "auto"
-    micBtn.style.opacity = "1"
-
-    msgBox.placeholder = "Type message..."
     blockedBanner.style.display = "none"
   }
 }
 
-
 function listenBlockStatus(){
-
-  // আমি block করেছি কিনা
+  // ✅ আমি other কে block করেছি কিনা
   onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
-    if(snap.exists()){
-      iBlockedOther = true
-      blockTime = snap.val().time || null
-    } else {
-      iBlockedOther = false
-      blockTime = null
-    }
+    iBlockedOther = snap.exists() && snap.val().blocked === true
     updateBlockUI()
   })
 
-  // অন্যজন আমাকে block করেছে কিনা
+  // ✅ other আমাকে block করেছে কিনা
   onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
-    otherBlockedMe = snap.exists()
+    otherBlockedMe = snap.exists() && snap.val().blocked === true
     updateBlockUI()
+  })
+
+  // ✅ block/unblock system messages realtime
+  onValue(ref(db, "blockEvents"), snap=>{
+    // handled in onChildAdded below
   })
 }
 
-
 window.toggleBlock = async function(){
   document.getElementById("menuBox").style.display = "none"
-
   if(iBlockedOther){
-    // 🔓 Unblock
-    await remove(ref(db, "blocks/"+username+"/"+otherUser))
+    // Unblock
+    const t = Date.now()
+    await set(ref(db, "blocks/"+username+"/"+otherUser), {
+      blocked: false,
+      time: t
+    })
+    // ✅ system message — unblock
+    await push(ref(db, "messages"), {
+      type: "system",
+      text: `__unblock__${username}__${t}`,
+      time: t
+    })
   } else {
-    // 🔒 Block
-    if(confirm("Block this user?")){
-      await set(ref(db, "blocks/"+username+"/"+otherUser), {
-        blocked: true,
-        time: Date.now()
-      })
-    }
+    if(!confirm("Block this user?")) return
+    const t = Date.now()
+    await set(ref(db, "blocks/"+username+"/"+otherUser), {
+      blocked: true,
+      time: t
+    })
+    // ✅ system message — block
+    await push(ref(db, "messages"), {
+      type: "system",
+      text: `__block__${username}__${t}`,
+      time: t
+    })
   }
+}
+
+// ─────────────────────────────────────────────
+// ✅ NICK NAME SYSTEM
+// ─────────────────────────────────────────────
+// nicknames[username] = display name
+let nicknames = {
+  "katis1": "Kat",
+  "kittyis0001": "Kitty"
+}
+
+function getNick(user){
+  return nicknames[user] || (user === "katis1" ? "Kat" : "Kitty")
+}
+
+function listenNickNames(){
+  onValue(ref(db, "nicknames"), snap=>{
+    const data = snap.val()
+    if(!data) return
+    if(data["katis1"]) nicknames["katis1"] = data["katis1"]
+    if(data["kittyis0001"]) nicknames["kittyis0001"] = data["kittyis0001"]
+    // ✅ realtime — update all message display names
+    document.querySelectorAll(".msgSenderName").forEach(el=>{
+      const u = el.dataset.user
+      if(u) el.innerText = getNick(u)
+    })
+    // update header title
+    document.getElementById("title").innerText = "Private Chat"
+  })
+}
+
+window.openNickModal = function(){
+  document.getElementById("menuBox").style.display = "none"
+  document.getElementById("myNickLabel").innerText = "Your Nick Name ("+username+")"
+  document.getElementById("otherNickLabel").innerText = "Other's Nick Name ("+otherUser+")"
+  document.getElementById("myNickInput").value = getNick(username)
+  document.getElementById("otherNickInput").value = getNick(otherUser)
+  document.getElementById("nickModal").style.display = "flex"
+}
+
+window.closeNickModal = function(){
+  document.getElementById("nickModal").style.display = "none"
+}
+
+window.saveNickNames = async function(){
+  const myNick = document.getElementById("myNickInput").value.trim()
+  const otherNick = document.getElementById("otherNickInput").value.trim()
+  if(!myNick || !otherNick){
+    alert("Nick names cannot be empty")
+    return
+  }
+  await update(ref(db, "nicknames"), {
+    [username]: myNick,
+    [otherUser]: otherNick
+  })
+  closeNickModal()
 }
 
 // ─────────────────────────────────────────────
@@ -737,7 +877,6 @@ window.toggleBlock = async function(){
 let mediaRecorder=null, audioChunks=[], recordedBlob=null
 let recTimerInterval=null, recSeconds=0, isRecording=false
 
-const micBtn = document.getElementById("micBtn")
 const voiceRecordBar = document.getElementById("voiceRecordBar")
 const voicePreviewBar = document.getElementById("voicePreviewBar")
 const recTimer = document.getElementById("recTimer")
@@ -751,7 +890,7 @@ const previewDuration = document.getElementById("previewDuration")
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 async function startRecording(){
-  if(otherBlockedMe) return
+  if(isBlocked()) return
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true})
     audioChunks=[]
@@ -801,7 +940,7 @@ previewDeleteBtn.addEventListener("click",()=>{
   recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
 })
 previewSendBtn.addEventListener("click",async()=>{
-  if(!recordedBlob||otherBlockedMe) return
+  if(isBlocked()||!recordedBlob) return
   previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
   try {
     const formData=new FormData()
@@ -824,7 +963,7 @@ let typingTimeout=null
 msgBox.addEventListener("input",function(){
   this.style.height="auto"
   this.style.height=Math.min(this.scrollHeight,120)+"px"
-  if(username&&!otherBlockedMe){
+  if(username&&!isBlocked()){
     set(ref(db,"typing/"+username),true)
     clearTimeout(typingTimeout)
     typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
@@ -839,19 +978,16 @@ msgBox.addEventListener("keydown",function(e){
 // REPLY
 // ─────────────────────────────────────────────
 let replyingTo = null
-
 const replyBar = document.getElementById("replyBar")
 const replyBarName = document.getElementById("replyBarName")
 const replyBarText = document.getElementById("replyBarText")
 const replyBarClose = document.getElementById("replyBarClose")
 
-replyBarClose.addEventListener("click",()=>{
-  replyingTo=null; replyBar.style.display="none"
-})
+replyBarClose.addEventListener("click",()=>{ replyingTo=null; replyBar.style.display="none" })
 
 function startReply(key, name, text){
   replyingTo={key,name,text}
-  replyBarName.innerText = name==="katis1"?"Kat":"Kitty"
+  replyBarName.innerText = getNick(name)
   replyBarText.innerText = text.startsWith("__voice__")?"🎤 Voice message":text.substring(0,60)
   replyBar.style.display="flex"
   msgBox.focus()
@@ -875,14 +1011,13 @@ function addSwipeReply(div, key, message){
 // EDIT
 // ─────────────────────────────────────────────
 let editingKey = null
-
 const editBar = document.getElementById("editBar")
 const editBarClose = document.getElementById("editBarClose")
 
 editBarClose.addEventListener("click",()=>{
   editingKey=null; editBar.style.display="none"
   msgBox.value=""; msgBox.style.height="auto"
-  document.getElementById("sendBtn").innerText="➤"
+  sendBtn.innerText="➤"
 })
 
 function startEdit(key, currentText){
@@ -891,7 +1026,7 @@ function startEdit(key, currentText){
   msgBox.style.height="auto"
   msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
   editBar.style.display="flex"
-  document.getElementById("sendBtn").innerText="✓"
+  sendBtn.innerText="✓"
   msgBox.focus()
 }
 
@@ -931,8 +1066,7 @@ document.getElementById("actionReact").addEventListener("click",e=>{
   e.stopPropagation()
   if(!currentMsgKey) return
   const am=actionMenu.getBoundingClientRect()
-  let rTop=am.top-55
-  let rLeft=am.left
+  let rTop=am.top-55, rLeft=am.left
   if(rTop<10) rTop=am.bottom+8
   if(rLeft+300>window.innerWidth) rLeft=window.innerWidth-310
   if(rLeft<5) rLeft=5
@@ -1031,12 +1165,12 @@ window.start=async function(){
 
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
+  // ✅ username set করার পরেই otherUser set করো
   localStorage.setItem("chatUser",username)
+  otherUser = username==="katis1" ? "kittyis0001" : "katis1"
+
   document.getElementById("login").style.display="none"
   document.getElementById("chat").style.display="flex"
-
-  otherUser = username=="katis1" ? "kittyis0001" : "katis1"
-  const otherName = otherUser==="kittyis0001" ? "Kitty" : "Kat"
 
   const userRef=ref(db,"status/"+username)
   set(userRef,{online:true,last:Date.now()})
@@ -1049,14 +1183,16 @@ window.start=async function(){
   })
   setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
 
+  const otherName = otherUser==="kittyis0001" ? "Kitty" : "Kat"
   onValue(ref(db,"typing/"+otherUser),snap=>{
     const isTyping=snap.val()
     typingIndicator.style.display=isTyping?"block":"none"
-    typingIndicator.innerText=isTyping?otherName+" is typing...":""
+    typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
-  // ✅ Block listeners start
+  // ✅ otherUser set হওয়ার পরে listeners শুরু
   listenBlockStatus()
+  listenNickNames()
 
   markSeenMessages()
 }
@@ -1064,55 +1200,40 @@ window.start=async function(){
 // ─────────────────────────────────────────────
 // SEND
 // ─────────────────────────────────────────────
-window.send = async function(){
+window.send=async function(){
+  // ✅ উভয় দিকের block check
+  if(isBlocked()) return
 
-  // ✅ FIX: দুই দিক থেকে block হলে send বন্ধ
-  if(otherBlockedMe || iBlockedOther){
-    alert("You cannot send message 🚫")
-    return
-  }
-
-  const text = msgBox.value.trim()
+  const text=msgBox.value.trim()
   if(!text) return
 
   if(editingKey){
-    await update(ref(db,"messages/"+editingKey), {
-      text: text,
-      edited: true
-    })
-    editingKey = null
-    editBar.style.display = "none"
-    document.getElementById("sendBtn").innerText = "➤"
-    msgBox.value = ""
-    msgBox.style.height = "auto"
+    await update(ref(db,"messages/"+editingKey),{text:text,edited:true})
+    editingKey=null; editBar.style.display="none"
+    sendBtn.innerText="➤"
+    msgBox.value=""; msgBox.style.height="auto"
     return
   }
 
-  const msgData = {
-    name: username,
-    text: text,
-    time: Date.now(),
-    seen: false
-  }
+  const msgData={name:username,text:text,time:Date.now(),seen:false}
 
   if(replyingTo){
-    msgData.replyTo = {
-      key: replyingTo.key,
-      name: replyingTo.name,
-      text: replyingTo.text.startsWith("__voice__")
-        ? "🎤 Voice message"
-        : replyingTo.text.substring(0,80)
+    msgData.replyTo={
+      key:replyingTo.key,
+      name:replyingTo.name,
+      text:replyingTo.text.startsWith("__voice__")?"🎤 Voice message":replyingTo.text.substring(0,80)
     }
-    replyingTo = null
-    replyBar.style.display = "none"
+    replyingTo=null; replyBar.style.display="none"
   }
 
-  push(ref(db,"messages"), msgData)
-
-  msgBox.value = ""
-  msgBox.style.height = "auto"
-  set(ref(db,"typing/"+username), false)
+  push(ref(db,"messages"),msgData)
+  msgBox.value=""; msgBox.style.height="auto"
+  set(ref(db,"typing/"+username),false)
   clearTimeout(typingTimeout)
+}
+
+function scrollToBottom(){
+  setTimeout(()=>{ messagesEl.scrollTop = messagesEl.scrollHeight }, 50)
 }
 
 // ─────────────────────────────────────────────
@@ -1160,9 +1281,31 @@ function buildTimeHtml(message,isMe){
 }
 
 function createMessage(message,key){
+  // ✅ System messages (block/unblock)
+  if(message.type==="system"&&message.text){
+    const parts = message.text.split("__")
+    // parts: ["", "block"/"unblock", username, timestamp]
+    if(parts[1]==="block"||parts[1]==="unblock"){
+      const actor = parts[2]
+      const ts = parseInt(parts[3])
+      const actorNick = getNick(actor)
+      const timeStr = formatBlockTime(ts)
+      const isBlock = parts[1]==="block"
+      const div=document.createElement("div")
+      div.className="sysMsg"
+      div.id=key
+      div.innerHTML = isBlock
+        ? `🚫 ${actorNick} blocked. ${timeStr}`
+        : `✅ ${actorNick} unblocked. ${timeStr}`
+      messagesEl.appendChild(div)
+      scrollToBottom()
+      return
+    }
+  }
+
   const me=localStorage.getItem("chatUser")||username
   const isMe=message.name==me
-  const displayName=message.name==="katis1"?"Kat":"Kitty"
+  const displayName=getNick(message.name)
 
   const div=document.createElement("div")
   div.classList.add("msg")
@@ -1175,14 +1318,14 @@ function createMessage(message,key){
     scrollToBottom()
     return
   }
-
   let replyHtml=""
   if(message.replyTo){
-    const rName=message.replyTo.name==="katis1"?"Kat":"Kitty"
+    const rName=getNick(message.replyTo.name)
     replyHtml=`<div class="replyQuote"><div class="replyName">${rName}</div>${message.replyTo.text||""}</div>`
   }
 
-  div.innerHTML=`<b>${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
+  // ✅ msgSenderName span — nick name realtime update এর জন্য
+  div.innerHTML=`<b class="msgSenderName" data-user="${message.name}">${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
 
   const timeDiv=div.querySelector(".time")
 
@@ -1218,7 +1361,7 @@ function createMessage(message,key){
 onChildAdded(ref(db,"messages"),data=>{
   createMessage(data.val(),data.key)
   const message=data.val()
-  if(message.time>appStartTime&&message.name==="kittyis0001"){
+  if(message.time>appStartTime&&message.name==="kittyis0001"&&!message.type){
     const now=new Date()
     const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
     fetch(BACKEND+"/notify",{
@@ -1263,7 +1406,7 @@ function markSeenMessages(){
     if(!data) return
     Object.keys(data).forEach(key=>{
       const msg=data[key]
-      if(msg.name!=username&&!msg.seen&&!msg.deleted) update(ref(db,"messages/"+key),{seen:true})
+      if(msg.name&&msg.name!=username&&!msg.seen&&!msg.deleted) update(ref(db,"messages/"+key),{seen:true})
     })
   })
 }
@@ -1350,7 +1493,7 @@ emojis.forEach(e=>{
   const span=document.createElement("span")
   span.innerText=e;span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
   span.onclick=()=>{
-    if(otherBlockedMe) return
+    if(isBlocked()) return
     msgBox.value+=e;msgBox.focus()
     msgBox.style.height="auto"
     msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
@@ -1364,7 +1507,7 @@ window.toggleEmoji=function(){
 }
 
 window.uploadImage=async function(input){
-  if(otherBlockedMe){ alert("You are blocked 🚫"); input.value=""; return }
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
   const file=input.files[0]
   if(!file) return
   const formData=new FormData()

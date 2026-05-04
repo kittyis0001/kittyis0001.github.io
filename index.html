@@ -556,7 +556,7 @@ font-style:italic;
 </div>
 
 <!-- ✅ Blocked banner -->
-<div id="blockedBanner">🚫 You are blocked. You cannot send messages.</div>
+<div id="blockedBanner">🚫 You are blocked Bby. You cannot send messages☺️.</div>
 
 <div id="inputArea">
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
@@ -1064,35 +1064,54 @@ window.start=async function(){
 // ─────────────────────────────────────────────
 // SEND
 // ─────────────────────────────────────────────
-window.send=async function(){
-  // ✅ blocked হলে send করতে পারবে না
-  if(otherBlockedMe) return
+window.send = async function(){
 
-  const text=msgBox.value.trim()
-  if(!text) return
-
-  if(editingKey){
-    await update(ref(db,"messages/"+editingKey),{text:text,edited:true})
-    editingKey=null; editBar.style.display="none"
-    document.getElementById("sendBtn").innerText="➤"
-    msgBox.value=""; msgBox.style.height="auto"
+  // ✅ FIX: দুই দিক থেকে block হলে send বন্ধ
+  if(otherBlockedMe || iBlockedOther){
+    alert("You cannot send message 🚫")
     return
   }
 
-  const msgData={name:username,text:text,time:Date.now(),seen:false}
+  const text = msgBox.value.trim()
+  if(!text) return
 
-  if(replyingTo){
-    msgData.replyTo={
-      key:replyingTo.key,
-      name:replyingTo.name,
-      text:replyingTo.text.startsWith("__voice__")?"🎤 Voice message":replyingTo.text.substring(0,80)
-    }
-    replyingTo=null; replyBar.style.display="none"
+  if(editingKey){
+    await update(ref(db,"messages/"+editingKey), {
+      text: text,
+      edited: true
+    })
+    editingKey = null
+    editBar.style.display = "none"
+    document.getElementById("sendBtn").innerText = "➤"
+    msgBox.value = ""
+    msgBox.style.height = "auto"
+    return
   }
 
-  push(ref(db,"messages"),msgData)
-  msgBox.value=""; msgBox.style.height="auto"
-  set(ref(db,"typing/"+username),false)
+  const msgData = {
+    name: username,
+    text: text,
+    time: Date.now(),
+    seen: false
+  }
+
+  if(replyingTo){
+    msgData.replyTo = {
+      key: replyingTo.key,
+      name: replyingTo.name,
+      text: replyingTo.text.startsWith("__voice__")
+        ? "🎤 Voice message"
+        : replyingTo.text.substring(0,80)
+    }
+    replyingTo = null
+    replyBar.style.display = "none"
+  }
+
+  push(ref(db,"messages"), msgData)
+
+  msgBox.value = ""
+  msgBox.style.height = "auto"
+  set(ref(db,"typing/"+username), false)
   clearTimeout(typingTimeout)
 }
 

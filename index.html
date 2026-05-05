@@ -205,18 +205,12 @@ overflow:hidden;
 min-width:180px;
 }
 
-#menuBox div{
-padding:12px 20px;
-cursor:pointer;
-font-size:14px;
-}
-
+#menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
 #menuBox div:hover{ background:#f5f5f5; }
 #blockBtn{ color:#e53935; }
 
 #messages{ flex:1; overflow:auto; padding:10px; }
 
-/* ✅ Block system message style */
 .sysMsg{
 text-align:center;
 margin:8px auto;
@@ -225,7 +219,7 @@ color:#555;
 background:rgba(255,255,255,0.75);
 border-radius:12px;
 padding:6px 14px;
-max-width:80%;
+max-width:85%;
 display:table;
 }
 
@@ -255,13 +249,7 @@ white-space:nowrap;
 text-overflow:ellipsis;
 }
 
-.replyQuote .replyName{
-font-weight:bold;
-color:#075E54;
-font-size:11px;
-margin-bottom:2px;
-}
-
+.replyQuote .replyName{ font-weight:bold; color:#075E54; font-size:11px; margin-bottom:2px; }
 .editedLabel{ font-size:10px; color:#888; margin-left:4px; }
 .time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -312,14 +300,7 @@ gap:6px;
 flex-direction:row;
 }
 
-.reactionOption{
-font-size:24px;
-cursor:pointer;
-padding:4px;
-border-radius:50%;
-transition:transform 0.1s;
-}
-
+.reactionOption{ font-size:24px; cursor:pointer; padding:4px; border-radius:50%; transition:transform 0.1s; }
 .reactionOption:active{ transform:scale(1.3); }
 
 #replyBar{
@@ -331,25 +312,9 @@ align-items:center;
 gap:8px;
 }
 
-#replyBar .replyBarContent{
-flex:1;
-font-size:12px;
-color:#333;
-overflow:hidden;
-white-space:nowrap;
-text-overflow:ellipsis;
-}
-
+#replyBar .replyBarContent{ flex:1; font-size:12px; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 #replyBar .replyBarName{ font-weight:bold; color:#075E54; font-size:11px; }
-
-#replyBarClose{
-background:none;
-border:none;
-font-size:20px;
-cursor:pointer;
-color:#555;
-padding:0;
-}
+#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; }
 
 #editBar{
 display:none;
@@ -362,17 +327,8 @@ font-size:12px;
 color:#555;
 }
 
-#editBarClose{
-background:none;
-border:none;
-font-size:20px;
-cursor:pointer;
-color:#555;
-padding:0;
-margin-left:auto;
-}
+#editBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; margin-left:auto; }
 
-/* ✅ Blocked banner */
 #blockedBanner{
 display:none;
 background:#ffebee;
@@ -382,10 +338,8 @@ font-size:13px;
 color:#c62828;
 font-weight:bold;
 border-top:1px solid #ef9a9a;
-cursor:pointer;
 }
 
-/* ✅ Nickname modal */
 #nickModal{
 display:none;
 position:fixed;
@@ -403,26 +357,17 @@ border-radius:16px;
 padding:24px;
 width:80%;
 max-width:300px;
+box-shadow:0 8px 30px rgba(0,0,0,0.2);
 }
 
-#nickModalBox h3{
-margin:0 0 16px 0;
-font-size:16px;
-color:#075E54;
-}
-
-#nickModalBox label{
-font-size:12px;
-color:#555;
-display:block;
-margin-bottom:4px;
-}
+#nickModalBox h3{ margin:0 0 16px 0; font-size:16px; color:#075E54; }
+#nickModalBox label{ font-size:12px; color:#555; display:block; margin-bottom:4px; }
 
 #nickModalBox input{
 width:100%;
 padding:10px;
 border-radius:8px;
-border:1px solid #ddd;
+border:1.5px solid #ddd;
 font-size:14px;
 box-sizing:border-box;
 margin-bottom:12px;
@@ -431,37 +376,17 @@ outline:none;
 
 #nickModalBox input:focus{ border-color:#075E54; }
 
-.nickModalBtns{
-display:flex;
-gap:8px;
-justify-content:flex-end;
-}
-
-.nickModalBtns button{
-padding:8px 18px;
-border:none;
-border-radius:8px;
-font-size:13px;
-cursor:pointer;
-}
-
+.nickModalBtns{ display:flex; gap:8px; justify-content:flex-end; }
+.nickModalBtns button{ padding:8px 18px; border:none; border-radius:8px; font-size:13px; cursor:pointer; }
 #nickCancelBtn{ background:#f0f0f0; color:#333; }
 #nickSaveBtn{ background:#075E54; color:white; }
 
 .voiceMsg{ display:flex; align-items:center; gap:8px; min-width:180px; }
 
 .voicePlayBtn{
-background:#075E54;
-border:none;
-border-radius:50%;
-width:36px; height:36px;
-color:white;
-font-size:16px;
-cursor:pointer;
-flex-shrink:0;
-display:flex;
-align-items:center;
-justify-content:center;
+background:#075E54; border:none; border-radius:50%;
+width:36px; height:36px; color:white; font-size:16px;
+cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
 }
 
 .voiceWave{ flex:1; height:3px; background:rgba(0,0,0,0.15); border-radius:3px; overflow:hidden; }
@@ -469,43 +394,27 @@ justify-content:center;
 .voiceDuration{ font-size:12px; color:gray; min-width:32px; }
 
 #voiceRecordBar{
-display:none;
-position:fixed;
-bottom:0;left:0;
-width:100%;
-background:#075E54;
-padding:14px 20px;
-box-sizing:border-box;
-align-items:center;
-justify-content:space-between;
-z-index:500;
+display:none; position:fixed; bottom:0;left:0; width:100%;
+background:#075E54; padding:14px 20px; box-sizing:border-box;
+align-items:center; justify-content:space-between; z-index:500;
 }
 
 #voiceRecordBar .recLeft{ display:flex; align-items:center; gap:10px; color:white; }
 
-@keyframes pulse{
-0%,100%{opacity:1}
-50%{opacity:0.3}
-}
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 .recDot{ width:12px; height:12px; background:#ff4444; border-radius:50%; animation:pulse 1s infinite; }
 #recTimer{ color:white; font-size:16px; font-weight:bold; }
 #voiceRecordBar .recRight{ display:flex; gap:16px; align-items:center; }
 
 #voicePreviewBar{
-display:none;
-background:#f0f0f0;
-padding:10px 14px;
-align-items:center;
-gap:10px;
-border-top:1px solid #ddd;
+display:none; background:#f0f0f0; padding:10px 14px;
+align-items:center; gap:10px; border-top:1px solid #ddd;
 }
 
 #voicePreviewBar button{
-border:none; border-radius:50%;
-width:36px; height:36px;
-font-size:16px; cursor:pointer;
-display:flex; align-items:center; justify-content:center;
+border:none; border-radius:50%; width:36px; height:36px;
+font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
 }
 
 #previewPlayBtn{ background:#075E54; color:white; }
@@ -513,58 +422,26 @@ display:flex; align-items:center; justify-content:center;
 #previewSendBtn{ background:#075E54; color:white; }
 
 #inputArea{
-display:flex;
-padding:8px 10px;
-background:#f0f0f0;
-align-items:flex-end;
+display:flex; padding:8px 10px;
+background:#f0f0f0; align-items:flex-end;
 }
 
 #msg{
-flex:1;
-padding:10px 14px;
-border-radius:20px;
-border:2px solid #000;
-resize:none;
-overflow:hidden;
-min-height:40px;
-max-height:120px;
-font-size:15px;
-font-family:Arial;
-line-height:1.4;
-outline:none;
-box-sizing:border-box;
+flex:1; padding:10px 14px; border-radius:20px; border:2px solid #000;
+resize:none; overflow:hidden; min-height:40px; max-height:120px;
+font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:border-box;
 }
 
-#msg:disabled{
-background:#e0e0e0;
-color:#aaa;
-border-color:#ccc;
-cursor:not-allowed;
-}
+#msg:disabled{ background:#e0e0e0; color:#aaa; border-color:#ccc; cursor:not-allowed; }
 
 #sendBtn{
-background:#075E54;
-border:none;
-margin-left:8px;
-padding:10px 14px;
-border-radius:50%;
-color:white;
-font-size:18px;
-flex-shrink:0;
+background:#075E54; border:none; margin-left:8px;
+padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0;
 }
 
-#sendBtn:disabled{
-background:#aaa;
-cursor:not-allowed;
-}
+#sendBtn:disabled{ background:#aaa; cursor:not-allowed; }
 
-#typingIndicator{
-display:none;
-padding:4px 14px;
-font-size:12px;
-color:#555;
-font-style:italic;
-}
+#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#555; font-style:italic; }
 </style>
 </head>
 
@@ -590,7 +467,6 @@ font-style:italic;
 </div>
 
 <div id="chat">
-
 <div id="header">
 <div id="title">Private Chat</div>
 <div id="headerCenter">
@@ -652,7 +528,6 @@ font-style:italic;
     <span style="color:white;font-size:22px;cursor:pointer;" id="recCancelBtn">✕</span>
   </div>
 </div>
-
 </div>
 
 <div id="actionMenu">
@@ -671,14 +546,13 @@ font-style:italic;
   <span class="reactionOption">🔥</span>
 </div>
 
-<!-- ✅ Nick Name Modal -->
 <div id="nickModal">
   <div id="nickModalBox">
     <h3>✏️ Change Nick Name</h3>
     <label id="myNickLabel">Your Nick Name</label>
-    <input id="myNickInput" placeholder="Enter your nick name">
+    <input id="myNickInput" placeholder="Your nick name">
     <label id="otherNickLabel">Other's Nick Name</label>
-    <input id="otherNickInput" placeholder="Enter other's nick name">
+    <input id="otherNickInput" placeholder="Other's nick name">
     <div class="nickModalBtns">
       <button id="nickCancelBtn" onclick="closeNickModal()">Cancel</button>
       <button id="nickSaveBtn" onclick="saveNickNames()">Save</button>
@@ -712,6 +586,9 @@ const bgCount = 59
 const bgIndex = Math.floor(Math.random() * bgCount) + 1
 document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
 
+// ─────────────────────────────────────────────
+// GLOBALS
+// ─────────────────────────────────────────────
 let username = ""
 let otherUser = ""
 const appStartTime = Date.now()
@@ -726,128 +603,34 @@ const micBtn = document.getElementById("micBtn")
 let seenListener = null
 
 // ─────────────────────────────────────────────
-// ✅ BLOCK STATE
+// ✅ NICKNAMES
 // ─────────────────────────────────────────────
-let iBlockedOther = false
-let otherBlockedMe = false
-
-function isBlocked(){ return iBlockedOther || otherBlockedMe }
-
-function formatBlockTime(ts){
-  if(!ts) return ""
-  const d = new Date(ts)
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) +
-    " at " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
-}
-
-function updateBlockUI(){
-  // ✅ dynamic button text
-  blockBtn.innerText = iBlockedOther ? "Unblock User" : "Block User"
-
-  const blocked = isBlocked()
-
-  // ✅ input/send disable
-  msgBox.disabled = blocked
-  sendBtn.disabled = blocked
-  msgBox.placeholder = blocked ? "🚫 Messaging is blocked" : "Type message..."
-  micBtn.style.pointerEvents = blocked ? "none" : "auto"
-  micBtn.style.opacity = blocked ? "0.4" : "1"
-
-  // ✅ banner
-  if(iBlockedOther){
-    blockedBanner.style.display = "block"
-    blockedBanner.innerHTML = `🚫 You blocked this person. <span style="color:#075E54;cursor:pointer;text-decoration:underline;" onclick="toggleBlock()">Tap to unblock.</span>`
-  } else if(otherBlockedMe){
-    blockedBanner.style.display = "block"
-    blockedBanner.innerHTML = `🚫 You are blocked. You cannot send messages.`
-  } else {
-    blockedBanner.style.display = "none"
-  }
-}
-
-function listenBlockStatus(){
-  // ✅ আমি other কে block করেছি কিনা
-  onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
-    iBlockedOther = snap.exists() && snap.val().blocked === true
-    updateBlockUI()
-  })
-
-  // ✅ other আমাকে block করেছে কিনা
-  onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
-    otherBlockedMe = snap.exists() && snap.val().blocked === true
-    updateBlockUI()
-  })
-
-  // ✅ block/unblock system messages realtime
-  onValue(ref(db, "blockEvents"), snap=>{
-    // handled in onChildAdded below
-  })
-}
-
-window.toggleBlock = async function(){
-  document.getElementById("menuBox").style.display = "none"
-  if(iBlockedOther){
-    // Unblock
-    const t = Date.now()
-    await set(ref(db, "blocks/"+username+"/"+otherUser), {
-      blocked: false,
-      time: t
-    })
-    // ✅ system message — unblock
-    await push(ref(db, "messages"), {
-      type: "system",
-      text: `__unblock__${username}__${t}`,
-      time: t
-    })
-  } else {
-    if(!confirm("Block this user?")) return
-    const t = Date.now()
-    await set(ref(db, "blocks/"+username+"/"+otherUser), {
-      blocked: true,
-      time: t
-    })
-    // ✅ system message — block
-    await push(ref(db, "messages"), {
-      type: "system",
-      text: `__block__${username}__${t}`,
-      time: t
-    })
-  }
-}
-
-// ─────────────────────────────────────────────
-// ✅ NICK NAME SYSTEM
-// ─────────────────────────────────────────────
-// nicknames[username] = display name
-let nicknames = {
-  "katis1": "Kat",
-  "kittyis0001": "Kitty"
-}
+let nicknames = {}
 
 function getNick(user){
-  return nicknames[user] || (user === "katis1" ? "Kat" : "Kitty")
+  if(!user) return ""
+  return nicknames[user] || (user==="katis1" ? "Kat" : "Kitty")
+}
+
+function refreshAllDisplayNames(){
+  document.querySelectorAll(".msgSenderName").forEach(el=>{
+    const u = el.dataset.user
+    if(u) el.innerText = getNick(u)
+  })
 }
 
 function listenNickNames(){
   onValue(ref(db, "nicknames"), snap=>{
-    const data = snap.val()
-    if(!data) return
-    if(data["katis1"]) nicknames["katis1"] = data["katis1"]
-    if(data["kittyis0001"]) nicknames["kittyis0001"] = data["kittyis0001"]
-    // ✅ realtime — update all message display names
-    document.querySelectorAll(".msgSenderName").forEach(el=>{
-      const u = el.dataset.user
-      if(u) el.innerText = getNick(u)
-    })
-    // update header title
-    document.getElementById("title").innerText = "Private Chat"
+    const data = snap.val() || {}
+    nicknames = data
+    refreshAllDisplayNames()
   })
 }
 
 window.openNickModal = function(){
   document.getElementById("menuBox").style.display = "none"
-  document.getElementById("myNickLabel").innerText = "Your Nick Name ("+username+")"
-  document.getElementById("otherNickLabel").innerText = "Other's Nick Name ("+otherUser+")"
+  document.getElementById("myNickLabel").innerText = "Your Nick Name"
+  document.getElementById("otherNickLabel").innerText = "Other's Nick Name"
   document.getElementById("myNickInput").value = getNick(username)
   document.getElementById("otherNickInput").value = getNick(otherUser)
   document.getElementById("nickModal").style.display = "flex"
@@ -860,15 +643,96 @@ window.closeNickModal = function(){
 window.saveNickNames = async function(){
   const myNick = document.getElementById("myNickInput").value.trim()
   const otherNick = document.getElementById("otherNickInput").value.trim()
-  if(!myNick || !otherNick){
-    alert("Nick names cannot be empty")
-    return
-  }
+  if(!myNick || !otherNick){ alert("Nick names cannot be empty"); return }
+  // ✅ correct path — nicknames/username
   await update(ref(db, "nicknames"), {
     [username]: myNick,
     [otherUser]: otherNick
   })
   closeNickModal()
+}
+
+// ─────────────────────────────────────────────
+// ✅ BLOCK SYSTEM
+// ─────────────────────────────────────────────
+let iBlockedOther = false
+let otherBlockedMe = false
+
+// ✅ single helper
+function isBlocked(){ return iBlockedOther || otherBlockedMe }
+
+function formatBlockTime(ts){
+  if(!ts) return ""
+  const d = new Date(ts)
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) +
+    " at " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
+}
+
+function updateBlockUI(){
+  // ✅ dynamic button
+  blockBtn.innerText = iBlockedOther ? "Unblock User" : "Block User"
+
+  const blocked = isBlocked()
+  msgBox.disabled = blocked
+  sendBtn.disabled = blocked
+  msgBox.placeholder = blocked ? "🚫 Messaging is blocked" : "Type message..."
+  micBtn.style.pointerEvents = blocked ? "none" : "auto"
+  micBtn.style.opacity = blocked ? "0.4" : "1"
+
+  if(iBlockedOther){
+    blockedBanner.style.display = "block"
+    blockedBanner.innerHTML = `🚫 You blocked this person. <span style="color:#075E54;cursor:pointer;text-decoration:underline;" onclick="toggleBlock()">Tap to unblock.</span>`
+  } else if(otherBlockedMe){
+    blockedBanner.style.display = "block"
+    blockedBanner.innerHTML = `🚫 You are blocked. You cannot send messages.`
+  } else {
+    blockedBanner.style.display = "none"
+  }
+}
+
+function listenBlockStatus(){
+  // ✅ otherUser set হওয়ার পরেই call হবে
+  // ✅ snap.exists() && snap.val().blocked === true
+  onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
+    iBlockedOther = snap.exists() && snap.val() && snap.val().blocked === true
+    updateBlockUI()
+  })
+
+  onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
+    otherBlockedMe = snap.exists() && snap.val() && snap.val().blocked === true
+    updateBlockUI()
+  })
+}
+
+window.toggleBlock = async function(){
+  document.getElementById("menuBox").style.display = "none"
+  const t = Date.now()
+  if(iBlockedOther){
+    // ✅ unblock
+    await set(ref(db, "blocks/"+username+"/"+otherUser), {
+      blocked: false,
+      time: t
+    })
+    await push(ref(db, "messages"), {
+      type: "system",
+      action: "unblock",
+      actor: username,
+      time: t
+    })
+  } else {
+    if(!confirm("Block this user?")) return
+    // ✅ block
+    await set(ref(db, "blocks/"+username+"/"+otherUser), {
+      blocked: true,
+      time: t
+    })
+    await push(ref(db, "messages"), {
+      type: "system",
+      action: "block",
+      actor: username,
+      time: t
+    })
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -890,6 +754,7 @@ const previewDuration = document.getElementById("previewDuration")
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 async function startRecording(){
+  // ✅ block check
   if(isBlocked()) return
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true})
@@ -940,6 +805,7 @@ previewDeleteBtn.addEventListener("click",()=>{
   recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
 })
 previewSendBtn.addEventListener("click",async()=>{
+  // ✅ block check
   if(isBlocked()||!recordedBlob) return
   previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
   try {
@@ -1044,8 +910,7 @@ function showActionMenu(msgDiv, key, isMe, message){
   document.getElementById("actionDelete").style.display=isMe?"flex":"none"
   actionMenu.style.display="flex"
   const rect=msgDiv.getBoundingClientRect()
-  let top=rect.top-10
-  let left=isMe?rect.right-160:rect.left
+  let top=rect.top-10, left=isMe?rect.right-160:rect.left
   if(top+200>window.innerHeight) top=rect.bottom-200
   if(top<10) top=10
   if(left+160>window.innerWidth) left=window.innerWidth-165
@@ -1165,8 +1030,9 @@ window.start=async function(){
 
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
-  // ✅ username set করার পরেই otherUser set করো
   localStorage.setItem("chatUser",username)
+
+  // ✅ otherUser FIRST, then listeners
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -1183,17 +1049,15 @@ window.start=async function(){
   })
   setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
 
-  const otherName = otherUser==="kittyis0001" ? "Kitty" : "Kat"
   onValue(ref(db,"typing/"+otherUser),snap=>{
     const isTyping=snap.val()
     typingIndicator.style.display=isTyping?"block":"none"
     typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
-  // ✅ otherUser set হওয়ার পরে listeners শুরু
-  listenBlockStatus()
+  // ✅ otherUser set হওয়ার পরে — সঠিক order
   listenNickNames()
-
+  listenBlockStatus()
   markSeenMessages()
 }
 
@@ -1203,7 +1067,6 @@ window.start=async function(){
 window.send=async function(){
   // ✅ উভয় দিকের block check
   if(isBlocked()) return
-
   const text=msgBox.value.trim()
   if(!text) return
 
@@ -1281,30 +1144,28 @@ function buildTimeHtml(message,isMe){
 }
 
 function createMessage(message,key){
-  // ✅ System messages (block/unblock)
-  if(message.type==="system"&&message.text){
-    const parts = message.text.split("__")
-    // parts: ["", "block"/"unblock", username, timestamp]
-    if(parts[1]==="block"||parts[1]==="unblock"){
-      const actor = parts[2]
-      const ts = parseInt(parts[3])
-      const actorNick = getNick(actor)
-      const timeStr = formatBlockTime(ts)
-      const isBlock = parts[1]==="block"
-      const div=document.createElement("div")
-      div.className="sysMsg"
-      div.id=key
-      div.innerHTML = isBlock
-        ? `🚫 ${actorNick} blocked. ${timeStr}`
-        : `✅ ${actorNick} unblocked. ${timeStr}`
-      messagesEl.appendChild(div)
-      scrollToBottom()
-      return
+  // ✅ System message — block/unblock
+  if(message.type==="system"){
+    const div=document.createElement("div")
+    div.className="sysMsg"
+    div.id=key
+    const actorNick = getNick(message.actor)
+    const timeStr = formatBlockTime(message.time)
+    if(message.action==="block"){
+      div.innerHTML = `🚫 ${actorNick} blocked. ${timeStr}`
+    } else if(message.action==="unblock"){
+      div.innerHTML = `✅ ${actorNick} unblocked. ${timeStr}`
     }
+    messagesEl.appendChild(div)
+    scrollToBottom()
+    return
   }
+
+  if(!message.name) return
 
   const me=localStorage.getItem("chatUser")||username
   const isMe=message.name==me
+  // ✅ getNick দিয়ে displayName
   const displayName=getNick(message.name)
 
   const div=document.createElement("div")
@@ -1318,13 +1179,14 @@ function createMessage(message,key){
     scrollToBottom()
     return
   }
+
   let replyHtml=""
   if(message.replyTo){
     const rName=getNick(message.replyTo.name)
     replyHtml=`<div class="replyQuote"><div class="replyName">${rName}</div>${message.replyTo.text||""}</div>`
   }
 
-  // ✅ msgSenderName span — nick name realtime update এর জন্য
+  // ✅ data-user attribute — nickname realtime update
   div.innerHTML=`<b class="msgSenderName" data-user="${message.name}">${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
 
   const timeDiv=div.querySelector(".time")
@@ -1377,6 +1239,7 @@ onChildChanged(ref(db,"messages"),data=>{
   const key=data.key
   const msgDiv=document.getElementById(key)
   if(!msgDiv) return
+  if(message.type) return
 
   if(message.deleted){
     msgDiv.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,message.name==me)}</div>`
@@ -1406,7 +1269,9 @@ function markSeenMessages(){
     if(!data) return
     Object.keys(data).forEach(key=>{
       const msg=data[key]
-      if(msg.name&&msg.name!=username&&!msg.seen&&!msg.deleted) update(ref(db,"messages/"+key),{seen:true})
+      if(msg.name&&msg.name!=username&&!msg.seen&&!msg.deleted&&!msg.type){
+        update(ref(db,"messages/"+key),{seen:true})
+      }
     })
   })
 }
@@ -1493,6 +1358,7 @@ emojis.forEach(e=>{
   const span=document.createElement("span")
   span.innerText=e;span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
   span.onclick=()=>{
+    // ✅ block check
     if(isBlocked()) return
     msgBox.value+=e;msgBox.focus()
     msgBox.style.height="auto"
@@ -1507,6 +1373,7 @@ window.toggleEmoji=function(){
 }
 
 window.uploadImage=async function(input){
+  // ✅ block check
   if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
   const file=input.files[0]
   if(!file) return

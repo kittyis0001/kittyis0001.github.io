@@ -202,7 +202,7 @@ box-shadow:0 2px 10px rgba(0,0,0,0.3);
 z-index:100;
 border-radius:8px;
 overflow:hidden;
-min-width:180px;
+min-width:190px;
 }
 
 #menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
@@ -223,8 +223,39 @@ max-width:85%;
 display:table;
 }
 
+/* ✅ Message row — avatar + bubble */
+.msgRow{
+display:flex;
+align-items:flex-end;
+margin:4px 6px;
+gap:6px;
+}
+
+.msgRow.me{ flex-direction:row-reverse; }
+.msgRow.other{ flex-direction:row; }
+
+/* ✅ Avatar */
+.avatar{
+width:34px;
+height:34px;
+border-radius:50%;
+object-fit:cover;
+flex-shrink:0;
+cursor:pointer;
+border:2px solid rgba(255,255,255,0.8);
+box-shadow:0 1px 4px rgba(0,0,0,0.2);
+}
+
+.avatarPlaceholder{
+width:34px;
+height:34px;
+border-radius:50%;
+flex-shrink:0;
+background:transparent;
+}
+
 .msg{
-padding:10px; margin:6px;
+padding:10px;
 max-width:65%;
 border-radius:8px;
 word-wrap:break-word;
@@ -232,8 +263,8 @@ position:relative;
 transition:transform 0.2s ease;
 }
 
-.me{ background:#dcf8c6; margin-left:auto; }
-.other{ background:white; }
+.me .msg{ background:#dcf8c6; }
+.other .msg{ background:white; }
 
 .replyQuote{
 background:rgba(0,0,0,0.07);
@@ -375,7 +406,6 @@ outline:none;
 }
 
 #nickModalBox input:focus{ border-color:#075E54; }
-
 .nickModalBtns{ display:flex; gap:8px; justify-content:flex-end; }
 .nickModalBtns button{ padding:8px 18px; border:none; border-radius:8px; font-size:13px; cursor:pointer; }
 #nickCancelBtn{ background:#f0f0f0; color:#333; }
@@ -402,7 +432,6 @@ align-items:center; justify-content:space-between; z-index:500;
 #voiceRecordBar .recLeft{ display:flex; align-items:center; gap:10px; color:white; }
 
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.3} }
-
 .recDot{ width:12px; height:12px; background:#ff4444; border-radius:50%; animation:pulse 1s infinite; }
 #recTimer{ color:white; font-size:16px; font-weight:bold; }
 #voiceRecordBar .recRight{ display:flex; gap:16px; align-items:center; }
@@ -433,14 +462,8 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 }
 
 #msg:disabled{ background:#e0e0e0; color:#aaa; border-color:#ccc; cursor:not-allowed; }
-
-#sendBtn{
-background:#075E54; border:none; margin-left:8px;
-padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0;
-}
-
+#sendBtn{ background:#075E54; border:none; margin-left:8px; padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0; }
 #sendBtn:disabled{ background:#aaa; cursor:not-allowed; }
-
 #typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#555; font-style:italic; }
 </style>
 </head>
@@ -481,8 +504,12 @@ padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0
 <div id="menuBox">
   <div onclick="deleteAll()">Delete All Chat</div>
   <div onclick="openNickModal()">✏️ Change Nick Name</div>
+  <div onclick="changeProfilePic()">🖼️ Change Profile Pic</div>
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
+
+<!-- ✅ hidden file input for profile pic -->
+<input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
 
 <div id="typingIndicator"></div>
 <div id="messages"></div>
@@ -586,9 +613,6 @@ const bgCount = 59
 const bgIndex = Math.floor(Math.random() * bgCount) + 1
 document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
 
-// ─────────────────────────────────────────────
-// GLOBALS
-// ─────────────────────────────────────────────
 let username = ""
 let otherUser = ""
 const appStartTime = Date.now()
@@ -603,7 +627,59 @@ const micBtn = document.getElementById("micBtn")
 let seenListener = null
 
 // ─────────────────────────────────────────────
-// ✅ NICKNAMES
+// ✅ PROFILE PICS
+// ─────────────────────────────────────────────
+let profilePics = {}
+
+const DEFAULT_PIC = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwNzVFNTQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE1IiByPSI3IiBmaWxsPSJ3aGl0ZSIvPjxlbGxpcHNlIGN4PSIyMCIgY3k9IjM0IiByeD0iMTIiIHJ5PSI4IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg=="
+
+function getAvatar(user){
+  return profilePics[user] || DEFAULT_PIC
+}
+
+function listenProfilePics(){
+  // ✅ single listener, no duplicates
+  onValue(ref(db, "profilePics"), snap=>{
+    const data = snap.val() || {}
+    profilePics = data
+    // ✅ realtime update all avatars in DOM
+    document.querySelectorAll(".avatar[data-user]").forEach(img=>{
+      const u = img.dataset.user
+      if(u) img.src = getAvatar(u)
+    })
+  })
+}
+
+window.changeProfilePic = function(){
+  document.getElementById("menuBox").style.display = "none"
+  document.getElementById("profilePicInput").click()
+}
+
+window.uploadProfilePic = async function(input){
+  const file = input.files[0]
+  if(!file) return
+  input.value = ""
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  try {
+    const res = await fetch(BACKEND + "/upload", {method:"POST", body:formData})
+    const data = await res.json()
+    if(!data.url){
+      alert("Upload failed ⚠️")
+      return
+    }
+    // ✅ cache bust + correct path
+    const urlWithCache = data.url + "?t=" + Date.now()
+    await set(ref(db, "profilePics/" + username), urlWithCache)
+  } catch(e){
+    alert("Profile pic upload failed ⚠️")
+  }
+}
+
+// ─────────────────────────────────────────────
+// NICKNAMES
 // ─────────────────────────────────────────────
 let nicknames = {}
 
@@ -644,21 +720,16 @@ window.saveNickNames = async function(){
   const myNick = document.getElementById("myNickInput").value.trim()
   const otherNick = document.getElementById("otherNickInput").value.trim()
   if(!myNick || !otherNick){ alert("Nick names cannot be empty"); return }
-  // ✅ correct path — nicknames/username
-  await update(ref(db, "nicknames"), {
-    [username]: myNick,
-    [otherUser]: otherNick
-  })
+  await update(ref(db, "nicknames"), { [username]: myNick, [otherUser]: otherNick })
   closeNickModal()
 }
 
 // ─────────────────────────────────────────────
-// ✅ BLOCK SYSTEM
+// BLOCK SYSTEM
 // ─────────────────────────────────────────────
 let iBlockedOther = false
 let otherBlockedMe = false
 
-// ✅ single helper
 function isBlocked(){ return iBlockedOther || otherBlockedMe }
 
 function formatBlockTime(ts){
@@ -669,9 +740,7 @@ function formatBlockTime(ts){
 }
 
 function updateBlockUI(){
-  // ✅ dynamic button
   blockBtn.innerText = iBlockedOther ? "Unblock User" : "Block User"
-
   const blocked = isBlocked()
   msgBox.disabled = blocked
   sendBtn.disabled = blocked
@@ -691,13 +760,10 @@ function updateBlockUI(){
 }
 
 function listenBlockStatus(){
-  // ✅ otherUser set হওয়ার পরেই call হবে
-  // ✅ snap.exists() && snap.val().blocked === true
   onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
     iBlockedOther = snap.exists() && snap.val() && snap.val().blocked === true
     updateBlockUI()
   })
-
   onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
     otherBlockedMe = snap.exists() && snap.val() && snap.val().blocked === true
     updateBlockUI()
@@ -708,30 +774,12 @@ window.toggleBlock = async function(){
   document.getElementById("menuBox").style.display = "none"
   const t = Date.now()
   if(iBlockedOther){
-    // ✅ unblock
-    await set(ref(db, "blocks/"+username+"/"+otherUser), {
-      blocked: false,
-      time: t
-    })
-    await push(ref(db, "messages"), {
-      type: "system",
-      action: "unblock",
-      actor: username,
-      time: t
-    })
+    await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: false, time: t })
+    await push(ref(db, "messages"), { type:"system", action:"unblock", actor:username, time:t })
   } else {
     if(!confirm("Block this user?")) return
-    // ✅ block
-    await set(ref(db, "blocks/"+username+"/"+otherUser), {
-      blocked: true,
-      time: t
-    })
-    await push(ref(db, "messages"), {
-      type: "system",
-      action: "block",
-      actor: username,
-      time: t
-    })
+    await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: true, time: t })
+    await push(ref(db, "messages"), { type:"system", action:"block", actor:username, time:t })
   }
 }
 
@@ -754,7 +802,6 @@ const previewDuration = document.getElementById("previewDuration")
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 async function startRecording(){
-  // ✅ block check
   if(isBlocked()) return
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true})
@@ -805,7 +852,6 @@ previewDeleteBtn.addEventListener("click",()=>{
   recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
 })
 previewSendBtn.addEventListener("click",async()=>{
-  // ✅ block check
   if(isBlocked()||!recordedBlob) return
   previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
   try {
@@ -1031,8 +1077,6 @@ window.start=async function(){
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
   localStorage.setItem("chatUser",username)
-
-  // ✅ otherUser FIRST, then listeners
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -1055,9 +1099,10 @@ window.start=async function(){
     typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
-  // ✅ otherUser set হওয়ার পরে — সঠিক order
+  // ✅ correct order — otherUser আগে set, তারপর listeners
   listenNickNames()
   listenBlockStatus()
+  listenProfilePics()
   markSeenMessages()
 }
 
@@ -1065,7 +1110,6 @@ window.start=async function(){
 // SEND
 // ─────────────────────────────────────────────
 window.send=async function(){
-  // ✅ উভয় দিকের block check
   if(isBlocked()) return
   const text=msgBox.value.trim()
   if(!text) return
@@ -1103,7 +1147,7 @@ function scrollToBottom(){
 // CREATE MESSAGE
 // ─────────────────────────────────────────────
 function isImageUrl(text){
-  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text)&&
+  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text.split("?")[0])&&
     !text.includes("instagram.com")&&!text.includes("youtube.com")&&
     !text.includes("youtu.be")&&!text.includes("facebook.com")&&
     !text.includes("twitter.com")&&!text.includes("tiktok.com")
@@ -1144,18 +1188,15 @@ function buildTimeHtml(message,isMe){
 }
 
 function createMessage(message,key){
-  // ✅ System message — block/unblock
+  // ✅ System message
   if(message.type==="system"){
     const div=document.createElement("div")
     div.className="sysMsg"
     div.id=key
-    const actorNick = getNick(message.actor)
-    const timeStr = formatBlockTime(message.time)
-    if(message.action==="block"){
-      div.innerHTML = `🚫 ${actorNick} blocked. ${timeStr}`
-    } else if(message.action==="unblock"){
-      div.innerHTML = `✅ ${actorNick} unblocked. ${timeStr}`
-    }
+    const actorNick=getNick(message.actor)
+    const timeStr=formatBlockTime(message.time)
+    if(message.action==="block") div.innerHTML=`🚫 ${actorNick} blocked. ${timeStr}`
+    else if(message.action==="unblock") div.innerHTML=`✅ ${actorNick} unblocked. ${timeStr}`
     messagesEl.appendChild(div)
     scrollToBottom()
     return
@@ -1165,17 +1206,35 @@ function createMessage(message,key){
 
   const me=localStorage.getItem("chatUser")||username
   const isMe=message.name==me
-  // ✅ getNick দিয়ে displayName
   const displayName=getNick(message.name)
 
+  // ✅ row wrapper — avatar + bubble (WhatsApp group style)
+  const row=document.createElement("div")
+  row.className="msgRow "+(isMe?"me":"other")
+  row.id=key
+
+  // ✅ avatar
+  const avatarImg=document.createElement("img")
+  avatarImg.className="avatar"
+  avatarImg.dataset.user=message.name
+  avatarImg.src=getAvatar(message.name)
+  avatarImg.alt=displayName
+  avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
+  // click avatar → change own pic
+  avatarImg.addEventListener("click",e=>{
+    e.stopPropagation()
+    if(message.name===username) changeProfilePic()
+  })
+
+  // ✅ bubble
   const div=document.createElement("div")
   div.classList.add("msg")
-  div.id=key
-  div.classList.add(isMe?"me":"other")
 
   if(message.deleted){
     div.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,isMe)}</div>`
-    messagesEl.appendChild(div)
+    row.appendChild(avatarImg)
+    row.appendChild(div)
+    messagesEl.appendChild(row)
     scrollToBottom()
     return
   }
@@ -1186,7 +1245,6 @@ function createMessage(message,key){
     replyHtml=`<div class="replyQuote"><div class="replyName">${rName}</div>${message.replyTo.text||""}</div>`
   }
 
-  // ✅ data-user attribute — nickname realtime update
   div.innerHTML=`<b class="msgSenderName" data-user="${message.name}">${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
 
   const timeDiv=div.querySelector(".time")
@@ -1206,6 +1264,7 @@ function createMessage(message,key){
     div.insertBefore(textNode,timeDiv)
   }
 
+  // ✅ long press on bubble
   div.addEventListener("touchstart",e=>{
     longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
   },{passive:true})
@@ -1216,7 +1275,9 @@ function createMessage(message,key){
 
   addSwipeReply(div,key,message)
 
-  messagesEl.appendChild(div)
+  row.appendChild(avatarImg)
+  row.appendChild(div)
+  messagesEl.appendChild(row)
   scrollToBottom()
 }
 
@@ -1237,9 +1298,13 @@ onChildChanged(ref(db,"messages"),data=>{
   const me=localStorage.getItem("chatUser")||username
   const message=data.val()
   const key=data.key
-  const msgDiv=document.getElementById(key)
-  if(!msgDiv) return
+  // ✅ row id দিয়ে find করো
+  const row=document.getElementById(key)
+  if(!row) return
   if(message.type) return
+
+  const msgDiv=row.querySelector(".msg")
+  if(!msgDiv) return
 
   if(message.deleted){
     msgDiv.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,message.name==me)}</div>`
@@ -1358,7 +1423,6 @@ emojis.forEach(e=>{
   const span=document.createElement("span")
   span.innerText=e;span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
   span.onclick=()=>{
-    // ✅ block check
     if(isBlocked()) return
     msgBox.value+=e;msgBox.focus()
     msgBox.style.height="auto"
@@ -1373,7 +1437,6 @@ window.toggleEmoji=function(){
 }
 
 window.uploadImage=async function(input){
-  // ✅ block check
   if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
   const file=input.files[0]
   if(!file) return

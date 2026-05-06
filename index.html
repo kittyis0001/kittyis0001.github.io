@@ -171,38 +171,62 @@ background-size:280px;
 background-position:top left;
 }
 
+/* ✅ Header — WhatsApp style */
 #header{
 background:#075E54;
 color:white;
-padding:12px 15px;
+padding:10px 15px;
 display:flex;
 align-items:center;
 gap:10px;
 }
 
-#title{ font-weight:bold; }
-
-#headerCenter{
-display:flex;
-align-items:center;
-gap:8px;
-flex:1;
+/* ✅ Header profile pic circle */
+#headerAvatar{
+width:40px;
+height:40px;
+border-radius:50%;
+object-fit:cover;
+flex-shrink:0;
+border:2px solid rgba(255,255,255,0.6);
+cursor:pointer;
 }
 
-.iconBtn{ font-size:18px; cursor:pointer; }
-#statusText{ font-size:12px; white-space:nowrap; }
-#menu{ cursor:pointer; font-size:22px; margin-left:auto; }
+/* ✅ Header info */
+#headerInfo{
+flex:1;
+display:flex;
+flex-direction:column;
+justify-content:center;
+min-width:0;
+}
+
+#headerName{
+font-weight:bold;
+font-size:15px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+#statusText{
+font-size:12px;
+white-space:nowrap;
+opacity:0.9;
+}
+
+#menu{ cursor:pointer; font-size:22px; margin-left:auto; flex-shrink:0; }
 
 #menuBox{
 display:none;
 position:absolute;
-right:10px; top:60px;
+right:10px; top:62px;
 background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
 z-index:100;
 border-radius:8px;
 overflow:hidden;
-min-width:190px;
+min-width:200px;
 }
 
 #menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
@@ -223,7 +247,6 @@ max-width:85%;
 display:table;
 }
 
-/* ✅ Message row — avatar + bubble */
 .msgRow{
 display:flex;
 align-items:flex-end;
@@ -234,7 +257,6 @@ gap:6px;
 .msgRow.me{ flex-direction:row-reverse; }
 .msgRow.other{ flex-direction:row; }
 
-/* ✅ Avatar */
 .avatar{
 width:34px;
 height:34px;
@@ -244,14 +266,6 @@ flex-shrink:0;
 cursor:pointer;
 border:2px solid rgba(255,255,255,0.8);
 box-shadow:0 1px 4px rgba(0,0,0,0.2);
-}
-
-.avatarPlaceholder{
-width:34px;
-height:34px;
-border-radius:50%;
-flex-shrink:0;
-background:transparent;
 }
 
 .msg{
@@ -490,25 +504,29 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 </div>
 
 <div id="chat">
+
+<!-- ✅ WhatsApp style header -->
 <div id="header">
-<div id="title">Private Chat</div>
-<div id="headerCenter">
-<span class="iconBtn" onclick="document.getElementById('imgInput').click()">📷</span>
-<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<span class="iconBtn" id="micBtn">🎤</span>
-<div id="statusText">Offline</div>
-</div>
-<div id="menu" onclick="toggleMenu()">⋮</div>
+  <img id="headerAvatar" src="" alt="Profile" onclick="changeProfilePic()">
+  <div id="headerInfo">
+    <div id="headerName">Private Chat</div>
+    <div id="statusText">Offline</div>
+  </div>
+  <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
 
+<!-- ✅ Updated menu — img/voice added, icons removed from header -->
 <div id="menuBox">
-  <div onclick="deleteAll()">Delete All Chat</div>
+  <div onclick="triggerImageUpload()">🖼️ Upload Image</div>
+  <div onclick="triggerVoiceRecord()">🎤 Send Voice Message</div>
   <div onclick="openNickModal()">✏️ Change Nick Name</div>
   <div onclick="changeProfilePic()">🖼️ Change Profile Pic</div>
+  <div onclick="deleteAll()">Delete All Chat</div>
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
 
-<!-- ✅ hidden file input for profile pic -->
+<!-- ✅ Hidden inputs -->
+<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
 <input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
 
 <div id="typingIndicator"></div>
@@ -623,7 +641,8 @@ const msgBox = document.getElementById("msg")
 const sendBtn = document.getElementById("sendBtn")
 const blockedBanner = document.getElementById("blockedBanner")
 const blockBtn = document.getElementById("blockBtn")
-const micBtn = document.getElementById("micBtn")
+const headerAvatar = document.getElementById("headerAvatar")
+const headerName = document.getElementById("headerName")
 let seenListener = null
 
 // ─────────────────────────────────────────────
@@ -637,12 +656,19 @@ function getAvatar(user){
   return profilePics[user] || DEFAULT_PIC
 }
 
+function updateHeader(){
+  // ✅ always show otherUser's info in header
+  headerAvatar.src = getAvatar(otherUser) || DEFAULT_PIC
+  headerName.innerText = getNick(otherUser)
+}
+
 function listenProfilePics(){
-  // ✅ single listener, no duplicates
   onValue(ref(db, "profilePics"), snap=>{
     const data = snap.val() || {}
     profilePics = data
-    // ✅ realtime update all avatars in DOM
+    // ✅ realtime update header
+    updateHeader()
+    // ✅ realtime update all avatars in messages
     document.querySelectorAll(".avatar[data-user]").forEach(img=>{
       const u = img.dataset.user
       if(u) img.src = getAvatar(u)
@@ -659,18 +685,12 @@ window.uploadProfilePic = async function(input){
   const file = input.files[0]
   if(!file) return
   input.value = ""
-
   const formData = new FormData()
   formData.append("file", file)
-
   try {
     const res = await fetch(BACKEND + "/upload", {method:"POST", body:formData})
     const data = await res.json()
-    if(!data.url){
-      alert("Upload failed ⚠️")
-      return
-    }
-    // ✅ cache bust + correct path
+    if(!data.url){ alert("Upload failed ⚠️"); return }
     const urlWithCache = data.url + "?t=" + Date.now()
     await set(ref(db, "profilePics/" + username), urlWithCache)
   } catch(e){
@@ -679,7 +699,7 @@ window.uploadProfilePic = async function(input){
 }
 
 // ─────────────────────────────────────────────
-// NICKNAMES
+// ✅ NICKNAMES
 // ─────────────────────────────────────────────
 let nicknames = {}
 
@@ -689,6 +709,8 @@ function getNick(user){
 }
 
 function refreshAllDisplayNames(){
+  // ✅ update header name realtime
+  updateHeader()
   document.querySelectorAll(".msgSenderName").forEach(el=>{
     const u = el.dataset.user
     if(u) el.innerText = getNick(u)
@@ -725,7 +747,7 @@ window.saveNickNames = async function(){
 }
 
 // ─────────────────────────────────────────────
-// BLOCK SYSTEM
+// ✅ BLOCK SYSTEM
 // ─────────────────────────────────────────────
 let iBlockedOther = false
 let otherBlockedMe = false
@@ -745,8 +767,6 @@ function updateBlockUI(){
   msgBox.disabled = blocked
   sendBtn.disabled = blocked
   msgBox.placeholder = blocked ? "🚫 Messaging is blocked" : "Type message..."
-  micBtn.style.pointerEvents = blocked ? "none" : "auto"
-  micBtn.style.opacity = blocked ? "0.4" : "1"
 
   if(iBlockedOther){
     blockedBanner.style.display = "block"
@@ -784,7 +804,7 @@ window.toggleBlock = async function(){
 }
 
 // ─────────────────────────────────────────────
-// VOICE RECORDING
+// ✅ VOICE RECORDING — same logic, triggered from menu
 // ─────────────────────────────────────────────
 let mediaRecorder=null, audioChunks=[], recordedBlob=null
 let recTimerInterval=null, recSeconds=0, isRecording=false
@@ -800,6 +820,13 @@ const previewSendBtn = document.getElementById("previewSendBtn")
 const previewDuration = document.getElementById("previewDuration")
 
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
+
+// ✅ menu trigger — voice
+window.triggerVoiceRecord = async function(){
+  document.getElementById("menuBox").style.display = "none"
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+  await startRecording()
+}
 
 async function startRecording(){
   if(isBlocked()) return
@@ -836,10 +863,6 @@ function cancelRecording(){
   }
 }
 
-micBtn.addEventListener("touchstart",e=>{e.preventDefault();startRecording()},{passive:false})
-micBtn.addEventListener("touchend",e=>{e.preventDefault();stopRecording()},{passive:false})
-micBtn.addEventListener("mousedown",e=>{e.preventDefault();startRecording()})
-micBtn.addEventListener("mouseup",()=>stopRecording())
 recCancelBtn.addEventListener("click",()=>cancelRecording())
 
 let isPlaying=false
@@ -1077,6 +1100,7 @@ window.start=async function(){
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
   localStorage.setItem("chatUser",username)
+  // ✅ otherUser first
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -1099,7 +1123,7 @@ window.start=async function(){
     typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
-  // ✅ correct order — otherUser আগে set, তারপর listeners
+  // ✅ correct order
   listenNickNames()
   listenBlockStatus()
   listenProfilePics()
@@ -1188,7 +1212,6 @@ function buildTimeHtml(message,isMe){
 }
 
 function createMessage(message,key){
-  // ✅ System message
   if(message.type==="system"){
     const div=document.createElement("div")
     div.className="sysMsg"
@@ -1208,25 +1231,21 @@ function createMessage(message,key){
   const isMe=message.name==me
   const displayName=getNick(message.name)
 
-  // ✅ row wrapper — avatar + bubble (WhatsApp group style)
   const row=document.createElement("div")
   row.className="msgRow "+(isMe?"me":"other")
   row.id=key
 
-  // ✅ avatar
   const avatarImg=document.createElement("img")
   avatarImg.className="avatar"
   avatarImg.dataset.user=message.name
   avatarImg.src=getAvatar(message.name)
   avatarImg.alt=displayName
   avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
-  // click avatar → change own pic
   avatarImg.addEventListener("click",e=>{
     e.stopPropagation()
     if(message.name===username) changeProfilePic()
   })
 
-  // ✅ bubble
   const div=document.createElement("div")
   div.classList.add("msg")
 
@@ -1264,7 +1283,6 @@ function createMessage(message,key){
     div.insertBefore(textNode,timeDiv)
   }
 
-  // ✅ long press on bubble
   div.addEventListener("touchstart",e=>{
     longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
   },{passive:true})
@@ -1298,7 +1316,6 @@ onChildChanged(ref(db,"messages"),data=>{
   const me=localStorage.getItem("chatUser")||username
   const message=data.val()
   const key=data.key
-  // ✅ row id দিয়ে find করো
   const row=document.getElementById(key)
   if(!row) return
   if(message.type) return
@@ -1369,6 +1386,13 @@ window.toggleMenu=function(){
   m.style.display=m.style.display=="block"?"none":"block"
 }
 
+// ✅ menu trigger — image upload
+window.triggerImageUpload = function(){
+  document.getElementById("menuBox").style.display = "none"
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+  document.getElementById("imgInput").click()
+}
+
 window.deleteAll=function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
@@ -1436,6 +1460,7 @@ window.toggleEmoji=function(){
   b.style.display=b.style.display=="block"?"none":"block"
 }
 
+// ✅ same uploadImage logic — triggered from menu now
 window.uploadImage=async function(input){
   if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
   const file=input.files[0]

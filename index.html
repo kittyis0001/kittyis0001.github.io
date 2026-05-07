@@ -171,6 +171,7 @@ background-size:280px;
 background-position:top left;
 }
 
+/* ✅ Header — WhatsApp style */
 #header{
 background:#075E54;
 color:white;
@@ -180,6 +181,7 @@ align-items:center;
 gap:10px;
 }
 
+/* ✅ Header profile pic circle */
 #headerAvatar{
 width:40px;
 height:40px;
@@ -187,9 +189,10 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 border:2px solid rgba(255,255,255,0.6);
-/* TASK 1: cursor pointer removed, no onclick */
+cursor:pointer;
 }
 
+/* ✅ Header info */
 #headerInfo{
 flex:1;
 display:flex;
@@ -212,23 +215,7 @@ white-space:nowrap;
 opacity:0.9;
 }
 
-/* TASK 3: Call button in header */
-#callBtn{
-background:none;
-border:none;
-color:white;
-font-size:22px;
-cursor:pointer;
-padding:4px 8px;
-flex-shrink:0;
-display:flex;
-align-items:center;
-justify-content:center;
-transition:transform 0.15s;
-}
-#callBtn:active{ transform:scale(0.88); }
-
-#menu{ cursor:pointer; font-size:22px; margin-left:4px; flex-shrink:0; }
+#menu{ cursor:pointer; font-size:22px; margin-left:auto; flex-shrink:0; }
 
 #menuBox{
 display:none;
@@ -477,151 +464,6 @@ font-size:16px; cursor:pointer; display:flex; align-items:center; justify-conten
 #previewDeleteBtn{ background:#ff4444; color:white; }
 #previewSendBtn{ background:#075E54; color:white; }
 
-/* ─────────────────── TASK 2: GIF PANEL ─────────────────── */
-#gifPanel{
-display:none;
-position:fixed;
-bottom:70px;
-left:0;
-width:100%;
-background:white;
-max-height:160px;
-overflow-x:auto;
-overflow-y:hidden;
-box-shadow:0 -2px 10px rgba(0,0,0,0.2);
-z-index:400;
-white-space:nowrap;
-padding:6px 8px;
-box-sizing:border-box;
-}
-
-#gifPanel .gifLoading{
-font-size:13px;
-color:#888;
-padding:10px;
-display:inline-block;
-}
-
-.gifItem{
-display:inline-block;
-height:120px;
-width:auto;
-margin-right:6px;
-border-radius:8px;
-cursor:pointer;
-object-fit:cover;
-vertical-align:middle;
-background:#f0f0f0;
-transition:transform 0.1s;
-}
-.gifItem:active{ transform:scale(0.95); }
-
-/* ─────────────────── TASK 3: VOICE CALL UI ─────────────────── */
-
-/* Outgoing / Incoming call overlay */
-#callOverlay{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:#000;
-z-index:10000;
-flex-direction:column;
-align-items:center;
-justify-content:space-between;
-padding:60px 20px 60px;
-box-sizing:border-box;
-}
-
-#callOverlay .callTop{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:16px;
-}
-
-#callAvatar{
-width:110px;height:110px;
-border-radius:50%;
-object-fit:cover;
-border:3px solid rgba(255,255,255,0.3);
-box-shadow:0 0 30px rgba(255,255,255,0.1);
-}
-
-#callName{
-color:white;
-font-size:24px;
-font-weight:bold;
-}
-
-#callStatus{
-color:rgba(255,255,255,0.7);
-font-size:15px;
-margin-top:4px;
-}
-
-#callTimer{
-color:white;
-font-size:18px;
-font-weight:bold;
-display:none;
-}
-
-@keyframes ringPulse{
-0%{ box-shadow:0 0 0 0 rgba(255,255,255,0.3); }
-70%{ box-shadow:0 0 0 20px rgba(255,255,255,0); }
-100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
-}
-
-#callAvatar.ringing{
-animation:ringPulse 1.4s infinite;
-}
-
-#callOverlay .callActions{
-display:flex;
-gap:40px;
-align-items:center;
-justify-content:center;
-}
-
-.callActionBtn{
-width:64px;height:64px;
-border-radius:50%;
-border:none;
-font-size:26px;
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
-transition:transform 0.15s;
-}
-
-.callActionBtn:active{ transform:scale(0.88); }
-
-#endCallBtn{ background:#ff3b30; color:white; }
-#acceptCallBtn{ background:#34c759; color:white; }
-#rejectCallBtn{ background:#ff3b30; color:white; }
-#muteCallBtn{ background:rgba(255,255,255,0.15); color:white; }
-#speakerBtn{ background:rgba(255,255,255,0.15); color:white; }
-
-#callOverlay .callLabel{
-color:rgba(255,255,255,0.6);
-font-size:11px;
-text-align:center;
-margin-top:6px;
-}
-
-.callBtnWrap{
-display:flex;
-flex-direction:column;
-align-items:center;
-}
-
-/* incoming-only buttons */
-#incomingActions{ display:none; gap:60px; justify-content:center; }
-#activeActions{ display:none; gap:30px; justify-content:center; flex-wrap:wrap; }
-
-/* ─────────────────── INPUT AREA ─────────────────── */
 #inputArea{
 display:flex; padding:8px 10px;
 background:#f0f0f0; align-items:flex-end;
@@ -663,18 +505,17 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 
 <div id="chat">
 
+<!-- ✅ WhatsApp style header -->
 <div id="header">
-  <!-- TASK 1: headerAvatar has NO onclick — profile pic change only from menu -->
-  <img id="headerAvatar" src="" alt="Profile">
+  <img id="headerAvatar" src="" alt="Profile" onclick="changeProfilePic()">
   <div id="headerInfo">
     <div id="headerName">Private Chat</div>
     <div id="statusText">Offline</div>
   </div>
-  <!-- TASK 3: Call button -->
-  <button id="callBtn" onclick="initiateCall()" title="Voice Call">📞</button>
   <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
 
+<!-- ✅ Updated menu — img/voice added, icons removed from header -->
 <div id="menuBox">
   <div onclick="triggerImageUpload()">🖼️ Upload Image</div>
   <div onclick="triggerVoiceRecord()">🎤 Send Voice Message</div>
@@ -684,14 +525,12 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
 
+<!-- ✅ Hidden inputs -->
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
 <input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
 
 <div id="typingIndicator"></div>
 <div id="messages"></div>
-
-<!-- TASK 2: GIF panel -->
-<div id="gifPanel"></div>
 
 <div id="voicePreviewBar">
   <button id="previewDeleteBtn">🗑️</button>
@@ -766,54 +605,10 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   </div>
 </div>
 
-<!-- TASK 3: Voice Call Overlay (WhatsApp style) -->
-<div id="callOverlay">
-  <div class="callTop">
-    <img id="callAvatar" src="" alt="">
-    <div id="callName">Kitty</div>
-    <div id="callStatus">Calling...</div>
-    <div id="callTimer">0:00</div>
-  </div>
-
-  <!-- Incoming call buttons -->
-  <div id="incomingActions" class="callActions">
-    <div class="callBtnWrap">
-      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">📵</button>
-      <div class="callLabel">Decline</div>
-    </div>
-    <div class="callBtnWrap">
-      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">📞</button>
-      <div class="callLabel">Accept</div>
-    </div>
-  </div>
-
-  <!-- Active call buttons -->
-  <div id="activeActions" class="callActions">
-    <div class="callBtnWrap">
-      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">🎤</button>
-      <div class="callLabel" id="muteLabel">Mute</div>
-    </div>
-    <div class="callBtnWrap">
-      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">📵</button>
-      <div class="callLabel">End</div>
-    </div>
-    <div class="callBtnWrap">
-      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
-      <div class="callLabel" id="speakerLabel">Speaker</div>
-    </div>
-  </div>
-</div>
-
-<!-- Hidden audio elements for call -->
-<audio id="remoteAudio" autoplay playsinline></audio>
-<audio id="ringtoneAudio" loop>
-  <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
-</audio>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get, off }
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 
 const firebaseConfig = {
@@ -851,7 +646,7 @@ const headerName = document.getElementById("headerName")
 let seenListener = null
 
 // ─────────────────────────────────────────────
-// PROFILE PICS
+// ✅ PROFILE PICS
 // ─────────────────────────────────────────────
 let profilePics = {}
 
@@ -862,6 +657,7 @@ function getAvatar(user){
 }
 
 function updateHeader(){
+  // ✅ always show otherUser's info in header
   headerAvatar.src = getAvatar(otherUser) || DEFAULT_PIC
   headerName.innerText = getNick(otherUser)
 }
@@ -870,7 +666,9 @@ function listenProfilePics(){
   onValue(ref(db, "profilePics"), snap=>{
     const data = snap.val() || {}
     profilePics = data
+    // ✅ realtime update header
     updateHeader()
+    // ✅ realtime update all avatars in messages
     document.querySelectorAll(".avatar[data-user]").forEach(img=>{
       const u = img.dataset.user
       if(u) img.src = getAvatar(u)
@@ -878,7 +676,6 @@ function listenProfilePics(){
   })
 }
 
-// TASK 1: changeProfilePic only from menu — avatar img has NO onclick
 window.changeProfilePic = function(){
   document.getElementById("menuBox").style.display = "none"
   document.getElementById("profilePicInput").click()
@@ -902,7 +699,7 @@ window.uploadProfilePic = async function(input){
 }
 
 // ─────────────────────────────────────────────
-// NICKNAMES
+// ✅ NICKNAMES
 // ─────────────────────────────────────────────
 let nicknames = {}
 
@@ -912,6 +709,7 @@ function getNick(user){
 }
 
 function refreshAllDisplayNames(){
+  // ✅ update header name realtime
   updateHeader()
   document.querySelectorAll(".msgSenderName").forEach(el=>{
     const u = el.dataset.user
@@ -949,7 +747,7 @@ window.saveNickNames = async function(){
 }
 
 // ─────────────────────────────────────────────
-// BLOCK SYSTEM
+// ✅ BLOCK SYSTEM
 // ─────────────────────────────────────────────
 let iBlockedOther = false
 let otherBlockedMe = false
@@ -1006,7 +804,7 @@ window.toggleBlock = async function(){
 }
 
 // ─────────────────────────────────────────────
-// VOICE RECORDING
+// ✅ VOICE RECORDING — same logic, triggered from menu
 // ─────────────────────────────────────────────
 let mediaRecorder=null, audioChunks=[], recordedBlob=null
 let recTimerInterval=null, recSeconds=0, isRecording=false
@@ -1023,6 +821,7 @@ const previewDuration = document.getElementById("previewDuration")
 
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
+// ✅ menu trigger — voice
 window.triggerVoiceRecord = async function(){
   document.getElementById("menuBox").style.display = "none"
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
@@ -1096,11 +895,6 @@ previewSendBtn.addEventListener("click",async()=>{
 const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
 
-// TASK 2: GIF debounce
-let gifDebounceTimer=null
-const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
-const gifPanel = document.getElementById("gifPanel")
-
 msgBox.addEventListener("input",function(){
   this.style.height="auto"
   this.style.height=Math.min(this.scrollHeight,120)+"px"
@@ -1108,61 +902,6 @@ msgBox.addEventListener("input",function(){
     set(ref(db,"typing/"+username),true)
     clearTimeout(typingTimeout)
     typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
-  }
-
-  // TASK 2: GIF search with debounce
-  const val = this.value.trim()
-  clearTimeout(gifDebounceTimer)
-  if(!val){
-    gifPanel.style.display="none"
-    gifPanel.innerHTML=""
-    return
-  }
-  gifDebounceTimer = setTimeout(()=>searchGifs(val), 350)
-})
-
-async function searchGifs(query){
-  gifPanel.style.display="block"
-  gifPanel.innerHTML='<span class="gifLoading">🔍 Searching GIFs...</span>'
-  try {
-    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
-    const res = await fetch(url)
-    const data = await res.json()
-    const items = data.data || []
-    if(!items.length){
-      gifPanel.innerHTML='<span class="gifLoading">No GIFs found</span>'
-      return
-    }
-    gifPanel.innerHTML=""
-    items.forEach(item=>{
-      // Klipy returns different structures; try common fields
-      const gifUrl = item.media?.[0]?.gif?.url || item.gif?.url || item.url || ""
-      const previewUrl = item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || gifUrl
-      if(!gifUrl) return
-      const img = document.createElement("img")
-      img.className = "gifItem"
-      img.src = previewUrl
-      img.loading = "lazy"
-      img.alt = "GIF"
-      img.addEventListener("click", ()=>{
-        if(isBlocked()) return
-        push(ref(db,"messages"),{name:username,type:"gif",text:"__gif__"+gifUrl,time:Date.now(),seen:false})
-        gifPanel.style.display="none"
-        gifPanel.innerHTML=""
-        msgBox.value=""
-        msgBox.style.height="auto"
-      })
-      gifPanel.appendChild(img)
-    })
-  } catch(e){
-    gifPanel.innerHTML='<span class="gifLoading">Failed to load GIFs</span>'
-  }
-}
-
-// Hide GIF panel when clicking outside
-document.addEventListener("click", e=>{
-  if(!gifPanel.contains(e.target) && e.target !== msgBox){
-    gifPanel.style.display="none"
   }
 })
 
@@ -1184,7 +923,7 @@ replyBarClose.addEventListener("click",()=>{ replyingTo=null; replyBar.style.dis
 function startReply(key, name, text){
   replyingTo={key,name,text}
   replyBarName.innerText = getNick(name)
-  replyBarText.innerText = text.startsWith("__voice__")?"🎤 Voice message":text.startsWith("__gif__")?"🎞️ GIF":text.substring(0,60)
+  replyBarText.innerText = text.startsWith("__voice__")?"🎤 Voice message":text.substring(0,60)
   replyBar.style.display="flex"
   msgBox.focus()
 }
@@ -1236,7 +975,7 @@ let longPressTimer=null
 
 function showActionMenu(msgDiv, key, isMe, message){
   currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
-  document.getElementById("actionEdit").style.display=(isMe&&!message.text.startsWith("__voice__")&&!message.text.startsWith("__gif__"))?"flex":"none"
+  document.getElementById("actionEdit").style.display=(isMe&&!message.text.startsWith("__voice__"))?"flex":"none"
   document.getElementById("actionDelete").style.display=isMe?"flex":"none"
   actionMenu.style.display="flex"
   const rect=msgDiv.getBoundingClientRect()
@@ -1361,6 +1100,7 @@ window.start=async function(){
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
   localStorage.setItem("chatUser",username)
+  // ✅ otherUser first
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -1383,13 +1123,11 @@ window.start=async function(){
     typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
+  // ✅ correct order
   listenNickNames()
   listenBlockStatus()
   listenProfilePics()
   markSeenMessages()
-
-  // TASK 3: Start listening for incoming calls
-  listenIncomingCalls()
 }
 
 // ─────────────────────────────────────────────
@@ -1414,14 +1152,13 @@ window.send=async function(){
     msgData.replyTo={
       key:replyingTo.key,
       name:replyingTo.name,
-      text:replyingTo.text.startsWith("__voice__")?"🎤 Voice message":replyingTo.text.startsWith("__gif__")?"🎞️ GIF":replyingTo.text.substring(0,80)
+      text:replyingTo.text.startsWith("__voice__")?"🎤 Voice message":replyingTo.text.substring(0,80)
     }
     replyingTo=null; replyBar.style.display="none"
   }
 
   push(ref(db,"messages"),msgData)
   msgBox.value=""; msgBox.style.height="auto"
-  gifPanel.style.display="none"
   set(ref(db,"typing/"+username),false)
   clearTimeout(typingTimeout)
 }
@@ -1504,7 +1241,6 @@ function createMessage(message,key){
   avatarImg.src=getAvatar(message.name)
   avatarImg.alt=displayName
   avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
-  // TASK 1: avatar click only for own pic change
   avatarImg.addEventListener("click",e=>{
     e.stopPropagation()
     if(message.name===username) changeProfilePic()
@@ -1534,14 +1270,6 @@ function createMessage(message,key){
 
   if(message.text.startsWith("__voice__")){
     div.insertBefore(createVoicePlayer(message.text.replace("__voice__","")),timeDiv)
-  } else if(message.text.startsWith("__gif__")){
-    // TASK 2: Render GIF message
-    const gifUrl = message.text.replace("__gif__","")
-    const img=document.createElement("img")
-    img.src=gifUrl
-    img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
-    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
-    div.insertBefore(img,timeDiv)
   } else if(isImageUrl(message.text)){
     const img=document.createElement("img")
     img.src=message.text
@@ -1579,7 +1307,7 @@ onChildAdded(ref(db,"messages"),data=>{
     const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
     fetch(BACKEND+"/notify",{
       method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text:message.text.startsWith("__voice__")?"🎤 Voice message":message.text.startsWith("__gif__")?"🎞️ GIF":message.text,time})
+      body:JSON.stringify({text:message.text.startsWith("__voice__")?"🎤 Voice message":message.text,time})
     }).catch(()=>{})
   }
 })
@@ -1658,6 +1386,7 @@ window.toggleMenu=function(){
   m.style.display=m.style.display=="block"?"none":"block"
 }
 
+// ✅ menu trigger — image upload
 window.triggerImageUpload = function(){
   document.getElementById("menuBox").style.display = "none"
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
@@ -1729,9 +1458,9 @@ emojis.forEach(e=>{
 window.toggleEmoji=function(){
   const b=document.getElementById("emojiBox")
   b.style.display=b.style.display=="block"?"none":"block"
-  if(b.style.display=="block") gifPanel.style.display="none"
 }
 
+// ✅ same uploadImage logic — triggered from menu now
 window.uploadImage=async function(input){
   if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
   const file=input.files[0]
@@ -1745,331 +1474,6 @@ window.uploadImage=async function(input){
     push(ref(db,"messages"),{name:username,text:data.url,time:Date.now(),seen:false})
   }catch(e){alert("Upload failed ⚠️")}
   input.value=""
-}
-
-// ══════════════════════════════════════════════
-// TASK 3: VOICE CALL — WebRTC + Firebase signaling
-// ══════════════════════════════════════════════
-
-const ICE_SERVERS = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    }
-  ]
-}
-
-let peerConnection = null
-let localStream = null
-let callTimerInterval = null
-let callSeconds = 0
-let isMuted = false
-let isSpeakerOn = false
-let currentCallId = null
-let incomingCallListener = null
-let isCallActive = false
-
-const callOverlay = document.getElementById("callOverlay")
-const callAvatarEl = document.getElementById("callAvatar")
-const callNameEl = document.getElementById("callName")
-const callStatusEl = document.getElementById("callStatus")
-const callTimerEl = document.getElementById("callTimer")
-const incomingActions = document.getElementById("incomingActions")
-const activeActions = document.getElementById("activeActions")
-const remoteAudio = document.getElementById("remoteAudio")
-const ringtoneAudio = document.getElementById("ringtoneAudio")
-
-function showCallOverlay(mode){
-  // mode: "outgoing" | "incoming" | "active"
-  callOverlay.style.display="flex"
-  callAvatarEl.src = getAvatar(otherUser)
-  callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
-  callNameEl.innerText = getNick(otherUser)
-
-  incomingActions.style.display="none"
-  activeActions.style.display="none"
-  callTimerEl.style.display="none"
-
-  if(mode==="outgoing"){
-    callStatusEl.innerText="Calling..."
-    callAvatarEl.classList.add("ringing")
-    // Show only end button
-    activeActions.style.display="flex"
-    // hide mute & speaker, only end
-    document.getElementById("muteCallBtn").style.display="none"
-    document.getElementById("speakerBtn").style.display="none"
-    document.getElementById("endCallBtn").style.display="flex"
-  } else if(mode==="incoming"){
-    callStatusEl.innerText="Incoming call..."
-    callAvatarEl.classList.add("ringing")
-    incomingActions.style.display="flex"
-    playRingtone()
-  } else if(mode==="active"){
-    callStatusEl.innerText="Connected"
-    callAvatarEl.classList.remove("ringing")
-    callTimerEl.style.display="block"
-    activeActions.style.display="flex"
-    document.getElementById("muteCallBtn").style.display="flex"
-    document.getElementById("speakerBtn").style.display="flex"
-    document.getElementById("endCallBtn").style.display="flex"
-    startCallTimer()
-    stopRingtone()
-  }
-}
-
-function hideCallOverlay(){
-  callOverlay.style.display="none"
-  callAvatarEl.classList.remove("ringing")
-  stopCallTimer()
-  stopRingtone()
-}
-
-function playRingtone(){
-  try{ ringtoneAudio.currentTime=0; ringtoneAudio.play().catch(()=>{}) }catch(e){}
-}
-function stopRingtone(){
-  try{ ringtoneAudio.pause(); ringtoneAudio.currentTime=0 }catch(e){}
-}
-
-function startCallTimer(){
-  callSeconds=0
-  callTimerEl.innerText="0:00"
-  callTimerInterval=setInterval(()=>{
-    callSeconds++
-    callTimerEl.innerText=formatRecTime(callSeconds)
-  },1000)
-}
-
-function stopCallTimer(){
-  clearInterval(callTimerInterval)
-  callTimerInterval=null
-  callSeconds=0
-}
-
-async function createPeerConnection(){
-  peerConnection = new RTCPeerConnection(ICE_SERVERS)
-
-  // Add local audio tracks
-  if(localStream){
-    localStream.getTracks().forEach(track=>{
-      peerConnection.addTrack(track, localStream)
-    })
-  }
-
-  // When remote track arrives
-  peerConnection.ontrack = e=>{
-    if(e.streams && e.streams[0]){
-      remoteAudio.srcObject = e.streams[0]
-      remoteAudio.play().catch(()=>{})
-    }
-  }
-
-  // ICE candidate — send to Firebase
-  peerConnection.onicecandidate = e=>{
-    if(e.candidate && currentCallId){
-      push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
-    }
-  }
-
-  // Connection state
-  peerConnection.onconnectionstatechange = ()=>{
-    const state = peerConnection.connectionState
-    if(state==="connected"){
-      showCallOverlay("active")
-      isCallActive=true
-    } else if(state==="disconnected"||state==="failed"||state==="closed"){
-      if(isCallActive) endCall()
-    }
-  }
-}
-
-// Initiate call (caller side)
-window.initiateCall = async function(){
-  if(isCallActive){ return }
-  if(!username){ alert("Please login first"); return }
-
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-  } catch(e){
-    alert("Mic permission denied. Please allow microphone access.")
-    return
-  }
-
-  currentCallId = username + "_" + Date.now()
-  isCallActive=true
-
-  await createPeerConnection()
-
-  const offer = await peerConnection.createOffer()
-  await peerConnection.setLocalDescription(offer)
-
-  // Write call to Firebase
-  await set(ref(db, "calls/"+currentCallId), {
-    caller: username,
-    callee: otherUser,
-    status: "ringing",
-    offer: { type: offer.type, sdp: offer.sdp },
-    time: Date.now()
-  })
-
-  showCallOverlay("outgoing")
-
-  // Listen for answer
-  onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
-    const answer = snap.val()
-    if(answer && peerConnection && peerConnection.signalingState!=="stable"){
-      try{
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-      }catch(e){}
-    }
-  })
-
-  // Listen for remote ICE candidates
-  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
-    const candidate = snap.val()
-    if(candidate && peerConnection){
-      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
-    }
-  })
-
-  // Listen for call status (rejected/ended)
-  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
-    const status=snap.val()
-    if(status==="rejected"||status==="ended"){
-      cleanupCall()
-    }
-  })
-}
-
-// Listen for incoming calls
-function listenIncomingCalls(){
-  onValue(ref(db,"calls"), snap=>{
-    const calls=snap.val()
-    if(!calls) return
-    Object.entries(calls).forEach(([callId, callData])=>{
-      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId){
-        if(!isCallActive){
-          currentCallId=callId
-          showIncomingCall(callData)
-        }
-      }
-    })
-  })
-}
-
-function showIncomingCall(callData){
-  showCallOverlay("incoming")
-}
-
-// Accept call
-window.acceptCall = async function(){
-  if(!currentCallId) return
-  stopRingtone()
-
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-  } catch(e){
-    alert("Mic permission denied.")
-    rejectCall()
-    return
-  }
-
-  await createPeerConnection()
-
-  const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
-  const offer = snap.val()
-  if(!offer){ cleanupCall(); return }
-
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
-  const answer = await peerConnection.createAnswer()
-  await peerConnection.setLocalDescription(answer)
-
-  await update(ref(db,"calls/"+currentCallId),{
-    answer:{ type:answer.type, sdp:answer.sdp },
-    status:"active"
-  })
-
-  isCallActive=true
-
-  // Listen for caller's ICE candidates
-  const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
-  const caller = callerSnap.val() || otherUser
-  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
-    const candidate=snap.val()
-    if(candidate && peerConnection){
-      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
-    }
-  })
-
-  // Listen for ended status
-  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
-    const status=snap.val()
-    if(status==="ended"){ cleanupCall() }
-  })
-}
-
-// Reject call
-window.rejectCall = async function(){
-  if(currentCallId){
-    await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
-  }
-  cleanupCall()
-}
-
-// End active call
-window.endCall = async function(){
-  if(currentCallId){
-    await update(ref(db,"calls/"+currentCallId),{status:"ended"})
-  }
-  cleanupCall()
-}
-
-function cleanupCall(){
-  isCallActive=false
-  if(peerConnection){ peerConnection.close(); peerConnection=null }
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null }
-  remoteAudio.srcObject=null
-  isMuted=false
-  isSpeakerOn=false
-  currentCallId=null
-  hideCallOverlay()
-}
-
-window.toggleMute = function(){
-  if(!localStream) return
-  isMuted=!isMuted
-  localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
-  const btn=document.getElementById("muteCallBtn")
-  const lbl=document.getElementById("muteLabel")
-  btn.innerText=isMuted?"🔇":"🎤"
-  lbl.innerText=isMuted?"Unmute":"Mute"
-}
-
-window.toggleSpeaker = function(){
-  isSpeakerOn=!isSpeakerOn
-  const btn=document.getElementById("speakerBtn")
-  const lbl=document.getElementById("speakerLabel")
-  btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
-  lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
-  // On mobile, speakerphone is handled by the OS — this is a visual indicator
 }
 
 </script>

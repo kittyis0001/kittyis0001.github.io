@@ -1999,287 +1999,17 @@ window.uploadImage=async function(input){
   input.value=""
 }
 
-<!-- CALL OVERLAY -->
-<div id="callOverlay">
+<script type="module">
 
-  <div class="callTopFade"></div>
-
-  <div class="callProfileWrap">
-
-    <div class="callAvatarRing"></div>
-
-    <img id="callAvatar"
-      class="callAvatar"
-      src="">
-
-    <div id="callName"
-      class="callName">
-      Unknown
-    </div>
-
-    <div id="callStatus"
-      class="callStatus">
-      Calling...
-    </div>
-
-    <div id="callTimer"
-      class="callTimer">
-      0:00
-    </div>
-
-  </div>
-
-  <!-- incoming -->
-  <div id="incomingActions"
-    class="callActions">
-
-    <div class="callBtnWrap">
-
-      <button
-        class="callBtn declineBtn"
-        onclick="rejectCall()">
-        ✕
-      </button>
-
-      <span>Decline</span>
-
-    </div>
-
-    <div class="callBtnWrap">
-
-      <button
-        class="callBtn acceptBtn"
-        onclick="acceptCall()">
-        📞
-      </button>
-
-      <span>Accept</span>
-
-    </div>
-
-  </div>
-
-  <!-- active -->
-  <div id="activeActions"
-    class="callActions">
-
-    <div class="callBtnWrap">
-
-      <button
-        id="muteCallBtn"
-        class="callBtn secondaryBtn"
-        onclick="toggleMute()">
-        🎤
-      </button>
-
-      <span id="muteLabel">
-        Mute
-      </span>
-
-    </div>
-
-    <div class="callBtnWrap">
-
-      <button
-        id="endCallBtn"
-        class="callBtn endBtn"
-        onclick="endCall()">
-        📞
-      </button>
-
-      <span>End</span>
-
-    </div>
-
-    <div class="callBtnWrap">
-
-      <button
-        id="speakerBtn"
-        class="callBtn secondaryBtn"
-        onclick="toggleSpeaker()">
-        🔊
-      </button>
-
-      <span id="speakerLabel">
-        Speaker
-      </span>
-
-    </div>
-
-  </div>
-
-</div>
-
-<!-- AUDIO -->
-<audio id="remoteAudio"
-  autoplay
-  playsinline></audio>
-
-<audio id="ringtoneAudio"
-  loop>
-  <source
-    src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"
-    type="audio/ogg">
-</audio>
-
-<style>
-
-#callOverlay{
-  position:fixed;
-  inset:0;
-  background:#000;
-  z-index:999999;
-  display:none;
-  flex-direction:column;
-  justify-content:space-between;
-  align-items:center;
-  overflow:hidden;
-  font-family:Arial;
-}
-
-.callTopFade{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:220px;
-  background:linear-gradient(
-    to bottom,
-    rgba(255,255,255,.08),
-    transparent
-  );
-}
-
-.callProfileWrap{
-  margin-top:90px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  z-index:2;
-}
-
-.callAvatar{
-  width:170px;
-  height:170px;
-  border-radius:50%;
-  object-fit:cover;
-  border:4px solid rgba(255,255,255,.15);
-  position:relative;
-  z-index:2;
-}
-
-.callAvatarRing{
-  position:absolute;
-  width:220px;
-  height:220px;
-  border-radius:50%;
-  background:rgba(255,255,255,.03);
-  animation:ringPulse 1.7s infinite;
-}
-
-@keyframes ringPulse{
-
-  0%{
-    transform:scale(.8);
-    opacity:.7;
-  }
-
-  100%{
-    transform:scale(1.25);
-    opacity:0;
-  }
-
-}
-
-.callName{
-  color:#fff;
-  font-size:32px;
-  font-weight:700;
-  margin-top:28px;
-}
-
-.callStatus{
-  color:#bbb;
-  font-size:18px;
-  margin-top:12px;
-}
-
-.callTimer{
-  color:#25D366;
-  font-size:18px;
-  margin-top:12px;
-  display:none;
-}
-
-.callActions{
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:45px;
-  margin-bottom:90px;
-}
-
-.callBtnWrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-  color:#ddd;
-  font-size:17px;
-}
-
-.callBtn{
-  width:78px;
-  height:78px;
-  border:none;
-  border-radius:50%;
-  font-size:32px;
-  color:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.acceptBtn{
-  background:#25D366;
-}
-
-.declineBtn{
-  background:#ff3b30;
-}
-
-.endBtn{
-  background:#ff3b30;
-}
-
-.secondaryBtn{
-  background:rgba(255,255,255,.14);
-}
-
-#incomingActions{
-  display:none;
-}
-
-#activeActions{
-  display:none;
-}
-
-</style>
-
-<script>
+// ========================================
+// YOUR ALL EXISTING JAVASCRIPT CODE
+// GIF + CHAT + FIREBASE + CALL JS
+// ========================================
 
 const ICE_SERVERS = {
-
-  iceServers:[
-
-    {
-      urls:"stun:stun.l.google.com:19302"
-    },
-
-    {
-      urls:"stun:stun1.l.google.com:19302"
-    },
+  iceServers: [
+    { urls:"stun:stun.l.google.com:19302" },
+    { urls:"stun:stun1.l.google.com:19302" },
 
     {
       urls:"turn:openrelay.metered.ca:80",
@@ -2298,641 +2028,275 @@ const ICE_SERVERS = {
       username:"openrelayproject",
       credential:"openrelayproject"
     }
-
   ]
-
 }
 
-let peerConnection = null
-let localStream = null
-let currentCallId = null
-let callInterval = null
-let callSeconds = 0
-let isMuted = false
-let isSpeakerOn = false
-
-const callOverlay =
-document.getElementById("callOverlay")
-
-const callAvatar =
-document.getElementById("callAvatar")
-
-const callName =
-document.getElementById("callName")
-
-const callStatus =
-document.getElementById("callStatus")
-
-const callTimer =
-document.getElementById("callTimer")
-
-const incomingActions =
-document.getElementById("incomingActions")
-
-const activeActions =
-document.getElementById("activeActions")
-
-const remoteAudio =
-document.getElementById("remoteAudio")
-
-const ringtoneAudio =
-document.getElementById("ringtoneAudio")
-
-function openCallUI(type){
-
-  callOverlay.style.display="flex"
-
-  callAvatar.src =
-  getAvatar(otherUser)
-
-  callName.innerText =
-  getNick(otherUser)
-
-  incomingActions.style.display="none"
-  activeActions.style.display="none"
-  callTimer.style.display="none"
-
-  if(type==="calling"){
-
-    callStatus.innerText="Calling..."
-
-    activeActions.style.display="flex"
-
-    document.getElementById(
-      "muteCallBtn"
-    ).style.display="none"
-
-    document.getElementById(
-      "speakerBtn"
-    ).style.display="none"
-
-  }
-
-  else if(type==="incoming"){
-
-    callStatus.innerText=
-    "Incoming call..."
-
-    incomingActions.style.display=
-    "flex"
-
-    playRingtone()
-
-  }
-
-  else if(type==="connected"){
-
-    callStatus.innerText=
-    "Connected"
-
-    activeActions.style.display=
-    "flex"
-
-    document.getElementById(
-      "muteCallBtn"
-    ).style.display="flex"
-
-    document.getElementById(
-      "speakerBtn"
-    ).style.display="flex"
-
-    callTimer.style.display="block"
-
-    stopRingtone()
-
-    startTimer()
-
-  }
-
-}
-
-function closeCallUI(){
-
-  callOverlay.style.display="none"
-
-  stopTimer()
-
-  stopRingtone()
-
-}
-
-function playRingtone(){
-
-  ringtoneAudio.currentTime=0
-
-  ringtoneAudio.play()
-  .catch(()=>{})
-
-}
-
-function stopRingtone(){
-
-  ringtoneAudio.pause()
-
-  ringtoneAudio.currentTime=0
-
-}
-
-function startTimer(){
-
-  clearInterval(callInterval)
-
-  callSeconds=0
-
-  callTimer.innerText="0:00"
-
-  callInterval=setInterval(()=>{
-
-    callSeconds++
-
-    const m =
-    Math.floor(callSeconds/60)
-
-    const s =
-    String(callSeconds%60)
-    .padStart(2,"0")
-
-    callTimer.innerText =
-    m+":"+s
-
-  },1000)
-
-}
-
-function stopTimer(){
-
-  clearInterval(callInterval)
-
-}
-
-async function setupPeer(){
-
-  peerConnection =
-  new RTCPeerConnection(
-    ICE_SERVERS
-  )
-
-  localStream.getTracks()
-  .forEach(track=>{
-
-    peerConnection.addTrack(
-      track,
-      localStream
-    )
-
-  })
-
-  peerConnection.ontrack=e=>{
-
-    remoteAudio.srcObject =
-    e.streams[0]
-
-    remoteAudio.play()
-    .catch(()=>{})
-
-  }
-
-  peerConnection.onicecandidate=e=>{
-
-    if(
-      e.candidate &&
-      currentCallId
-    ){
-
-      push(
-
-        ref(
-          db,
-          "calls/"+currentCallId+
-          "/candidates/"+username
-        ),
-
-        e.candidate.toJSON()
-
-      )
-
-    }
-
-  }
-
-  peerConnection.onconnectionstatechange=()=>{
-
-    const state =
-    peerConnection.connectionState
-
-    if(state==="connected"){
-
-      openCallUI("connected")
-
-    }
-
-    if(
-      state==="disconnected" ||
-      state==="failed"
-    ){
-
-      callStatus.innerText=
-      "Reconnecting..."
-
-    }
-
-    if(state==="closed"){
-
-      cleanupCall()
-
-    }
-
-  }
-
-}
-
-window.initiateCall =
-async function(){
-
-  try{
-
-    localStream =
-    await navigator.mediaDevices
-    .getUserMedia({
-      audio:true
-    })
-
-  }catch(e){
-
-    alert(
-      "Microphone permission denied"
-    )
-
-    return
-
-  }
-
-  currentCallId =
-  username+"_"+Date.now()
-
-  await setupPeer()
-
-  const offer =
-  await peerConnection
-  .createOffer()
-
-  await peerConnection
-  .setLocalDescription(offer)
-
-  await set(
-
-    ref(
-      db,
-      "calls/"+currentCallId
-    ),
-
-    {
-      caller:username,
-      callee:otherUser,
-      status:"ringing",
-
-      offer:{
-        type:offer.type,
-        sdp:offer.sdp
-      },
-
-      created:Date.now()
-    }
-
-  )
-
-  openCallUI("calling")
-
-  onValue(
-
-    ref(
-      db,
-      "calls/"+currentCallId+"/answer"
-    ),
-
-    async snap=>{
-
-      const answer =
-      snap.val()
-
-      if(answer){
-
-        await peerConnection
-        .setRemoteDescription(
-          new RTCSessionDescription(
-            answer
-          )
-        )
-
-      }
-
-    }
-
-  )
-
-  onChildAdded(
-
-    ref(
-      db,
-      "calls/"+currentCallId+
-      "/candidates/"+otherUser
-    ),
-
-    async snap=>{
-
-      const candidate =
-      snap.val()
-
-      if(candidate){
-
-        try{
-
-          await peerConnection
-          .addIceCandidate(
-
-            new RTCIceCandidate(
-              candidate
-            )
-
-          )
-
-        }catch(e){}
-
-      }
-
-    }
-
-  )
-
-}
-
-function listenIncomingCalls(){
-
-  onValue(
-    ref(db,"calls"),
-
-    snap=>{
-
-      const calls =
-      snap.val()
-
-      if(!calls) return
-
-      Object.entries(calls)
-      .forEach(([id,data])=>{
-
-        if(
-
-          data.callee===username &&
-          data.status==="ringing" &&
-          currentCallId!==id
-
-        ){
-
-          currentCallId=id
-
-          openCallUI("incoming")
-
-        }
-
-      })
-
-    }
-
-  )
-
-}
-
-window.acceptCall =
-async function(){
-
-  stopRingtone()
-
-  localStream =
-  await navigator.mediaDevices
-  .getUserMedia({
-    audio:true
-  })
-
-  await setupPeer()
-
-  const offerSnap =
-  await get(
-
-    ref(
-      db,
-      "calls/"+currentCallId+
-      "/offer"
-    )
-
-  )
-
-  const offer =
-  offerSnap.val()
-
-  await peerConnection
-  .setRemoteDescription(
-
-    new RTCSessionDescription(
-      offer
-    )
-
-  )
-
-  const answer =
-  await peerConnection
-  .createAnswer()
-
-  await peerConnection
-  .setLocalDescription(answer)
-
-  await update(
-
-    ref(
-      db,
-      "calls/"+currentCallId
-    ),
-
-    {
-      answer:{
-        type:answer.type,
-        sdp:answer.sdp
-      },
-
-      status:"active"
-    }
-
-  )
-
-  const callerSnap =
-  await get(
-
-    ref(
-      db,
-      "calls/"+currentCallId+
-      "/caller"
-    )
-
-  )
-
-  const caller =
-  callerSnap.val()
-
-  onChildAdded(
-
-    ref(
-      db,
-      "calls/"+currentCallId+
-      "/candidates/"+caller
-    ),
-
-    async snap=>{
-
-      const candidate =
-      snap.val()
-
-      if(candidate){
-
-        try{
-
-          await peerConnection
-          .addIceCandidate(
-
-            new RTCIceCandidate(
-              candidate
-            )
-
-          )
-
-        }catch(e){}
-
-      }
-
-    }
-
-  )
-
-  openCallUI("connected")
-
-}
-
-window.rejectCall =
-async function(){
-
-  if(currentCallId){
-
-    await update(
-
-      ref(
-        db,
-        "calls/"+currentCallId
-      ),
-
-      {
-        status:"rejected"
-      }
-
-    )
-
-  }
-
-  cleanupCall()
-
-}
-
-window.endCall =
-async function(){
-
-  if(currentCallId){
-
-    await update(
-
-      ref(
-        db,
-        "calls/"+currentCallId
-      ),
-
-      {
-        status:"ended"
-      }
-
-    )
-
-  }
-
-  cleanupCall()
-
-}
-
-function cleanupCall(){
-
-  closeCallUI()
-
-  if(peerConnection){
-
-    peerConnection.close()
-
-    peerConnection=null
-
-  }
-
-  if(localStream){
-
-    localStream
-    .getTracks()
-    .forEach(t=>t.stop())
-
-    localStream=null
-
-  }
-
-  remoteAudio.srcObject=null
-
-  currentCallId=null
-
-}
-
-window.toggleMute=function(){
-
-  if(!localStream) return
-
-  isMuted=!isMuted
-
-  localStream
-  .getAudioTracks()
-  .forEach(track=>{
-
-    track.enabled=!isMuted
-
-  })
-
-  document.getElementById(
-    "muteLabel"
-  ).innerText =
-
-  isMuted
-  ? "Unmute"
-  : "Mute"
-
-}
-
-window.toggleSpeaker=function(){
-
-  isSpeakerOn=!isSpeakerOn
-
-  document.getElementById(
-    "speakerLabel"
-  ).innerText =
-
-  isSpeakerOn
-  ? "Speaker On"
-  : "Speaker"
-
-}
-
-listenIncomingCalls()
+// ========================================
+// ALL YOUR CALL FUNCTIONS HERE
+// initiateCall()
+// acceptCall()
+// rejectCall()
+// endCall()
+// toggleMute()
+// toggleSpeaker()
+// etc...
+// ========================================
 
 </script>
+
+
+
+<!-- ======================================== -->
+<!-- WHATSAPP STYLE CALL OVERLAY -->
+<!-- ======================================== -->
+
+<div id="callOverlay">
+
+  <div class="callTopFade"></div>
+
+  <div class="callProfileWrap">
+
+    <div class="callAvatarRing"></div>
+
+    <img
+      id="callAvatar"
+      class="callAvatar"
+      src=""
+    >
+
+    <div id="callName" class="callName">
+      Unknown
+    </div>
+
+    <div id="callStatus" class="callStatus">
+      Calling...
+    </div>
+
+    <div id="callTimer" class="callTimer">
+      00:00
+    </div>
+
+  </div>
+
+
+  <div class="callBottomActions">
+
+    <!-- DECLINE -->
+    <div class="callBtnWrap incomingOnly">
+      <button
+        onclick="rejectCall()"
+        class="callBtn declineBtn"
+      >
+        📵
+      </button>
+
+      <span>Decline</span>
+    </div>
+
+
+    <!-- ACCEPT -->
+    <div class="callBtnWrap incomingOnly">
+      <button
+        onclick="acceptCall()"
+        class="callBtn acceptBtn"
+      >
+        📞
+      </button>
+
+      <span>Accept</span>
+    </div>
+
+
+    <!-- MUTE -->
+    <div class="callBtnWrap activeOnly">
+      <button
+        onclick="toggleMute()"
+        id="muteBtn"
+        class="callBtn darkBtn"
+      >
+        🎤
+      </button>
+
+      <span id="muteLabel">
+        Mute
+      </span>
+    </div>
+
+
+    <!-- END -->
+    <div class="callBtnWrap">
+      <button
+        onclick="endCall()"
+        class="callBtn endBtn"
+      >
+        📵
+      </button>
+
+      <span>End</span>
+    </div>
+
+
+    <!-- SPEAKER -->
+    <div class="callBtnWrap activeOnly">
+      <button
+        onclick="toggleSpeaker()"
+        id="speakerBtn"
+        class="callBtn darkBtn"
+      >
+        🔊
+      </button>
+
+      <span>Speaker</span>
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<audio
+  id="remoteAudio"
+  autoplay
+  playsinline
+></audio>
+
+<audio
+  id="ringtoneAudio"
+  loop
+></audio>
+
+
+
+<style>
+
+#callOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:999999;
+  display:none;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  overflow:hidden;
+}
+
+.callTopFade{
+  width:100%;
+  height:180px;
+  position:absolute;
+  top:0;
+  left:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(255,255,255,.12),
+    transparent
+  );
+}
+
+.callProfileWrap{
+  margin-top:90px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+  z-index:2;
+}
+
+.callAvatarRing{
+  position:absolute;
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.08);
+  animation:ringPulse 1.8s infinite;
+}
+
+.callAvatar{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid rgba(255,255,255,.18);
+}
+
+.callName{
+  margin-top:24px;
+  color:#fff;
+  font-size:28px;
+  font-weight:700;
+}
+
+.callStatus{
+  margin-top:14px;
+  color:rgba(255,255,255,.7);
+  font-size:18px;
+}
+
+.callTimer{
+  margin-top:10px;
+  color:#25D366;
+  font-size:17px;
+  display:none;
+}
+
+.callBottomActions{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:34px;
+  padding-bottom:60px;
+  z-index:2;
+}
+
+.callBtnWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:#fff;
+  font-size:15px;
+  gap:10px;
+}
+
+.callBtn{
+  width:72px;
+  height:72px;
+  border:none;
+  border-radius:50%;
+  font-size:28px;
+  color:#fff;
+}
+
+.acceptBtn{
+  background:#25D366;
+}
+
+.endBtn,
+.declineBtn{
+  background:#ff3b30;
+}
+
+.darkBtn{
+  background:rgba(255,255,255,.14);
+}
+
+@keyframes ringPulse{
+
+  0%{
+    transform:scale(1);
+    opacity:.7;
+  }
+
+  100%{
+    transform:scale(1.3);
+    opacity:0;
+  }
+
+}
+
+</style>
 <div id="imgViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;z-index:9999;overflow:hidden;touch-action:none;">
 <img id="fullImg" style="max-width:100%;max-height:100%;transform:scale(1);transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);cursor:zoom-in;">
 </div>

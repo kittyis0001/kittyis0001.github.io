@@ -1115,7 +1115,7 @@ function hideGifPanel() {
 
 }
 
-// ✅ Keyboard close detect (REAL FIX)
+// ✅ Keyboard close detect
 
 msgBox.addEventListener("blur", () => {
 
@@ -1135,7 +1135,7 @@ window.visualViewport?.addEventListener("resize", () => {
 
 })
 
-// ✅ Outside click close
+// ✅ Outside tap close
 
 document.addEventListener("touchstart", e => {
 
@@ -1187,7 +1187,7 @@ msgBox.addEventListener("input", function () {
 
   }
 
-  // ✅ Sentence completed with "." → hide
+  // ✅ Sentence completed → hide
 
   if (
     val.endsWith(".") ||
@@ -1201,7 +1201,7 @@ msgBox.addEventListener("input", function () {
 
   }
 
-  // ✅ Multiple sentence detect → hide
+  // ✅ Multiple sentence detect
 
   const sentenceCount =
   (val.match(/[.!?]/g) || []).length
@@ -1226,7 +1226,7 @@ msgBox.addEventListener("input", function () {
 
 async function searchGifs(query) {
 
-  // ✅ Don't show for long sentences
+  // ✅ Long sentence → hide
 
   if (query.split(" ").length > 4) {
 
@@ -1237,9 +1237,6 @@ async function searchGifs(query) {
   }
 
   gifPanel.style.display = "flex"
-
-  // ✅ REMOVE ugly GIF text + cross button
-  // (nothing added now)
 
   try {
 
@@ -1279,7 +1276,7 @@ async function searchGifs(query) {
 
     items = items.sort(() => Math.random() - 0.5)
 
-    // ✅ No relevant GIFs → hide completely
+    // ✅ No relevant GIFs → hide
 
     if (!items.length || items.length < 2) {
 
@@ -1315,7 +1312,7 @@ async function searchGifs(query) {
 
       img.alt = "GIF"
 
-      // ✅ Smaller smooth size
+      // ✅ Professional preview size
 
       img.style.width = "72px"
 
@@ -1333,11 +1330,49 @@ async function searchGifs(query) {
 
       img.style.transition = "0.2s"
 
-      img.addEventListener("click", () => {
+      // ✅ MOBILE TOUCH FIX
+
+      img.addEventListener("touchstart", async (e) => {
+
+        e.preventDefault()
+
+        e.stopPropagation()
 
         if (isBlocked()) return
 
-        push(ref(db, "messages"), {
+        await push(ref(db, "messages"), {
+
+          name: username,
+
+          type: "gif",
+
+          text: "__gif__" + gifUrl,
+
+          time: Date.now(),
+
+          seen: false
+
+        })
+
+        hideGifPanel()
+
+        msgBox.value = ""
+
+        msgBox.style.height = "auto"
+
+      }, { passive: false })
+
+      // ✅ DESKTOP CLICK SUPPORT
+
+      img.addEventListener("click", async (e) => {
+
+        e.preventDefault()
+
+        e.stopPropagation()
+
+        if (isBlocked()) return
+
+        await push(ref(db, "messages"), {
 
           name: username,
 

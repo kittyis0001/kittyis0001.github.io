@@ -1330,9 +1330,27 @@ async function searchGifs(query) {
 
       img.style.transition = "0.2s"
 
-      // ✅ MOBILE TOUCH FIX
+      // ✅ FIX: scroll + touch send both work
 
-      img.addEventListener("touchstart", async (e) => {
+      let touchMoved = false
+
+      img.addEventListener("touchmove", () => {
+
+        touchMoved = true
+
+      }, { passive:true })
+
+      img.addEventListener("touchstart", () => {
+
+        touchMoved = false
+
+      }, { passive:true })
+
+      img.addEventListener("touchend", async (e) => {
+
+        // ✅ If scrolling → don't send
+
+        if (touchMoved) return
 
         e.preventDefault()
 
@@ -1360,9 +1378,9 @@ async function searchGifs(query) {
 
         msgBox.style.height = "auto"
 
-      }, { passive: false })
+      }, { passive:false })
 
-      // ✅ DESKTOP CLICK SUPPORT
+      // ✅ Desktop click support
 
       img.addEventListener("click", async (e) => {
 

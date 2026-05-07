@@ -1999,101 +1999,128 @@ window.uploadImage=async function(input){
   input.value=""
 }
 
-<!-- ═══════════════════════════════════════ -->
-<!-- WHATSAPP STYLE VOICE CALL OVERLAY -->
-<!-- PASTE BEFORE </body> -->
-<!-- ═══════════════════════════════════════ -->
+<!-- ═════════════════════════════════════ -->
+<!-- PASTE THIS BEFORE </body> -->
+<!-- ═════════════════════════════════════ -->
 
+<!-- CALL OVERLAY -->
 <div id="callOverlay">
 
-  <!-- top blur -->
   <div class="callTopFade"></div>
 
-  <!-- profile -->
   <div class="callProfileWrap">
+
     <div class="callAvatarRing"></div>
 
     <img id="callAvatar"
-      src=""
-      class="callAvatar">
+      class="callAvatar"
+      src="">
 
-    <div id="callName" class="callName">
+    <div id="callName"
+      class="callName">
       Unknown
     </div>
 
-    <div id="callStatus" class="callStatus">
+    <div id="callStatus"
+      class="callStatus">
       Calling...
     </div>
 
-    <div id="callTimer" class="callTimer">
+    <div id="callTimer"
+      class="callTimer">
       0:00
     </div>
+
   </div>
 
   <!-- incoming -->
-  <div id="incomingActions" class="callActions">
+  <div id="incomingActions"
+    class="callActions">
 
     <div class="callBtnWrap">
-      <button class="callBtn declineBtn"
+
+      <button
+        class="callBtn declineBtn"
         onclick="rejectCall()">
         ✕
       </button>
 
       <span>Decline</span>
+
     </div>
 
     <div class="callBtnWrap">
-      <button class="callBtn acceptBtn"
+
+      <button
+        class="callBtn acceptBtn"
         onclick="acceptCall()">
         📞
       </button>
 
       <span>Accept</span>
+
     </div>
 
   </div>
 
   <!-- active -->
-  <div id="activeActions" class="callActions">
+  <div id="activeActions"
+    class="callActions">
 
     <div class="callBtnWrap">
-      <button id="muteCallBtn"
+
+      <button
+        id="muteCallBtn"
         class="callBtn secondaryBtn"
         onclick="toggleMute()">
         🎤
       </button>
 
-      <span id="muteLabel">Mute</span>
+      <span id="muteLabel">
+        Mute
+      </span>
+
     </div>
 
     <div class="callBtnWrap">
-      <button id="endCallBtn"
+
+      <button
+        id="endCallBtn"
         class="callBtn endBtn"
         onclick="endCall()">
         📞
       </button>
 
       <span>End</span>
+
     </div>
 
     <div class="callBtnWrap">
-      <button id="speakerBtn"
+
+      <button
+        id="speakerBtn"
         class="callBtn secondaryBtn"
         onclick="toggleSpeaker()">
         🔊
       </button>
 
-      <span id="speakerLabel">Speaker</span>
+      <span id="speakerLabel">
+        Speaker
+      </span>
+
     </div>
 
   </div>
 
 </div>
 
-<!-- hidden audios -->
-<audio id="remoteAudio" autoplay playsinline></audio>
+<!-- AUDIO -->
+<audio id="remoteAudio"
+  autoplay
+  playsinline></audio>
 
-<audio id="ringtoneAudio" loop>
+<audio id="ringtoneAudio"
+  loop>
   <source
     src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"
     type="audio/ogg">
@@ -2108,8 +2135,8 @@ window.uploadImage=async function(input){
   z-index:999999;
   display:none;
   flex-direction:column;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   overflow:hidden;
   font-family:Arial;
 }
@@ -2119,10 +2146,12 @@ window.uploadImage=async function(input){
   top:0;
   left:0;
   width:100%;
-  height:200px;
-  background:linear-gradient(to bottom,
-  rgba(255,255,255,.08),
-  transparent);
+  height:220px;
+  background:linear-gradient(
+    to bottom,
+    rgba(255,255,255,.08),
+    transparent
+  );
 }
 
 .callProfileWrap{
@@ -2153,6 +2182,7 @@ window.uploadImage=async function(input){
 }
 
 @keyframes ringPulse{
+
   0%{
     transform:scale(.8);
     opacity:.7;
@@ -2162,6 +2192,7 @@ window.uploadImage=async function(input){
     transform:scale(1.25);
     opacity:0;
   }
+
 }
 
 .callName{
@@ -2172,15 +2203,15 @@ window.uploadImage=async function(input){
 }
 
 .callStatus{
-  color:#bdbdbd;
-  margin-top:12px;
+  color:#bbb;
   font-size:18px;
+  margin-top:12px;
 }
 
 .callTimer{
   color:#25D366;
+  font-size:18px;
   margin-top:12px;
-  font-size:17px;
   display:none;
 }
 
@@ -2207,11 +2238,11 @@ window.uploadImage=async function(input){
   height:78px;
   border:none;
   border-radius:50%;
-  font-size:33px;
+  font-size:32px;
   color:#fff;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
 }
 
 .acceptBtn{
@@ -2230,11 +2261,11 @@ window.uploadImage=async function(input){
   background:rgba(255,255,255,.14);
 }
 
-#activeActions{
+#incomingActions{
   display:none;
 }
 
-#incomingActions{
+#activeActions{
   display:none;
 }
 
@@ -2243,7 +2274,9 @@ window.uploadImage=async function(input){
 <script>
 
 const ICE_SERVERS = {
+
   iceServers:[
+
     {
       urls:"stun:stun.l.google.com:19302"
     },
@@ -2269,24 +2302,33 @@ const ICE_SERVERS = {
       username:"openrelayproject",
       credential:"openrelayproject"
     }
+
   ]
+
 }
 
 let peerConnection = null
 let localStream = null
 let currentCallId = null
-let callSeconds = 0
 let callInterval = null
+let callSeconds = 0
 let isMuted = false
 let isSpeakerOn = false
-let reconnectAttempts = 0
-let incomingBusy = false
 
-const callOverlay = document.getElementById("callOverlay")
-const callAvatar = document.getElementById("callAvatar")
-const callName = document.getElementById("callName")
-const callStatus = document.getElementById("callStatus")
-const callTimer = document.getElementById("callTimer")
+const callOverlay =
+document.getElementById("callOverlay")
+
+const callAvatar =
+document.getElementById("callAvatar")
+
+const callName =
+document.getElementById("callName")
+
+const callStatus =
+document.getElementById("callStatus")
+
+const callTimer =
+document.getElementById("callTimer")
 
 const incomingActions =
 document.getElementById("incomingActions")
@@ -2320,17 +2362,23 @@ function openCallUI(type){
 
     activeActions.style.display="flex"
 
-    document.getElementById("muteCallBtn").style.display="none"
+    document.getElementById(
+      "muteCallBtn"
+    ).style.display="none"
 
-    document.getElementById("speakerBtn").style.display="none"
+    document.getElementById(
+      "speakerBtn"
+    ).style.display="none"
 
   }
 
   else if(type==="incoming"){
 
-    callStatus.innerText="Incoming call..."
+    callStatus.innerText=
+    "Incoming call..."
 
-    incomingActions.style.display="flex"
+    incomingActions.style.display=
+    "flex"
 
     playRingtone()
 
@@ -2338,19 +2386,25 @@ function openCallUI(type){
 
   else if(type==="connected"){
 
-    callStatus.innerText="Connected"
+    callStatus.innerText=
+    "Connected"
 
-    activeActions.style.display="flex"
+    activeActions.style.display=
+    "flex"
 
-    document.getElementById("muteCallBtn").style.display="flex"
+    document.getElementById(
+      "muteCallBtn"
+    ).style.display="flex"
 
-    document.getElementById("speakerBtn").style.display="flex"
+    document.getElementById(
+      "speakerBtn"
+    ).style.display="flex"
 
     callTimer.style.display="block"
 
     stopRingtone()
 
-    startCallTimer()
+    startTimer()
 
   }
 
@@ -2360,9 +2414,9 @@ function closeCallUI(){
 
   callOverlay.style.display="none"
 
-  stopRingtone()
+  stopTimer()
 
-  stopCallTimer()
+  stopRingtone()
 
 }
 
@@ -2370,7 +2424,8 @@ function playRingtone(){
 
   ringtoneAudio.currentTime=0
 
-  ringtoneAudio.play().catch(()=>{})
+  ringtoneAudio.play()
+  .catch(()=>{})
 
 }
 
@@ -2382,32 +2437,33 @@ function stopRingtone(){
 
 }
 
-function startCallTimer(){
+function startTimer(){
+
+  clearInterval(callInterval)
 
   callSeconds=0
 
   callTimer.innerText="0:00"
 
-  clearInterval(callInterval)
-
   callInterval=setInterval(()=>{
 
     callSeconds++
 
-    const min =
+    const m =
     Math.floor(callSeconds/60)
 
-    const sec =
-    String(callSeconds%60).padStart(2,"0")
+    const s =
+    String(callSeconds%60)
+    .padStart(2,"0")
 
     callTimer.innerText =
-    min+":"+sec
+    m+":"+s
 
   },1000)
 
 }
 
-function stopCallTimer(){
+function stopTimer(){
 
   clearInterval(callInterval)
 
@@ -2416,33 +2472,47 @@ function stopCallTimer(){
 async function setupPeer(){
 
   peerConnection =
-  new RTCPeerConnection(ICE_SERVERS)
+  new RTCPeerConnection(
+    ICE_SERVERS
+  )
 
-  localStream.getTracks().forEach(track=>{
+  localStream.getTracks()
+  .forEach(track=>{
 
-    peerConnection.addTrack(track,localStream)
+    peerConnection.addTrack(
+      track,
+      localStream
+    )
 
   })
 
   peerConnection.ontrack=e=>{
 
-    remoteAudio.srcObject=e.streams[0]
+    remoteAudio.srcObject =
+    e.streams[0]
 
-    remoteAudio.play().catch(()=>{})
+    remoteAudio.play()
+    .catch(()=>{})
 
   }
 
   peerConnection.onicecandidate=e=>{
 
-    if(e.candidate && currentCallId){
+    if(
+      e.candidate &&
+      currentCallId
+    ){
 
       push(
+
         ref(
           db,
           "calls/"+currentCallId+
           "/candidates/"+username
         ),
+
         e.candidate.toJSON()
+
       )
 
     }
@@ -2456,8 +2526,6 @@ async function setupPeer(){
 
     if(state==="connected"){
 
-      reconnectAttempts=0
-
       openCallUI("connected")
 
     }
@@ -2467,16 +2535,14 @@ async function setupPeer(){
       state==="failed"
     ){
 
-      reconnectAttempts++
-
-      callStatus.innerText =
+      callStatus.innerText=
       "Reconnecting..."
 
-      if(reconnectAttempts>=6){
+    }
 
-        endCall()
+    if(state==="closed"){
 
-      }
+      cleanupCall()
 
     }
 
@@ -2487,27 +2553,19 @@ async function setupPeer(){
 window.initiateCall =
 async function(){
 
-  if(incomingBusy) return
-
-  incomingBusy=true
-
   try{
 
     localStream =
     await navigator.mediaDevices
     .getUserMedia({
-      audio:{
-        echoCancellation:true,
-        noiseSuppression:true,
-        autoGainControl:true
-      }
+      audio:true
     })
 
   }catch(e){
 
-    incomingBusy=false
-
-    alert("Mic permission denied")
+    alert(
+      "Microphone permission denied"
+    )
 
     return
 
@@ -2519,47 +2577,65 @@ async function(){
   await setupPeer()
 
   const offer =
-  await peerConnection.createOffer()
+  await peerConnection
+  .createOffer()
 
   await peerConnection
   .setLocalDescription(offer)
 
   await set(
-    ref(db,"calls/"+currentCallId),
+
+    ref(
+      db,
+      "calls/"+currentCallId
+    ),
+
     {
       caller:username,
       callee:otherUser,
       status:"ringing",
+
       offer:{
         type:offer.type,
         sdp:offer.sdp
       },
+
       created:Date.now()
     }
+
   )
 
   openCallUI("calling")
 
   onValue(
-    ref(db,
-    "calls/"+currentCallId+"/answer"),
+
+    ref(
+      db,
+      "calls/"+currentCallId+"/answer"
+    ),
+
     async snap=>{
 
-      const ans = snap.val()
+      const answer =
+      snap.val()
 
-      if(ans){
+      if(answer){
 
         await peerConnection
         .setRemoteDescription(
-          new RTCSessionDescription(ans)
+          new RTCSessionDescription(
+            answer
+          )
         )
 
       }
 
     }
+
   )
 
   onChildAdded(
+
     ref(
       db,
       "calls/"+currentCallId+
@@ -2568,7 +2644,8 @@ async function(){
 
     async snap=>{
 
-      const candidate=snap.val()
+      const candidate =
+      snap.val()
 
       if(candidate){
 
@@ -2576,7 +2653,11 @@ async function(){
 
           await peerConnection
           .addIceCandidate(
-            new RTCIceCandidate(candidate)
+
+            new RTCIceCandidate(
+              candidate
+            )
+
           )
 
         }catch(e){}
@@ -2584,36 +2665,45 @@ async function(){
       }
 
     }
+
   )
 
 }
 
 function listenIncomingCalls(){
 
-  onValue(ref(db,"calls"),snap=>{
+  onValue(
+    ref(db,"calls"),
 
-    const calls=snap.val()
+    snap=>{
 
-    if(!calls) return
+      const calls =
+      snap.val()
 
-    Object.entries(calls)
-    .forEach(([id,data])=>{
+      if(!calls) return
 
-      if(
-        data.callee===username &&
-        data.status==="ringing" &&
-        currentCallId!==id
-      ){
+      Object.entries(calls)
+      .forEach(([id,data])=>{
 
-        currentCallId=id
+        if(
 
-        openCallUI("incoming")
+          data.callee===username &&
+          data.status==="ringing" &&
+          currentCallId!==id
 
-      }
+        ){
 
-    })
+          currentCallId=id
 
-  })
+          openCallUI("incoming")
+
+        }
+
+      })
+
+    }
+
+  )
 
 }
 
@@ -2632,10 +2722,13 @@ async function(){
 
   const offerSnap =
   await get(
+
     ref(
       db,
-      "calls/"+currentCallId+"/offer"
+      "calls/"+currentCallId+
+      "/offer"
     )
+
   )
 
   const offer =
@@ -2643,37 +2736,54 @@ async function(){
 
   await peerConnection
   .setRemoteDescription(
-    new RTCSessionDescription(offer)
+
+    new RTCSessionDescription(
+      offer
+    )
+
   )
 
   const answer =
-  await peerConnection.createAnswer()
+  await peerConnection
+  .createAnswer()
 
   await peerConnection
   .setLocalDescription(answer)
 
   await update(
-    ref(db,"calls/"+currentCallId),
+
+    ref(
+      db,
+      "calls/"+currentCallId
+    ),
+
     {
       answer:{
         type:answer.type,
         sdp:answer.sdp
       },
+
       status:"active"
     }
+
   )
 
   const callerSnap =
   await get(
+
     ref(
       db,
-      "calls/"+currentCallId+"/caller"
+      "calls/"+currentCallId+
+      "/caller"
     )
+
   )
 
-  const caller = callerSnap.val()
+  const caller =
+  callerSnap.val()
 
   onChildAdded(
+
     ref(
       db,
       "calls/"+currentCallId+
@@ -2682,7 +2792,8 @@ async function(){
 
     async snap=>{
 
-      const candidate=snap.val()
+      const candidate =
+      snap.val()
 
       if(candidate){
 
@@ -2690,7 +2801,11 @@ async function(){
 
           await peerConnection
           .addIceCandidate(
-            new RTCIceCandidate(candidate)
+
+            new RTCIceCandidate(
+              candidate
+            )
+
           )
 
         }catch(e){}
@@ -2698,6 +2813,7 @@ async function(){
       }
 
     }
+
   )
 
   openCallUI("connected")
@@ -2710,10 +2826,16 @@ async function(){
   if(currentCallId){
 
     await update(
-      ref(db,"calls/"+currentCallId),
+
+      ref(
+        db,
+        "calls/"+currentCallId
+      ),
+
       {
         status:"rejected"
       }
+
     )
 
   }
@@ -2728,10 +2850,16 @@ async function(){
   if(currentCallId){
 
     await update(
-      ref(db,"calls/"+currentCallId),
+
+      ref(
+        db,
+        "calls/"+currentCallId
+      ),
+
       {
         status:"ended"
       }
+
     )
 
   }
@@ -2766,8 +2894,6 @@ function cleanupCall(){
 
   currentCallId=null
 
-  incomingBusy=false
-
 }
 
 window.toggleMute=function(){
@@ -2786,8 +2912,11 @@ window.toggleMute=function(){
 
   document.getElementById(
     "muteLabel"
-  ).innerText=
-  isMuted ? "Unmute":"Mute"
+  ).innerText =
+
+  isMuted
+  ? "Unmute"
+  : "Mute"
 
 }
 
@@ -2797,16 +2926,17 @@ window.toggleSpeaker=function(){
 
   document.getElementById(
     "speakerLabel"
-  ).innerText=
-  isSpeakerOn ?
-  "Speaker On":"Speaker"
+  ).innerText =
+
+  isSpeakerOn
+  ? "Speaker On"
+  : "Speaker"
 
 }
 
 listenIncomingCalls()
 
 </script>
-
 <div id="imgViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;z-index:9999;overflow:hidden;touch-action:none;">
 <img id="fullImg" style="max-width:100%;max-height:100%;transform:scale(1);transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);cursor:zoom-in;">
 </div>

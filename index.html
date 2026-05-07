@@ -1100,7 +1100,8 @@ let typingTimeout=null
 
 let gifDebounceTimer = null
 
-const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
+const GIF_API_KEY =
+"20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
 
 const gifPanel = document.getElementById("gifPanel")
 
@@ -1110,29 +1111,38 @@ msgBox.addEventListener("input", function () {
   this.style.height = Math.min(this.scrollHeight, 120) + "px"
 
   if (username && !isBlocked()) {
+
     set(ref(db, "typing/" + username), true)
 
     clearTimeout(typingTimeout)
 
     typingTimeout = setTimeout(() => {
+
       set(ref(db, "typing/" + username), false)
+
     }, 2000)
+
   }
 
-  // TASK 2: GIF search with debounce
+  // GIF SEARCH
 
   const val = this.value.trim()
 
   clearTimeout(gifDebounceTimer)
 
   if (!val) {
+
     gifPanel.style.display = "none"
     gifPanel.innerHTML = ""
+
     return
+
   }
 
   gifDebounceTimer = setTimeout(() => {
+
     searchGifs(val)
+
   }, 350)
 
 })
@@ -1142,43 +1152,64 @@ async function searchGifs(query) {
   gifPanel.style.display = "block"
 
   gifPanel.innerHTML =
-    '<span class="gifLoading">🔍 Searching GIFs...</span>'
+  '<span class="gifLoading">🔍 Searching GIFs...</span>'
 
   try {
 
+    // ✅ LIMIT 30
     const url =
-      `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
+    `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
 
     const res = await fetch(url)
 
     const data = await res.json()
 
-    console.log("KLIPY RESPONSE:", data)
-
     // ✅ FIXED RESPONSE PATH
-    const items = data?.data?.data || []
+    let items = data?.data?.data || []
+
+    // ✅ REMOVE DUPLICATES
+    const usedUrls = new Set()
+
+    items = items.filter(item => {
+
+      const url =
+      item?.file?.md?.gif?.url ||
+      item?.file?.sm?.gif?.url ||
+      ""
+
+      if (!url || usedUrls.has(url)) return false
+
+      usedUrls.add(url)
+
+      return true
+
+    })
+
+    // ✅ RANDOM MIX (new + old + trending + popular feel)
+    items = items.sort(() => Math.random() - 0.5)
 
     if (!items.length) {
+
       gifPanel.innerHTML =
-        '<span class="gifLoading">No GIFs found</span>'
+      '<span class="gifLoading">No GIFs found</span>'
+
       return
+
     }
 
     gifPanel.innerHTML = ""
 
     items.forEach(item => {
 
-      // ✅ FIXED KLIPY STRUCTURE
-
       const gifUrl =
-        item?.file?.md?.gif?.url ||
-        item?.file?.sm?.gif?.url ||
-        ""
+      item?.file?.md?.gif?.url ||
+      item?.file?.sm?.gif?.url ||
+      ""
 
       const previewUrl =
-        item?.file?.sm?.gif?.url ||
-        item?.file?.md?.gif?.url ||
-        gifUrl
+      item?.file?.sm?.gif?.url ||
+      item?.file?.md?.gif?.url ||
+      gifUrl
 
       if (!gifUrl) return
 
@@ -1192,29 +1223,45 @@ async function searchGifs(query) {
 
       img.alt = "GIF"
 
-      img.style.width = "90px"
-      img.style.height = "90px"
+      // ✅ SMALLER SIZE (10 → 8 feel)
+
+      img.style.width = "72px"
+      img.style.height = "72px"
+
       img.style.objectFit = "cover"
+
       img.style.borderRadius = "10px"
-      img.style.margin = "5px"
+
+      img.style.margin = "4px"
+
       img.style.cursor = "pointer"
+
+      img.style.transition = "0.2s"
 
       img.addEventListener("click", () => {
 
         if (isBlocked()) return
 
         push(ref(db, "messages"), {
+
           name: username,
+
           type: "gif",
+
           text: "__gif__" + gifUrl,
+
           time: Date.now(),
+
           seen: false
+
         })
 
         gifPanel.style.display = "none"
+
         gifPanel.innerHTML = ""
 
         msgBox.value = ""
+
         msgBox.style.height = "auto"
 
       })
@@ -1228,7 +1275,7 @@ async function searchGifs(query) {
     console.error(e)
 
     gifPanel.innerHTML =
-      '<span class="gifLoading">Failed to load GIFs</span>'
+    '<span class="gifLoading">Failed to load GIFs</span>'
 
   }
 
@@ -1238,8 +1285,11 @@ async function searchGifs(query) {
 
 document.addEventListener("click", e => {
 
-  if (!gifPanel.contains(e.target) && e.target !== msgBox) {
+  if (!gifPanel.contains(e.target) &&
+      e.target !== msgBox) {
+
     gifPanel.style.display = "none"
+
   }
 
 })

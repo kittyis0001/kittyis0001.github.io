@@ -1105,10 +1105,46 @@ const GIF_API_KEY =
 
 const gifPanel = document.getElementById("gifPanel")
 
+// ✅ Hide GIF panel helper
+
+function hideGifPanel() {
+
+  gifPanel.style.display = "none"
+
+  gifPanel.innerHTML = ""
+
+}
+
+// ✅ Detect keyboard close / input blur (TikTok style)
+
+msgBox.addEventListener("blur", () => {
+
+  setTimeout(() => {
+
+    hideGifPanel()
+
+  }, 120)
+
+})
+
+// ✅ Mobile keyboard back button detect
+
+window.addEventListener("resize", () => {
+
+  if (document.activeElement !== msgBox) {
+
+    hideGifPanel()
+
+  }
+
+})
+
 msgBox.addEventListener("input", function () {
 
   this.style.height = "auto"
-  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+
+  this.style.height =
+  Math.min(this.scrollHeight, 120) + "px"
 
   if (username && !isBlocked()) {
 
@@ -1130,10 +1166,11 @@ msgBox.addEventListener("input", function () {
 
   clearTimeout(gifDebounceTimer)
 
+  // ✅ Empty input → hide instantly
+
   if (!val) {
 
-    gifPanel.style.display = "none"
-    gifPanel.innerHTML = ""
+    hideGifPanel()
 
     return
 
@@ -1157,6 +1194,7 @@ async function searchGifs(query) {
   try {
 
     // ✅ LIMIT 30
+
     const url =
     `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
 
@@ -1164,10 +1202,12 @@ async function searchGifs(query) {
 
     const data = await res.json()
 
-    // ✅ FIXED RESPONSE PATH
+    // ✅ Correct response path
+
     let items = data?.data?.data || []
 
-    // ✅ REMOVE DUPLICATES
+    // ✅ Remove duplicate GIFs
+
     const usedUrls = new Set()
 
     items = items.filter(item => {
@@ -1185,13 +1225,15 @@ async function searchGifs(query) {
 
     })
 
-    // ✅ RANDOM MIX (new + old + trending + popular feel)
+    // ✅ Random mix every search
+
     items = items.sort(() => Math.random() - 0.5)
+
+    // ✅ No context match → auto close panel
 
     if (!items.length) {
 
-      gifPanel.innerHTML =
-      '<span class="gifLoading">No GIFs found</span>'
+      hideGifPanel()
 
       return
 
@@ -1223,9 +1265,10 @@ async function searchGifs(query) {
 
       img.alt = "GIF"
 
-      // ✅ SMALLER SIZE (10 → 8 feel)
+      // ✅ Smaller professional preview size
 
       img.style.width = "72px"
+
       img.style.height = "72px"
 
       img.style.objectFit = "cover"
@@ -1256,9 +1299,7 @@ async function searchGifs(query) {
 
         })
 
-        gifPanel.style.display = "none"
-
-        gifPanel.innerHTML = ""
+        hideGifPanel()
 
         msgBox.value = ""
 
@@ -1274,25 +1315,30 @@ async function searchGifs(query) {
 
     console.error(e)
 
-    gifPanel.innerHTML =
-    '<span class="gifLoading">Failed to load GIFs</span>'
+    // ✅ Error হলে panel hide
+
+    hideGifPanel()
 
   }
 
 }
 
-// Hide GIF panel when clicking outside
+// ✅ Outside click → close panel
 
 document.addEventListener("click", e => {
 
-  if (!gifPanel.contains(e.target) &&
-      e.target !== msgBox) {
+  if (
+    !gifPanel.contains(e.target) &&
+    e.target !== msgBox
+  ) {
 
-    gifPanel.style.display = "none"
+    hideGifPanel()
 
   }
 
 })
+
+// ✅ Enter send
 
 msgBox.addEventListener("keydown", function (e) {
 

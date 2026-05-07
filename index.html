@@ -1097,349 +1097,79 @@ const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
 
 // TASK 2: GIF debounce
-
-let gifDebounceTimer = null
-
-const GIF_API_KEY =
-"20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
-
+let gifDebounceTimer=null
+const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
 const gifPanel = document.getElementById("gifPanel")
 
-// ✅ Professional hide helper
-
-function hideGifPanel() {
-
-  gifPanel.style.display = "none"
-
-  gifPanel.innerHTML = ""
-
-}
-
-// ✅ Keyboard close detect
-
-msgBox.addEventListener("blur", () => {
-
-  hideGifPanel()
-
-})
-
-// ✅ Mobile keyboard back detect
-
-window.visualViewport?.addEventListener("resize", () => {
-
-  if (document.activeElement !== msgBox) {
-
-    hideGifPanel()
-
-  }
-
-})
-
-// ✅ Outside tap close
-
-document.addEventListener("touchstart", e => {
-
-  if (
-    !gifPanel.contains(e.target) &&
-    e.target !== msgBox
-  ) {
-
-    hideGifPanel()
-
-  }
-
-})
-
-// ✅ Input listener
-
-msgBox.addEventListener("input", function () {
-
-  this.style.height = "auto"
-
-  this.style.height =
-  Math.min(this.scrollHeight, 120) + "px"
-
-  if (username && !isBlocked()) {
-
-    set(ref(db, "typing/" + username), true)
-
+msgBox.addEventListener("input",function(){
+  this.style.height="auto"
+  this.style.height=Math.min(this.scrollHeight,120)+"px"
+  if(username&&!isBlocked()){
+    set(ref(db,"typing/"+username),true)
     clearTimeout(typingTimeout)
-
-    typingTimeout = setTimeout(() => {
-
-      set(ref(db, "typing/" + username), false)
-
-    }, 2000)
-
+    typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
   }
 
+  // TASK 2: GIF search with debounce
   const val = this.value.trim()
-
   clearTimeout(gifDebounceTimer)
-
-  // ✅ Empty input → hide
-
-  if (!val) {
-
-    hideGifPanel()
-
+  if(!val){
+    gifPanel.style.display="none"
+    gifPanel.innerHTML=""
     return
-
   }
-
-  // ✅ Sentence completed → hide
-
-  if (
-    val.endsWith(".") ||
-    val.endsWith("?") ||
-    val.endsWith("!")
-  ) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  // ✅ Multiple sentence detect
-
-  const sentenceCount =
-  (val.match(/[.!?]/g) || []).length
-
-  if (sentenceCount >= 1) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  gifDebounceTimer = setTimeout(() => {
-
-    searchGifs(val)
-
-  }, 350)
-
+  gifDebounceTimer = setTimeout(()=>searchGifs(val), 350)
 })
 
-// ✅ GIF search
-
-async function searchGifs(query) {
-
-  // ✅ Long sentence → hide
-
-  if (query.split(" ").length > 4) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  gifPanel.style.display = "flex"
-
+async function searchGifs(query){
+  gifPanel.style.display="block"
+  gifPanel.innerHTML='<span class="gifLoading">🔍 Searching GIFs...</span>'
   try {
-
-    const url =
-    `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
-
+    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
     const res = await fetch(url)
-
     const data = await res.json()
-
-    let items = data?.data?.data || []
-
-    // ✅ Remove duplicates
-
-    const usedUrls = new Set()
-
-    items = items.filter(item => {
-
-      const url =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      if (!url || usedUrls.has(url)) {
-
-        return false
-
-      }
-
-      usedUrls.add(url)
-
-      return true
-
-    })
-
-    // ✅ Randomize results
-
-    items = items.sort(() => Math.random() - 0.5)
-
-    // ✅ No relevant GIFs → hide
-
-    if (!items.length || items.length < 2) {
-
-      hideGifPanel()
-
+    const items = data.data || []
+    if(!items.length){
+      gifPanel.innerHTML='<span class="gifLoading">No GIFs found</span>'
       return
-
     }
-
-    gifPanel.innerHTML = ""
-
-    items.forEach(item => {
-
-      const gifUrl =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      const previewUrl =
-      item?.file?.sm?.gif?.url ||
-      item?.file?.md?.gif?.url ||
-      gifUrl
-
-      if (!gifUrl) return
-
+    gifPanel.innerHTML=""
+    items.forEach(item=>{
+      // Klipy returns different structures; try common fields
+      const gifUrl = item.media?.[0]?.gif?.url || item.gif?.url || item.url || ""
+      const previewUrl = item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || gifUrl
+      if(!gifUrl) return
       const img = document.createElement("img")
-
       img.className = "gifItem"
-
       img.src = previewUrl
-
       img.loading = "lazy"
-
       img.alt = "GIF"
-
-      // ✅ Professional preview size
-
-      img.style.width = "72px"
-
-      img.style.height = "72px"
-
-      img.style.objectFit = "cover"
-
-      img.style.borderRadius = "10px"
-
-      img.style.margin = "4px"
-
-      img.style.cursor = "pointer"
-
-      img.style.flexShrink = "0"
-
-      img.style.transition = "0.2s"
-
-      // ✅ FIX: scroll + touch send both work
-
-      let touchMoved = false
-
-      img.addEventListener("touchmove", () => {
-
-        touchMoved = true
-
-      }, { passive:true })
-
-      img.addEventListener("touchstart", () => {
-
-        touchMoved = false
-
-      }, { passive:true })
-
-      img.addEventListener("touchend", async (e) => {
-
-        // ✅ If scrolling → don't send
-
-        if (touchMoved) return
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
-        if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
-      }, { passive:false })
-
-      // ✅ Desktop click support
-
-      img.addEventListener("click", async (e) => {
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
-        if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
+      img.addEventListener("click", ()=>{
+        if(isBlocked()) return
+        push(ref(db,"messages"),{name:username,type:"gif",text:"__gif__"+gifUrl,time:Date.now(),seen:false})
+        gifPanel.style.display="none"
+        gifPanel.innerHTML=""
+        msgBox.value=""
+        msgBox.style.height="auto"
       })
-
       gifPanel.appendChild(img)
-
     })
-
-  } catch (e) {
-
-    console.error(e)
-
-    hideGifPanel()
-
+  } catch(e){
+    gifPanel.innerHTML='<span class="gifLoading">Failed to load GIFs</span>'
   }
-
 }
 
-// ✅ Enter send
-
-msgBox.addEventListener("keydown", function (e) {
-
-  if (e.key === "Enter" && !e.shiftKey) {
-
-    e.preventDefault()
-
-    send()
-
+// Hide GIF panel when clicking outside
+document.addEventListener("click", e=>{
+  if(!gifPanel.contains(e.target) && e.target !== msgBox){
+    gifPanel.style.display="none"
   }
-
 })
-  
+
+msgBox.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
+})
+
 // ─────────────────────────────────────────────
 // REPLY
 // ─────────────────────────────────────────────
@@ -2015,6 +1745,334 @@ window.uploadImage=async function(input){
     push(ref(db,"messages"),{name:username,text:data.url,time:Date.now(),seen:false})
   }catch(e){alert("Upload failed ⚠️")}
   input.value=""
+}
+
+// ══════════════════════════════════════════════
+// TASK 3: VOICE CALL — WebRTC + Firebase signaling
+// ══════════════════════════════════════════════
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    }
+  ]
+}
+
+let peerConnection = null
+let localStream = null
+let callTimerInterval = null
+let callSeconds = 0
+let isMuted = false
+let isSpeakerOn = false
+let currentCallId = null
+let incomingCallListener = null
+let isCallActive = false
+
+const callOverlay = document.getElementById("callOverlay")
+const callAvatarEl = document.getElementById("callAvatar")
+const callNameEl = document.getElementById("callName")
+const callStatusEl = document.getElementById("callStatus")
+const callTimerEl = document.getElementById("callTimer")
+const incomingActions = document.getElementById("incomingActions")
+const activeActions = document.getElementById("activeActions")
+const remoteAudio = document.getElementById("remoteAudio")
+const ringtoneAudio = document.getElementById("ringtoneAudio")
+
+function showCallOverlay(mode){
+  // mode: "outgoing" | "incoming" | "active"
+  callOverlay.style.display="flex"
+  callAvatarEl.src = getAvatar(otherUser)
+  callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
+  callNameEl.innerText = getNick(otherUser)
+
+  incomingActions.style.display="none"
+  activeActions.style.display="none"
+  callTimerEl.style.display="none"
+
+  if(mode==="outgoing"){
+    callStatusEl.innerText="Calling..."
+    callAvatarEl.classList.add("ringing")
+    // Show only end button
+    activeActions.style.display="flex"
+    // hide mute & speaker, only end
+    document.getElementById("muteCallBtn").style.display="none"
+    document.getElementById("speakerBtn").style.display="none"
+    document.getElementById("endCallBtn").style.display="flex"
+  } else if(mode==="incoming"){
+    callStatusEl.innerText="Incoming call..."
+    callAvatarEl.classList.add("ringing")
+    incomingActions.style.display="flex"
+    playRingtone()
+  } else if(mode==="active"){
+    callStatusEl.innerText="Connected"
+    callAvatarEl.classList.remove("ringing")
+    callTimerEl.style.display="block"
+    activeActions.style.display="flex"
+    document.getElementById("muteCallBtn").style.display="flex"
+    document.getElementById("speakerBtn").style.display="flex"
+    document.getElementById("endCallBtn").style.display="flex"
+    startCallTimer()
+    stopRingtone()
+  }
+}
+
+function hideCallOverlay(){
+  callOverlay.style.display="none"
+  callAvatarEl.classList.remove("ringing")
+  stopCallTimer()
+  stopRingtone()
+}
+
+function playRingtone(){
+  try{ ringtoneAudio.currentTime=0; ringtoneAudio.play().catch(()=>{}) }catch(e){}
+}
+function stopRingtone(){
+  try{ ringtoneAudio.pause(); ringtoneAudio.currentTime=0 }catch(e){}
+}
+
+function startCallTimer(){
+  callSeconds=0
+  callTimerEl.innerText="0:00"
+  callTimerInterval=setInterval(()=>{
+    callSeconds++
+    callTimerEl.innerText=formatRecTime(callSeconds)
+  },1000)
+}
+
+function stopCallTimer(){
+  clearInterval(callTimerInterval)
+  callTimerInterval=null
+  callSeconds=0
+}
+
+async function createPeerConnection(){
+  peerConnection = new RTCPeerConnection(ICE_SERVERS)
+
+  // Add local audio tracks
+  if(localStream){
+    localStream.getTracks().forEach(track=>{
+      peerConnection.addTrack(track, localStream)
+    })
+  }
+
+  // When remote track arrives
+  peerConnection.ontrack = e=>{
+    if(e.streams && e.streams[0]){
+      remoteAudio.srcObject = e.streams[0]
+      remoteAudio.play().catch(()=>{})
+    }
+  }
+
+  // ICE candidate — send to Firebase
+  peerConnection.onicecandidate = e=>{
+    if(e.candidate && currentCallId){
+      push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
+    }
+  }
+
+  // Connection state
+  peerConnection.onconnectionstatechange = ()=>{
+    const state = peerConnection.connectionState
+    if(state==="connected"){
+      showCallOverlay("active")
+      isCallActive=true
+    } else if(state==="disconnected"||state==="failed"||state==="closed"){
+      if(isCallActive) endCall()
+    }
+  }
+}
+
+// Initiate call (caller side)
+window.initiateCall = async function(){
+  if(isCallActive){ return }
+  if(!username){ alert("Please login first"); return }
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+  } catch(e){
+    alert("Mic permission denied. Please allow microphone access.")
+    return
+  }
+
+  currentCallId = username + "_" + Date.now()
+  isCallActive=true
+
+  await createPeerConnection()
+
+  const offer = await peerConnection.createOffer()
+  await peerConnection.setLocalDescription(offer)
+
+  // Write call to Firebase
+  await set(ref(db, "calls/"+currentCallId), {
+    caller: username,
+    callee: otherUser,
+    status: "ringing",
+    offer: { type: offer.type, sdp: offer.sdp },
+    time: Date.now()
+  })
+
+  showCallOverlay("outgoing")
+
+  // Listen for answer
+  onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
+    const answer = snap.val()
+    if(answer && peerConnection && peerConnection.signalingState!=="stable"){
+      try{
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+      }catch(e){}
+    }
+  })
+
+  // Listen for remote ICE candidates
+  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
+    const candidate = snap.val()
+    if(candidate && peerConnection){
+      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
+    }
+  })
+
+  // Listen for call status (rejected/ended)
+  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
+    const status=snap.val()
+    if(status==="rejected"||status==="ended"){
+      cleanupCall()
+    }
+  })
+}
+
+// Listen for incoming calls
+function listenIncomingCalls(){
+  onValue(ref(db,"calls"), snap=>{
+    const calls=snap.val()
+    if(!calls) return
+    Object.entries(calls).forEach(([callId, callData])=>{
+      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId){
+        if(!isCallActive){
+          currentCallId=callId
+          showIncomingCall(callData)
+        }
+      }
+    })
+  })
+}
+
+function showIncomingCall(callData){
+  showCallOverlay("incoming")
+}
+
+// Accept call
+window.acceptCall = async function(){
+  if(!currentCallId) return
+  stopRingtone()
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+  } catch(e){
+    alert("Mic permission denied.")
+    rejectCall()
+    return
+  }
+
+  await createPeerConnection()
+
+  const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
+  const offer = snap.val()
+  if(!offer){ cleanupCall(); return }
+
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  const answer = await peerConnection.createAnswer()
+  await peerConnection.setLocalDescription(answer)
+
+  await update(ref(db,"calls/"+currentCallId),{
+    answer:{ type:answer.type, sdp:answer.sdp },
+    status:"active"
+  })
+
+  isCallActive=true
+
+  // Listen for caller's ICE candidates
+  const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
+  const caller = callerSnap.val() || otherUser
+  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
+    const candidate=snap.val()
+    if(candidate && peerConnection){
+      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
+    }
+  })
+
+  // Listen for ended status
+  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
+    const status=snap.val()
+    if(status==="ended"){ cleanupCall() }
+  })
+}
+
+// Reject call
+window.rejectCall = async function(){
+  if(currentCallId){
+    await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
+  }
+  cleanupCall()
+}
+
+// End active call
+window.endCall = async function(){
+  if(currentCallId){
+    await update(ref(db,"calls/"+currentCallId),{status:"ended"})
+  }
+  cleanupCall()
+}
+
+function cleanupCall(){
+  isCallActive=false
+  if(peerConnection){ peerConnection.close(); peerConnection=null }
+  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null }
+  remoteAudio.srcObject=null
+  isMuted=false
+  isSpeakerOn=false
+  currentCallId=null
+  hideCallOverlay()
+}
+
+window.toggleMute = function(){
+  if(!localStream) return
+  isMuted=!isMuted
+  localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
+  const btn=document.getElementById("muteCallBtn")
+  const lbl=document.getElementById("muteLabel")
+  btn.innerText=isMuted?"🔇":"🎤"
+  lbl.innerText=isMuted?"Unmute":"Mute"
+}
+
+window.toggleSpeaker = function(){
+  isSpeakerOn=!isSpeakerOn
+  const btn=document.getElementById("speakerBtn")
+  const lbl=document.getElementById("speakerLabel")
+  btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
+  lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
+  // On mobile, speakerphone is handled by the OS — this is a visual indicator
+}
+
+</script>
 
 <div id="imgViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;z-index:9999;overflow:hidden;touch-action:none;">
 <img id="fullImg" style="max-width:100%;max-height:100%;transform:scale(1);transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);cursor:zoom-in;">

@@ -1097,79 +1097,164 @@ const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
 
 // TASK 2: GIF debounce
-let gifDebounceTimer=null
+
+let gifDebounceTimer = null
+
 const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
+
 const gifPanel = document.getElementById("gifPanel")
 
-msgBox.addEventListener("input",function(){
-  this.style.height="auto"
-  this.style.height=Math.min(this.scrollHeight,120)+"px"
-  if(username&&!isBlocked()){
-    set(ref(db,"typing/"+username),true)
+msgBox.addEventListener("input", function () {
+
+  this.style.height = "auto"
+  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+
+  if (username && !isBlocked()) {
+    set(ref(db, "typing/" + username), true)
+
     clearTimeout(typingTimeout)
-    typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
+
+    typingTimeout = setTimeout(() => {
+      set(ref(db, "typing/" + username), false)
+    }, 2000)
   }
 
   // TASK 2: GIF search with debounce
+
   const val = this.value.trim()
+
   clearTimeout(gifDebounceTimer)
-  if(!val){
-    gifPanel.style.display="none"
-    gifPanel.innerHTML=""
+
+  if (!val) {
+    gifPanel.style.display = "none"
+    gifPanel.innerHTML = ""
     return
   }
-  gifDebounceTimer = setTimeout(()=>searchGifs(val), 350)
+
+  gifDebounceTimer = setTimeout(() => {
+    searchGifs(val)
+  }, 350)
+
 })
 
-async function searchGifs(query){
-  gifPanel.style.display="block"
-  gifPanel.innerHTML='<span class="gifLoading">🔍 Searching GIFs...</span>'
+async function searchGifs(query) {
+
+  gifPanel.style.display = "block"
+
+  gifPanel.innerHTML =
+    '<span class="gifLoading">🔍 Searching GIFs...</span>'
+
   try {
-    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
+
+    const url =
+      `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
+
     const res = await fetch(url)
+
     const data = await res.json()
-    const items = data.data || []
-    if(!items.length){
-      gifPanel.innerHTML='<span class="gifLoading">No GIFs found</span>'
+
+    console.log("KLIPY RESPONSE:", data)
+
+    // ✅ FIXED RESPONSE PATH
+    const items = data?.data?.data || []
+
+    if (!items.length) {
+      gifPanel.innerHTML =
+        '<span class="gifLoading">No GIFs found</span>'
       return
     }
-    gifPanel.innerHTML=""
-    items.forEach(item=>{
-      // Klipy returns different structures; try common fields
-      const gifUrl = item.media?.[0]?.gif?.url || item.gif?.url || item.url || ""
-      const previewUrl = item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || gifUrl
-      if(!gifUrl) return
+
+    gifPanel.innerHTML = ""
+
+    items.forEach(item => {
+
+      // ✅ FIXED KLIPY STRUCTURE
+
+      const gifUrl =
+        item?.file?.md?.gif?.url ||
+        item?.file?.sm?.gif?.url ||
+        ""
+
+      const previewUrl =
+        item?.file?.sm?.gif?.url ||
+        item?.file?.md?.gif?.url ||
+        gifUrl
+
+      if (!gifUrl) return
+
       const img = document.createElement("img")
+
       img.className = "gifItem"
+
       img.src = previewUrl
+
       img.loading = "lazy"
+
       img.alt = "GIF"
-      img.addEventListener("click", ()=>{
-        if(isBlocked()) return
-        push(ref(db,"messages"),{name:username,type:"gif",text:"__gif__"+gifUrl,time:Date.now(),seen:false})
-        gifPanel.style.display="none"
-        gifPanel.innerHTML=""
-        msgBox.value=""
-        msgBox.style.height="auto"
+
+      img.style.width = "90px"
+      img.style.height = "90px"
+      img.style.objectFit = "cover"
+      img.style.borderRadius = "10px"
+      img.style.margin = "5px"
+      img.style.cursor = "pointer"
+
+      img.addEventListener("click", () => {
+
+        if (isBlocked()) return
+
+        push(ref(db, "messages"), {
+          name: username,
+          type: "gif",
+          text: "__gif__" + gifUrl,
+          time: Date.now(),
+          seen: false
+        })
+
+        gifPanel.style.display = "none"
+        gifPanel.innerHTML = ""
+
+        msgBox.value = ""
+        msgBox.style.height = "auto"
+
       })
+
       gifPanel.appendChild(img)
+
     })
-  } catch(e){
-    gifPanel.innerHTML='<span class="gifLoading">Failed to load GIFs</span>'
+
+  } catch (e) {
+
+    console.error(e)
+
+    gifPanel.innerHTML =
+      '<span class="gifLoading">Failed to load GIFs</span>'
+
   }
+
 }
 
 // Hide GIF panel when clicking outside
-document.addEventListener("click", e=>{
-  if(!gifPanel.contains(e.target) && e.target !== msgBox){
-    gifPanel.style.display="none"
+
+document.addEventListener("click", e => {
+
+  if (!gifPanel.contains(e.target) && e.target !== msgBox) {
+    gifPanel.style.display = "none"
   }
+
 })
 
-msgBox.addEventListener("keydown",function(e){
-  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
-})
+msgBox.addEventListener("keydown", function (e) {
 
+  if (e.key === "Enter" && !e.shiftKey) {
+
+    e.preventDefault()
+
+    send()
+
+  }
+
+})
 // ─────────────────────────────────────────────
 // REPLY
 // ─────────────────────────────────────────────

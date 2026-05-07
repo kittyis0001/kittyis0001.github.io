@@ -1097,79 +1097,348 @@ const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
 
 // TASK 2: GIF debounce
-let gifDebounceTimer=null
-const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
+
+let gifDebounceTimer = null
+
+const GIF_API_KEY =
+"20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
+
 const gifPanel = document.getElementById("gifPanel")
 
-msgBox.addEventListener("input",function(){
-  this.style.height="auto"
-  this.style.height=Math.min(this.scrollHeight,120)+"px"
-  if(username&&!isBlocked()){
-    set(ref(db,"typing/"+username),true)
-    clearTimeout(typingTimeout)
-    typingTimeout=setTimeout(()=>set(ref(db,"typing/"+username),false),2000)
-  }
+// ✅ Professional hide helper
 
-  // TASK 2: GIF search with debounce
-  const val = this.value.trim()
-  clearTimeout(gifDebounceTimer)
-  if(!val){
-    gifPanel.style.display="none"
-    gifPanel.innerHTML=""
-    return
-  }
-  gifDebounceTimer = setTimeout(()=>searchGifs(val), 350)
-})
+function hideGifPanel() {
 
-async function searchGifs(query){
-  gifPanel.style.display="block"
-  gifPanel.innerHTML='<span class="gifLoading">🔍 Searching GIFs...</span>'
-  try {
-    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=10`
-    const res = await fetch(url)
-    const data = await res.json()
-    const items = data.data || []
-    if(!items.length){
-      gifPanel.innerHTML='<span class="gifLoading">No GIFs found</span>'
-      return
-    }
-    gifPanel.innerHTML=""
-    items.forEach(item=>{
-      // Klipy returns different structures; try common fields
-      const gifUrl = item.media?.[0]?.gif?.url || item.gif?.url || item.url || ""
-      const previewUrl = item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || gifUrl
-      if(!gifUrl) return
-      const img = document.createElement("img")
-      img.className = "gifItem"
-      img.src = previewUrl
-      img.loading = "lazy"
-      img.alt = "GIF"
-      img.addEventListener("click", ()=>{
-        if(isBlocked()) return
-        push(ref(db,"messages"),{name:username,type:"gif",text:"__gif__"+gifUrl,time:Date.now(),seen:false})
-        gifPanel.style.display="none"
-        gifPanel.innerHTML=""
-        msgBox.value=""
-        msgBox.style.height="auto"
-      })
-      gifPanel.appendChild(img)
-    })
-  } catch(e){
-    gifPanel.innerHTML='<span class="gifLoading">Failed to load GIFs</span>'
-  }
+  gifPanel.style.display = "none"
+
+  gifPanel.innerHTML = ""
+
 }
 
-// Hide GIF panel when clicking outside
-document.addEventListener("click", e=>{
-  if(!gifPanel.contains(e.target) && e.target !== msgBox){
-    gifPanel.style.display="none"
+// ✅ Keyboard close detect
+
+msgBox.addEventListener("blur", () => {
+
+  hideGifPanel()
+
+})
+
+// ✅ Mobile keyboard back detect
+
+window.visualViewport?.addEventListener("resize", () => {
+
+  if (document.activeElement !== msgBox) {
+
+    hideGifPanel()
+
   }
+
 })
 
-msgBox.addEventListener("keydown",function(e){
-  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
+// ✅ Outside tap close
+
+document.addEventListener("touchstart", e => {
+
+  if (
+    !gifPanel.contains(e.target) &&
+    e.target !== msgBox
+  ) {
+
+    hideGifPanel()
+
+  }
+
 })
 
+// ✅ Input listener
+
+msgBox.addEventListener("input", function () {
+
+  this.style.height = "auto"
+
+  this.style.height =
+  Math.min(this.scrollHeight, 120) + "px"
+
+  if (username && !isBlocked()) {
+
+    set(ref(db, "typing/" + username), true)
+
+    clearTimeout(typingTimeout)
+
+    typingTimeout = setTimeout(() => {
+
+      set(ref(db, "typing/" + username), false)
+
+    }, 2000)
+
+  }
+
+  const val = this.value.trim()
+
+  clearTimeout(gifDebounceTimer)
+
+  // ✅ Empty input → hide
+
+  if (!val) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  // ✅ Sentence completed → hide
+
+  if (
+    val.endsWith(".") ||
+    val.endsWith("?") ||
+    val.endsWith("!")
+  ) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  // ✅ Multiple sentence detect
+
+  const sentenceCount =
+  (val.match(/[.!?]/g) || []).length
+
+  if (sentenceCount >= 1) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  gifDebounceTimer = setTimeout(() => {
+
+    searchGifs(val)
+
+  }, 350)
+
+})
+
+// ✅ GIF search
+
+async function searchGifs(query) {
+
+  // ✅ Long sentence → hide
+
+  if (query.split(" ").length > 4) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  gifPanel.style.display = "flex"
+
+  try {
+
+    const url =
+    `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
+
+    const res = await fetch(url)
+
+    const data = await res.json()
+
+    let items = data?.data?.data || []
+
+    // ✅ Remove duplicates
+
+    const usedUrls = new Set()
+
+    items = items.filter(item => {
+
+      const url =
+      item?.file?.md?.gif?.url ||
+      item?.file?.sm?.gif?.url ||
+      ""
+
+      if (!url || usedUrls.has(url)) {
+
+        return false
+
+      }
+
+      usedUrls.add(url)
+
+      return true
+
+    })
+
+    // ✅ Randomize results
+
+    items = items.sort(() => Math.random() - 0.5)
+
+    // ✅ No relevant GIFs → hide
+
+    if (!items.length || items.length < 2) {
+
+      hideGifPanel()
+
+      return
+
+    }
+
+    gifPanel.innerHTML = ""
+
+    items.forEach(item => {
+
+      const gifUrl =
+      item?.file?.md?.gif?.url ||
+      item?.file?.sm?.gif?.url ||
+      ""
+
+      const previewUrl =
+      item?.file?.sm?.gif?.url ||
+      item?.file?.md?.gif?.url ||
+      gifUrl
+
+      if (!gifUrl) return
+
+      const img = document.createElement("img")
+
+      img.className = "gifItem"
+
+      img.src = previewUrl
+
+      img.loading = "lazy"
+
+      img.alt = "GIF"
+
+      // ✅ Professional preview size
+
+      img.style.width = "72px"
+
+      img.style.height = "72px"
+
+      img.style.objectFit = "cover"
+
+      img.style.borderRadius = "10px"
+
+      img.style.margin = "4px"
+
+      img.style.cursor = "pointer"
+
+      img.style.flexShrink = "0"
+
+      img.style.transition = "0.2s"
+
+      // ✅ FIX: scroll + touch send both work
+
+      let touchMoved = false
+
+      img.addEventListener("touchmove", () => {
+
+        touchMoved = true
+
+      }, { passive:true })
+
+      img.addEventListener("touchstart", () => {
+
+        touchMoved = false
+
+      }, { passive:true })
+
+      img.addEventListener("touchend", async (e) => {
+
+        // ✅ If scrolling → don't send
+
+        if (touchMoved) return
+
+        e.preventDefault()
+
+        e.stopPropagation()
+
+        if (isBlocked()) return
+
+        await push(ref(db, "messages"), {
+
+          name: username,
+
+          type: "gif",
+
+          text: "__gif__" + gifUrl,
+
+          time: Date.now(),
+
+          seen: false
+
+        })
+
+        hideGifPanel()
+
+        msgBox.value = ""
+
+        msgBox.style.height = "auto"
+
+      }, { passive:false })
+
+      // ✅ Desktop click support
+
+      img.addEventListener("click", async (e) => {
+
+        e.preventDefault()
+
+        e.stopPropagation()
+
+        if (isBlocked()) return
+
+        await push(ref(db, "messages"), {
+
+          name: username,
+
+          type: "gif",
+
+          text: "__gif__" + gifUrl,
+
+          time: Date.now(),
+
+          seen: false
+
+        })
+
+        hideGifPanel()
+
+        msgBox.value = ""
+
+        msgBox.style.height = "auto"
+
+      })
+
+      gifPanel.appendChild(img)
+
+    })
+
+  } catch (e) {
+
+    console.error(e)
+
+    hideGifPanel()
+
+  }
+
+}
+
+// ✅ Enter send
+
+msgBox.addEventListener("keydown", function (e) {
+
+  if (e.key === "Enter" && !e.shiftKey) {
+
+    e.preventDefault()
+
+    send()
+
+  }
+
+})
 // ─────────────────────────────────────────────
 // REPLY
 // ─────────────────────────────────────────────

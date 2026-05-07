@@ -1999,330 +1999,811 @@ window.uploadImage=async function(input){
   input.value=""
 }
 
-// ══════════════════════════════════════════════
-// TASK 3: VOICE CALL — WebRTC + Firebase signaling
-// ══════════════════════════════════════════════
+<!-- ═══════════════════════════════════════ -->
+<!-- WHATSAPP STYLE VOICE CALL OVERLAY -->
+<!-- PASTE BEFORE </body> -->
+<!-- ═══════════════════════════════════════ -->
+
+<div id="callOverlay">
+
+  <!-- top blur -->
+  <div class="callTopFade"></div>
+
+  <!-- profile -->
+  <div class="callProfileWrap">
+    <div class="callAvatarRing"></div>
+
+    <img id="callAvatar"
+      src=""
+      class="callAvatar">
+
+    <div id="callName" class="callName">
+      Unknown
+    </div>
+
+    <div id="callStatus" class="callStatus">
+      Calling...
+    </div>
+
+    <div id="callTimer" class="callTimer">
+      0:00
+    </div>
+  </div>
+
+  <!-- incoming -->
+  <div id="incomingActions" class="callActions">
+
+    <div class="callBtnWrap">
+      <button class="callBtn declineBtn"
+        onclick="rejectCall()">
+        ✕
+      </button>
+
+      <span>Decline</span>
+    </div>
+
+    <div class="callBtnWrap">
+      <button class="callBtn acceptBtn"
+        onclick="acceptCall()">
+        📞
+      </button>
+
+      <span>Accept</span>
+    </div>
+
+  </div>
+
+  <!-- active -->
+  <div id="activeActions" class="callActions">
+
+    <div class="callBtnWrap">
+      <button id="muteCallBtn"
+        class="callBtn secondaryBtn"
+        onclick="toggleMute()">
+        🎤
+      </button>
+
+      <span id="muteLabel">Mute</span>
+    </div>
+
+    <div class="callBtnWrap">
+      <button id="endCallBtn"
+        class="callBtn endBtn"
+        onclick="endCall()">
+        📞
+      </button>
+
+      <span>End</span>
+    </div>
+
+    <div class="callBtnWrap">
+      <button id="speakerBtn"
+        class="callBtn secondaryBtn"
+        onclick="toggleSpeaker()">
+        🔊
+      </button>
+
+      <span id="speakerLabel">Speaker</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- hidden audios -->
+<audio id="remoteAudio" autoplay playsinline></audio>
+
+<audio id="ringtoneAudio" loop>
+  <source
+    src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"
+    type="audio/ogg">
+</audio>
+
+<style>
+
+#callOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:999999;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  overflow:hidden;
+  font-family:Arial;
+}
+
+.callTopFade{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:200px;
+  background:linear-gradient(to bottom,
+  rgba(255,255,255,.08),
+  transparent);
+}
+
+.callProfileWrap{
+  margin-top:90px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  z-index:2;
+}
+
+.callAvatar{
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid rgba(255,255,255,.15);
+  position:relative;
+  z-index:2;
+}
+
+.callAvatarRing{
+  position:absolute;
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:rgba(255,255,255,.03);
+  animation:ringPulse 1.7s infinite;
+}
+
+@keyframes ringPulse{
+  0%{
+    transform:scale(.8);
+    opacity:.7;
+  }
+
+  100%{
+    transform:scale(1.25);
+    opacity:0;
+  }
+}
+
+.callName{
+  color:#fff;
+  font-size:32px;
+  font-weight:700;
+  margin-top:28px;
+}
+
+.callStatus{
+  color:#bdbdbd;
+  margin-top:12px;
+  font-size:18px;
+}
+
+.callTimer{
+  color:#25D366;
+  margin-top:12px;
+  font-size:17px;
+  display:none;
+}
+
+.callActions{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:45px;
+  margin-bottom:90px;
+}
+
+.callBtnWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  color:#ddd;
+  font-size:17px;
+}
+
+.callBtn{
+  width:78px;
+  height:78px;
+  border:none;
+  border-radius:50%;
+  font-size:33px;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.acceptBtn{
+  background:#25D366;
+}
+
+.declineBtn{
+  background:#ff3b30;
+}
+
+.endBtn{
+  background:#ff3b30;
+}
+
+.secondaryBtn{
+  background:rgba(255,255,255,.14);
+}
+
+#activeActions{
+  display:none;
+}
+
+#incomingActions{
+  display:none;
+}
+
+</style>
+
+<script>
 
 const ICE_SERVERS = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
+  iceServers:[
     {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject"
+      urls:"stun:stun.l.google.com:19302"
     },
+
     {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject"
+      urls:"stun:stun1.l.google.com:19302"
     },
+
     {
-      urls: "turn:openrelay.metered.ca:443?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject"
+      urls:"turn:openrelay.metered.ca:80",
+      username:"openrelayproject",
+      credential:"openrelayproject"
+    },
+
+    {
+      urls:"turn:openrelay.metered.ca:443",
+      username:"openrelayproject",
+      credential:"openrelayproject"
+    },
+
+    {
+      urls:"turn:openrelay.metered.ca:443?transport=tcp",
+      username:"openrelayproject",
+      credential:"openrelayproject"
     }
   ]
 }
 
 let peerConnection = null
 let localStream = null
-let callTimerInterval = null
+let currentCallId = null
 let callSeconds = 0
+let callInterval = null
 let isMuted = false
 let isSpeakerOn = false
-let currentCallId = null
-let incomingCallListener = null
-let isCallActive = false
+let reconnectAttempts = 0
+let incomingBusy = false
 
 const callOverlay = document.getElementById("callOverlay")
-const callAvatarEl = document.getElementById("callAvatar")
-const callNameEl = document.getElementById("callName")
-const callStatusEl = document.getElementById("callStatus")
-const callTimerEl = document.getElementById("callTimer")
-const incomingActions = document.getElementById("incomingActions")
-const activeActions = document.getElementById("activeActions")
-const remoteAudio = document.getElementById("remoteAudio")
-const ringtoneAudio = document.getElementById("ringtoneAudio")
+const callAvatar = document.getElementById("callAvatar")
+const callName = document.getElementById("callName")
+const callStatus = document.getElementById("callStatus")
+const callTimer = document.getElementById("callTimer")
 
-function showCallOverlay(mode){
-  // mode: "outgoing" | "incoming" | "active"
+const incomingActions =
+document.getElementById("incomingActions")
+
+const activeActions =
+document.getElementById("activeActions")
+
+const remoteAudio =
+document.getElementById("remoteAudio")
+
+const ringtoneAudio =
+document.getElementById("ringtoneAudio")
+
+function openCallUI(type){
+
   callOverlay.style.display="flex"
-  callAvatarEl.src = getAvatar(otherUser)
-  callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
-  callNameEl.innerText = getNick(otherUser)
+
+  callAvatar.src =
+  getAvatar(otherUser)
+
+  callName.innerText =
+  getNick(otherUser)
 
   incomingActions.style.display="none"
   activeActions.style.display="none"
-  callTimerEl.style.display="none"
+  callTimer.style.display="none"
 
-  if(mode==="outgoing"){
-    callStatusEl.innerText="Calling..."
-    callAvatarEl.classList.add("ringing")
-    // Show only end button
+  if(type==="calling"){
+
+    callStatus.innerText="Calling..."
+
     activeActions.style.display="flex"
-    // hide mute & speaker, only end
+
     document.getElementById("muteCallBtn").style.display="none"
+
     document.getElementById("speakerBtn").style.display="none"
-    document.getElementById("endCallBtn").style.display="flex"
-  } else if(mode==="incoming"){
-    callStatusEl.innerText="Incoming call..."
-    callAvatarEl.classList.add("ringing")
-    incomingActions.style.display="flex"
-    playRingtone()
-  } else if(mode==="active"){
-    callStatusEl.innerText="Connected"
-    callAvatarEl.classList.remove("ringing")
-    callTimerEl.style.display="block"
-    activeActions.style.display="flex"
-    document.getElementById("muteCallBtn").style.display="flex"
-    document.getElementById("speakerBtn").style.display="flex"
-    document.getElementById("endCallBtn").style.display="flex"
-    startCallTimer()
-    stopRingtone()
+
   }
+
+  else if(type==="incoming"){
+
+    callStatus.innerText="Incoming call..."
+
+    incomingActions.style.display="flex"
+
+    playRingtone()
+
+  }
+
+  else if(type==="connected"){
+
+    callStatus.innerText="Connected"
+
+    activeActions.style.display="flex"
+
+    document.getElementById("muteCallBtn").style.display="flex"
+
+    document.getElementById("speakerBtn").style.display="flex"
+
+    callTimer.style.display="block"
+
+    stopRingtone()
+
+    startCallTimer()
+
+  }
+
 }
 
-function hideCallOverlay(){
+function closeCallUI(){
+
   callOverlay.style.display="none"
-  callAvatarEl.classList.remove("ringing")
-  stopCallTimer()
+
   stopRingtone()
+
+  stopCallTimer()
+
 }
 
 function playRingtone(){
-  try{ ringtoneAudio.currentTime=0; ringtoneAudio.play().catch(()=>{}) }catch(e){}
+
+  ringtoneAudio.currentTime=0
+
+  ringtoneAudio.play().catch(()=>{})
+
 }
+
 function stopRingtone(){
-  try{ ringtoneAudio.pause(); ringtoneAudio.currentTime=0 }catch(e){}
+
+  ringtoneAudio.pause()
+
+  ringtoneAudio.currentTime=0
+
 }
 
 function startCallTimer(){
+
   callSeconds=0
-  callTimerEl.innerText="0:00"
-  callTimerInterval=setInterval(()=>{
+
+  callTimer.innerText="0:00"
+
+  clearInterval(callInterval)
+
+  callInterval=setInterval(()=>{
+
     callSeconds++
-    callTimerEl.innerText=formatRecTime(callSeconds)
+
+    const min =
+    Math.floor(callSeconds/60)
+
+    const sec =
+    String(callSeconds%60).padStart(2,"0")
+
+    callTimer.innerText =
+    min+":"+sec
+
   },1000)
+
 }
 
 function stopCallTimer(){
-  clearInterval(callTimerInterval)
-  callTimerInterval=null
-  callSeconds=0
+
+  clearInterval(callInterval)
+
 }
 
-async function createPeerConnection(){
-  peerConnection = new RTCPeerConnection(ICE_SERVERS)
+async function setupPeer(){
 
-  // Add local audio tracks
-  if(localStream){
-    localStream.getTracks().forEach(track=>{
-      peerConnection.addTrack(track, localStream)
-    })
+  peerConnection =
+  new RTCPeerConnection(ICE_SERVERS)
+
+  localStream.getTracks().forEach(track=>{
+
+    peerConnection.addTrack(track,localStream)
+
+  })
+
+  peerConnection.ontrack=e=>{
+
+    remoteAudio.srcObject=e.streams[0]
+
+    remoteAudio.play().catch(()=>{})
+
   }
 
-  // When remote track arrives
-  peerConnection.ontrack = e=>{
-    if(e.streams && e.streams[0]){
-      remoteAudio.srcObject = e.streams[0]
-      remoteAudio.play().catch(()=>{})
-    }
-  }
+  peerConnection.onicecandidate=e=>{
 
-  // ICE candidate — send to Firebase
-  peerConnection.onicecandidate = e=>{
     if(e.candidate && currentCallId){
-      push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
+
+      push(
+        ref(
+          db,
+          "calls/"+currentCallId+
+          "/candidates/"+username
+        ),
+        e.candidate.toJSON()
+      )
+
     }
+
   }
 
-  // Connection state
-  peerConnection.onconnectionstatechange = ()=>{
-    const state = peerConnection.connectionState
+  peerConnection.onconnectionstatechange=()=>{
+
+    const state =
+    peerConnection.connectionState
+
     if(state==="connected"){
-      showCallOverlay("active")
-      isCallActive=true
-    } else if(state==="disconnected"||state==="failed"||state==="closed"){
-      if(isCallActive) endCall()
+
+      reconnectAttempts=0
+
+      openCallUI("connected")
+
     }
+
+    if(
+      state==="disconnected" ||
+      state==="failed"
+    ){
+
+      reconnectAttempts++
+
+      callStatus.innerText =
+      "Reconnecting..."
+
+      if(reconnectAttempts>=6){
+
+        endCall()
+
+      }
+
+    }
+
   }
+
 }
 
-// Initiate call (caller side)
-window.initiateCall = async function(){
-  if(isCallActive){ return }
-  if(!username){ alert("Please login first"); return }
+window.initiateCall =
+async function(){
 
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-  } catch(e){
-    alert("Mic permission denied. Please allow microphone access.")
-    return
-  }
+  if(incomingBusy) return
 
-  currentCallId = username + "_" + Date.now()
-  isCallActive=true
+  incomingBusy=true
 
-  await createPeerConnection()
+  try{
 
-  const offer = await peerConnection.createOffer()
-  await peerConnection.setLocalDescription(offer)
-
-  // Write call to Firebase
-  await set(ref(db, "calls/"+currentCallId), {
-    caller: username,
-    callee: otherUser,
-    status: "ringing",
-    offer: { type: offer.type, sdp: offer.sdp },
-    time: Date.now()
-  })
-
-  showCallOverlay("outgoing")
-
-  // Listen for answer
-  onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
-    const answer = snap.val()
-    if(answer && peerConnection && peerConnection.signalingState!=="stable"){
-      try{
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-      }catch(e){}
-    }
-  })
-
-  // Listen for remote ICE candidates
-  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
-    const candidate = snap.val()
-    if(candidate && peerConnection){
-      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
-    }
-  })
-
-  // Listen for call status (rejected/ended)
-  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
-    const status=snap.val()
-    if(status==="rejected"||status==="ended"){
-      cleanupCall()
-    }
-  })
-}
-
-// Listen for incoming calls
-function listenIncomingCalls(){
-  onValue(ref(db,"calls"), snap=>{
-    const calls=snap.val()
-    if(!calls) return
-    Object.entries(calls).forEach(([callId, callData])=>{
-      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId){
-        if(!isCallActive){
-          currentCallId=callId
-          showIncomingCall(callData)
-        }
+    localStream =
+    await navigator.mediaDevices
+    .getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
       }
     })
+
+  }catch(e){
+
+    incomingBusy=false
+
+    alert("Mic permission denied")
+
+    return
+
+  }
+
+  currentCallId =
+  username+"_"+Date.now()
+
+  await setupPeer()
+
+  const offer =
+  await peerConnection.createOffer()
+
+  await peerConnection
+  .setLocalDescription(offer)
+
+  await set(
+    ref(db,"calls/"+currentCallId),
+    {
+      caller:username,
+      callee:otherUser,
+      status:"ringing",
+      offer:{
+        type:offer.type,
+        sdp:offer.sdp
+      },
+      created:Date.now()
+    }
+  )
+
+  openCallUI("calling")
+
+  onValue(
+    ref(db,
+    "calls/"+currentCallId+"/answer"),
+    async snap=>{
+
+      const ans = snap.val()
+
+      if(ans){
+
+        await peerConnection
+        .setRemoteDescription(
+          new RTCSessionDescription(ans)
+        )
+
+      }
+
+    }
+  )
+
+  onChildAdded(
+    ref(
+      db,
+      "calls/"+currentCallId+
+      "/candidates/"+otherUser
+    ),
+
+    async snap=>{
+
+      const candidate=snap.val()
+
+      if(candidate){
+
+        try{
+
+          await peerConnection
+          .addIceCandidate(
+            new RTCIceCandidate(candidate)
+          )
+
+        }catch(e){}
+
+      }
+
+    }
+  )
+
+}
+
+function listenIncomingCalls(){
+
+  onValue(ref(db,"calls"),snap=>{
+
+    const calls=snap.val()
+
+    if(!calls) return
+
+    Object.entries(calls)
+    .forEach(([id,data])=>{
+
+      if(
+        data.callee===username &&
+        data.status==="ringing" &&
+        currentCallId!==id
+      ){
+
+        currentCallId=id
+
+        openCallUI("incoming")
+
+      }
+
+    })
+
   })
+
 }
 
-function showIncomingCall(callData){
-  showCallOverlay("incoming")
-}
+window.acceptCall =
+async function(){
 
-// Accept call
-window.acceptCall = async function(){
-  if(!currentCallId) return
   stopRingtone()
 
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-  } catch(e){
-    alert("Mic permission denied.")
-    rejectCall()
-    return
-  }
-
-  await createPeerConnection()
-
-  const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
-  const offer = snap.val()
-  if(!offer){ cleanupCall(); return }
-
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
-  const answer = await peerConnection.createAnswer()
-  await peerConnection.setLocalDescription(answer)
-
-  await update(ref(db,"calls/"+currentCallId),{
-    answer:{ type:answer.type, sdp:answer.sdp },
-    status:"active"
+  localStream =
+  await navigator.mediaDevices
+  .getUserMedia({
+    audio:true
   })
 
-  isCallActive=true
+  await setupPeer()
 
-  // Listen for caller's ICE candidates
-  const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
-  const caller = callerSnap.val() || otherUser
-  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
-    const candidate=snap.val()
-    if(candidate && peerConnection){
-      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
+  const offerSnap =
+  await get(
+    ref(
+      db,
+      "calls/"+currentCallId+"/offer"
+    )
+  )
+
+  const offer =
+  offerSnap.val()
+
+  await peerConnection
+  .setRemoteDescription(
+    new RTCSessionDescription(offer)
+  )
+
+  const answer =
+  await peerConnection.createAnswer()
+
+  await peerConnection
+  .setLocalDescription(answer)
+
+  await update(
+    ref(db,"calls/"+currentCallId),
+    {
+      answer:{
+        type:answer.type,
+        sdp:answer.sdp
+      },
+      status:"active"
     }
-  })
+  )
 
-  // Listen for ended status
-  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
-    const status=snap.val()
-    if(status==="ended"){ cleanupCall() }
-  })
+  const callerSnap =
+  await get(
+    ref(
+      db,
+      "calls/"+currentCallId+"/caller"
+    )
+  )
+
+  const caller = callerSnap.val()
+
+  onChildAdded(
+    ref(
+      db,
+      "calls/"+currentCallId+
+      "/candidates/"+caller
+    ),
+
+    async snap=>{
+
+      const candidate=snap.val()
+
+      if(candidate){
+
+        try{
+
+          await peerConnection
+          .addIceCandidate(
+            new RTCIceCandidate(candidate)
+          )
+
+        }catch(e){}
+
+      }
+
+    }
+  )
+
+  openCallUI("connected")
+
 }
 
-// Reject call
-window.rejectCall = async function(){
+window.rejectCall =
+async function(){
+
   if(currentCallId){
-    await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
+
+    await update(
+      ref(db,"calls/"+currentCallId),
+      {
+        status:"rejected"
+      }
+    )
+
   }
+
   cleanupCall()
+
 }
 
-// End active call
-window.endCall = async function(){
+window.endCall =
+async function(){
+
   if(currentCallId){
-    await update(ref(db,"calls/"+currentCallId),{status:"ended"})
+
+    await update(
+      ref(db,"calls/"+currentCallId),
+      {
+        status:"ended"
+      }
+    )
+
   }
+
   cleanupCall()
+
 }
 
 function cleanupCall(){
-  isCallActive=false
-  if(peerConnection){ peerConnection.close(); peerConnection=null }
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null }
+
+  closeCallUI()
+
+  if(peerConnection){
+
+    peerConnection.close()
+
+    peerConnection=null
+
+  }
+
+  if(localStream){
+
+    localStream
+    .getTracks()
+    .forEach(t=>t.stop())
+
+    localStream=null
+
+  }
+
   remoteAudio.srcObject=null
-  isMuted=false
-  isSpeakerOn=false
+
   currentCallId=null
-  hideCallOverlay()
+
+  incomingBusy=false
+
 }
 
-window.toggleMute = function(){
+window.toggleMute=function(){
+
   if(!localStream) return
+
   isMuted=!isMuted
-  localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
-  const btn=document.getElementById("muteCallBtn")
-  const lbl=document.getElementById("muteLabel")
-  btn.innerText=isMuted?"🔇":"🎤"
-  lbl.innerText=isMuted?"Unmute":"Mute"
+
+  localStream
+  .getAudioTracks()
+  .forEach(track=>{
+
+    track.enabled=!isMuted
+
+  })
+
+  document.getElementById(
+    "muteLabel"
+  ).innerText=
+  isMuted ? "Unmute":"Mute"
+
 }
 
-window.toggleSpeaker = function(){
+window.toggleSpeaker=function(){
+
   isSpeakerOn=!isSpeakerOn
-  const btn=document.getElementById("speakerBtn")
-  const lbl=document.getElementById("speakerLabel")
-  btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
-  lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
-  // On mobile, speakerphone is handled by the OS — this is a visual indicator
+
+  document.getElementById(
+    "speakerLabel"
+  ).innerText=
+  isSpeakerOn ?
+  "Speaker On":"Speaker"
+
 }
+
+listenIncomingCalls()
 
 </script>
 

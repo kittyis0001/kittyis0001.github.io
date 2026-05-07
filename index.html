@@ -1105,7 +1105,7 @@ const GIF_API_KEY =
 
 const gifPanel = document.getElementById("gifPanel")
 
-// ✅ Hide GIF panel helper
+// ✅ Professional hide helper
 
 function hideGifPanel() {
 
@@ -1115,21 +1115,17 @@ function hideGifPanel() {
 
 }
 
-// ✅ Detect keyboard close / input blur (TikTok style)
+// ✅ Keyboard close detect (REAL FIX)
 
 msgBox.addEventListener("blur", () => {
 
-  setTimeout(() => {
-
-    hideGifPanel()
-
-  }, 120)
+  hideGifPanel()
 
 })
 
-// ✅ Mobile keyboard back button detect
+// ✅ Mobile keyboard back detect
 
-window.addEventListener("resize", () => {
+window.visualViewport?.addEventListener("resize", () => {
 
   if (document.activeElement !== msgBox) {
 
@@ -1138,6 +1134,23 @@ window.addEventListener("resize", () => {
   }
 
 })
+
+// ✅ Outside click close
+
+document.addEventListener("touchstart", e => {
+
+  if (
+    !gifPanel.contains(e.target) &&
+    e.target !== msgBox
+  ) {
+
+    hideGifPanel()
+
+  }
+
+})
+
+// ✅ Input listener
 
 msgBox.addEventListener("input", function () {
 
@@ -1160,15 +1173,40 @@ msgBox.addEventListener("input", function () {
 
   }
 
-  // GIF SEARCH
-
   const val = this.value.trim()
 
   clearTimeout(gifDebounceTimer)
 
-  // ✅ Empty input → hide instantly
+  // ✅ Empty input → hide
 
   if (!val) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  // ✅ Sentence completed with "." → hide
+
+  if (
+    val.endsWith(".") ||
+    val.endsWith("?") ||
+    val.endsWith("!")
+  ) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  // ✅ Multiple sentence detect → hide
+
+  const sentenceCount =
+  (val.match(/[.!?]/g) || []).length
+
+  if (sentenceCount >= 1) {
 
     hideGifPanel()
 
@@ -1184,16 +1222,26 @@ msgBox.addEventListener("input", function () {
 
 })
 
+// ✅ GIF search
+
 async function searchGifs(query) {
 
-  gifPanel.style.display = "block"
+  // ✅ Don't show for long sentences
 
-  gifPanel.innerHTML =
-  '<span class="gifLoading">🔍 Searching GIFs...</span>'
+  if (query.split(" ").length > 4) {
+
+    hideGifPanel()
+
+    return
+
+  }
+
+  gifPanel.style.display = "flex"
+
+  // ✅ REMOVE ugly GIF text + cross button
+  // (nothing added now)
 
   try {
-
-    // ✅ LIMIT 30
 
     const url =
     `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
@@ -1202,11 +1250,9 @@ async function searchGifs(query) {
 
     const data = await res.json()
 
-    // ✅ Correct response path
-
     let items = data?.data?.data || []
 
-    // ✅ Remove duplicate GIFs
+    // ✅ Remove duplicates
 
     const usedUrls = new Set()
 
@@ -1217,7 +1263,11 @@ async function searchGifs(query) {
       item?.file?.sm?.gif?.url ||
       ""
 
-      if (!url || usedUrls.has(url)) return false
+      if (!url || usedUrls.has(url)) {
+
+        return false
+
+      }
 
       usedUrls.add(url)
 
@@ -1225,13 +1275,13 @@ async function searchGifs(query) {
 
     })
 
-    // ✅ Random mix every search
+    // ✅ Randomize results
 
     items = items.sort(() => Math.random() - 0.5)
 
-    // ✅ No context match → auto close panel
+    // ✅ No relevant GIFs → hide completely
 
-    if (!items.length) {
+    if (!items.length || items.length < 2) {
 
       hideGifPanel()
 
@@ -1265,7 +1315,7 @@ async function searchGifs(query) {
 
       img.alt = "GIF"
 
-      // ✅ Smaller professional preview size
+      // ✅ Smaller smooth size
 
       img.style.width = "72px"
 
@@ -1278,6 +1328,8 @@ async function searchGifs(query) {
       img.style.margin = "4px"
 
       img.style.cursor = "pointer"
+
+      img.style.flexShrink = "0"
 
       img.style.transition = "0.2s"
 
@@ -1315,28 +1367,11 @@ async function searchGifs(query) {
 
     console.error(e)
 
-    // ✅ Error হলে panel hide
-
     hideGifPanel()
 
   }
 
 }
-
-// ✅ Outside click → close panel
-
-document.addEventListener("click", e => {
-
-  if (
-    !gifPanel.contains(e.target) &&
-    e.target !== msgBox
-  ) {
-
-    hideGifPanel()
-
-  }
-
-})
 
 // ✅ Enter send
 
@@ -1348,6 +1383,9 @@ msgBox.addEventListener("keydown", function (e) {
 
     send()
 
+  }
+
+})
   }
 
 })

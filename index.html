@@ -1511,10 +1511,17 @@ window.start=async function(){
   set(userRef,{online:true,last:Date.now()})
   onDisconnect(userRef).set({online:false,last:Date.now()})
   onDisconnect(ref(db,"typing/"+username)).set(false)
+  // Bug 5 fix: on browser close, mark any active call as ended so other side knows
+  onDisconnect(ref(db,"callDisconnect/"+username)).set(Date.now())
 
   document.addEventListener("visibilitychange",()=>{
-    if(document.hidden) set(userRef,{online:false,last:Date.now()})
-    else set(userRef,{online:true,last:Date.now()})
+    if(document.hidden){
+      set(userRef,{online:false,last:Date.now()})
+      // Bug 4 fix: end active call if app goes to background
+      if(isCallActive){ endCall() }
+    } else {
+      set(userRef,{online:true,last:Date.now()})
+    }
   })
   setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
 
@@ -1529,6 +1536,14 @@ window.start=async function(){
   listenProfilePics()
   markSeenMessages()
   listenIncomingCalls()
+
+  // Bug 5 fix: if other user's browser closes during a call, end it
+  onValue(ref(db,"callDisconnect/"+otherUser), snap=>{
+    if(snap.val() && isCallActive){
+      callStatusEl.innerText = "Call ended"
+      setTimeout(()=> cleanupCall(), 1200)
+    }
+  })
 }
 
 // ─────────────────────────────────────────────
@@ -2093,20 +2108,25 @@ function listenIncomingCalls(){
     const calls = snap.val()
     if(!calls) return
     Object.entries(calls).forEach(([callId, callData])=>{
+      // Bug 1 fix: ignore stale calls older than 30 seconds
+      const isRecent = callData.time && (Date.now() - callData.time) < 30000
       if(
         callData.callee === username &&
         callData.status === "ringing" &&
         callId !== currentCallId &&
-        !isCallActive
+        !isCallActive &&
+        isRecent
       ){
         currentCallId = callId
         isCallActive = true
         showCallOverlay("incoming")
 
-        // Listen for ended status from caller side
+        // Bug 2 fix: unsubscribe old listener before setting new one
+        if(callStatusUnsubscribe){ try{ callStatusUnsubscribe() }catch(e){} callStatusUnsubscribe=null }
+
         callStatusUnsubscribe = onValue(ref(db,"calls/"+callId+"/status"), snap=>{
           const status = snap.val()
-          if(status === "ended" && isCallActive){
+          if((status === "ended" || status === "rejected") && isCallActive){
             callStatusEl.innerText = "Call ended"
             setTimeout(()=> cleanupCall(), 1200)
           }
@@ -2190,6 +2210,9 @@ window.acceptCall = async function(){
     }
   })
 
+  // Bug 2 fix: unsubscribe incoming-listener before setting active-listener
+  if(callStatusUnsubscribe){ try{ callStatusUnsubscribe() }catch(e){} callStatusUnsubscribe=null }
+
   // ── Listen for ended status ──
   callStatusUnsubscribe = onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status = snap.val()
@@ -2226,6 +2249,17 @@ function cleanupCall(){
   isMuted = false
   isSpeakerOn = false
   currentCallId = null
+  // Bug 3 fix: reset speaker + mute button UI
+  const speakerBtn = document.getElementById("speakerBtn")
+  const speakerLbl = document.getElementById("speakerLabel")
+  const muteBtn    = document.getElementById("muteCallBtn")
+  const muteLbl    = document.getElementById("muteLabel")
+  if(speakerBtn){ speakerBtn.classList.remove("active"); speakerLbl.innerText="Speaker" }
+  if(muteBtn){
+    muteBtn.classList.remove("active")
+    muteBtn.innerHTML=`<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`
+    muteLbl.innerText="Mute"
+  }
   hideCallOverlay()
 }
 

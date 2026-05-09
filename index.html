@@ -2077,6 +2077,8 @@ window.initiateCall = async function(){
       if(sigState === "have-local-offer"){
         try{
           await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+          // Fix: show active screen immediately when answer received
+          showCallOverlay("active")
         }catch(e){ console.warn("setRemoteDescription answer error:", e) }
       }
     }
@@ -2141,6 +2143,10 @@ window.acceptCall = async function(){
   if(!currentCallId) return
   stopRingtone()
 
+  // Show "Connecting..." immediately so user knows button worked
+  callStatusEl.innerText = "Connecting..."
+  document.getElementById("incomingActions").style.display = "none"
+
   try {
     localStream = await navigator.mediaDevices.getUserMedia({
       audio:{
@@ -2169,13 +2175,13 @@ window.acceptCall = async function(){
 
   await createPeerConnection()
 
-  // ── FIX: retry fetching offer up to 8 times (500ms apart) ──
+  // ── retry fetching offer up to 10 times (400ms apart = 4s total) ──
   let offer = null
-  for(let i = 0; i < 8; i++){
+  for(let i = 0; i < 10; i++){
     const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
     offer = snap.val()
     if(offer) break
-    await new Promise(r => setTimeout(r, 500))
+    await new Promise(r => setTimeout(r, 400))
   }
 
   if(!offer){
@@ -2198,6 +2204,9 @@ window.acceptCall = async function(){
     answer: { type: answer.type, sdp: answer.sdp },
     status: "active"
   })
+
+  // Fix: show active screen immediately — don't wait for onconnectionstatechange
+  showCallOverlay("active")
 
   // ── Listen for caller's ICE candidates ──
   const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))

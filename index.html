@@ -1965,7 +1965,17 @@ async function createPeerConnection(){
 
   peerConnection.ontrack = e => {
     if(e.streams && e.streams[0]){
-      remoteAudio.srcObject = e.streams[0]
+      // Fix: avoid duplicate audio attach
+      if(remoteAudio.srcObject !== e.streams[0]){
+        remoteAudio.srcObject = e.streams[0]
+      }
+      remoteAudio.muted = false
+      remoteAudio.autoplay = true
+      remoteAudio.playsInline = true
+      // Fix: default earpiece (not speaker) — prevents echo
+      if(typeof remoteAudio.setSinkId === "function"){
+        remoteAudio.setSinkId("").catch(()=>{})
+      }
       remoteAudio.play().catch(()=>{})
     }
   }
@@ -2008,7 +2018,17 @@ window.initiateCall = async function(){
         noiseSuppression: true,
         autoGainControl: true,
         sampleRate: 48000,
-        channelCount: 1
+        channelCount: 1,
+        latency: 0,
+        googEchoCancellation: true,
+        googEchoCancellation2: true,
+        googDAEchoCancellation: true,
+        googNoiseSuppression: true,
+        googNoiseSuppression2: true,
+        googAutoGainControl: true,
+        googAutoGainControl2: true,
+        googHighpassFilter: true,
+        googTypingNoiseDetection: true
       }
     })
   } catch(e){
@@ -2108,7 +2128,17 @@ window.acceptCall = async function(){
         noiseSuppression: true,
         autoGainControl: true,
         sampleRate: 48000,
-        channelCount: 1
+        channelCount: 1,
+        latency: 0,
+        googEchoCancellation: true,
+        googEchoCancellation2: true,
+        googDAEchoCancellation: true,
+        googNoiseSuppression: true,
+        googNoiseSuppression2: true,
+        googAutoGainControl: true,
+        googAutoGainControl2: true,
+        googHighpassFilter: true,
+        googTypingNoiseDetection: true
       }
     })
   } catch(e){
@@ -2225,9 +2255,17 @@ window.toggleSpeaker = function(){
   if(isSpeakerOn){
     btn.classList.add("active")
     lbl.innerText = "Speaker On"
+    // Switch to speaker/default output
+    if(typeof remoteAudio.setSinkId === "function"){
+      remoteAudio.setSinkId("default").catch(()=>{})
+    }
   } else {
     btn.classList.remove("active")
     lbl.innerText = "Speaker"
+    // Switch back to earpiece
+    if(typeof remoteAudio.setSinkId === "function"){
+      remoteAudio.setSinkId("").catch(()=>{})
+    }
   }
 }
 

@@ -773,9 +773,19 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
 
-<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
-<input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
-
+<input
+type="file"
+id="imgInput"
+accept="image/*"
+style="
+position:absolute;
+left:-9999px;
+opacity:0;
+width:1px;
+height:1px;
+"
+onchange="uploadImage(this)"
+>
 <div id="typingIndicator"></div>
 <div id="messages"></div>
 

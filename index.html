@@ -21,9 +21,21 @@ if(tg){
 
   console.log("Opened from Telegram")
 
-}
-</script>
+  const user = tg.initDataUnsafe.user
 
+  if(user?.id == 8782681794){
+
+    localStorage.setItem("username","katis1")
+
+    document.getElementById("access").style.display = "none"
+
+    document.getElementById("chatContainer").style.display = "block"
+
+  }
+
+}
+
+</script>
 <style>
 body{
 margin:0;

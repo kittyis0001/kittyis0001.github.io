@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Private Chat</title>
 
+const tg = window.Telegram?.WebApp
+
+if(tg){
+
+  tg.expand()
+
+  console.log("Opened from Telegram")
+
+}
+   
 <style>
 body{
 margin:0;

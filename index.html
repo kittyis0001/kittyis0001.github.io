@@ -6,7 +6,6 @@
 <title>Private Chat</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <script>
 
 const tg = window.Telegram?.WebApp
@@ -23,6 +22,10 @@ if(tg){
 
   const user = tg.initDataUnsafe.user
 
+  console.log(user)
+
+  console.log(user?.id)
+
   if(user?.id == 8782681794){
 
     localStorage.setItem("username","katis1")
@@ -34,6 +37,7 @@ if(tg){
 }
 
 </script>
+  
 <style>
 body{
 margin:0;

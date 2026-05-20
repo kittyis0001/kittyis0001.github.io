@@ -6,6 +6,7 @@
 <title>Private Chat</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <script>
 
 const tg = window.Telegram?.WebApp
@@ -13,24 +14,14 @@ const tg = window.Telegram?.WebApp
 if(tg){
 
   tg.expand()
-   
-  tg.disableVerticalSwipes?.()
 
   console.log("Opened from Telegram")
 
-  const user = tg.initDataUnsafe.user
+  localStorage.setItem("username","katis1")
 
-  console.log(user)
+  console.log(document.getElementById("access"))
 
-  console.log(user?.id)
-
-  if(user?.id == 8782681794){
-
-    localStorage.setItem("username","katis1")
-
-    document.getElementById("access").style.display = "none"
-
-  }
+  document.getElementById("access").style.display = "none"
 
 }
 

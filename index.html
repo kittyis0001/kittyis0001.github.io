@@ -187,7 +187,6 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 border:2px solid rgba(255,255,255,0.6);
-/* TASK 1: cursor pointer removed, no onclick */
 }
 
 #headerInfo{
@@ -212,7 +211,6 @@ white-space:nowrap;
 opacity:0.9;
 }
 
-/* TASK 3: Call button in header */
 #callBtn{
 background:none;
 border:none;
@@ -477,7 +475,6 @@ font-size:16px; cursor:pointer; display:flex; align-items:center; justify-conten
 #previewDeleteBtn{ background:#ff4444; color:white; }
 #previewSendBtn{ background:#075E54; color:white; }
 
-/* ─────────────────── TASK 2: GIF PANEL ─────────────────── */
 #gifPanel{
 display:none;
 position:fixed;
@@ -516,9 +513,6 @@ transition:transform 0.1s;
 }
 .gifItem:active{ transform:scale(0.95); }
 
-/* ─────────────────── TASK 3: VOICE CALL UI ─────────────────── */
-
-/* Outgoing / Incoming call overlay */
 #callOverlay{
 display:none;
 position:fixed;
@@ -617,11 +611,9 @@ flex-direction:column;
 align-items:center;
 }
 
-/* incoming-only buttons */
 #incomingActions{ display:none; gap:60px; justify-content:center; }
 #activeActions{ display:none; gap:30px; justify-content:center; flex-wrap:wrap; }
 
-/* ─────────────────── INPUT AREA ─────────────────── */
 #inputArea{
 display:flex; padding:8px 10px;
 background:#f0f0f0; align-items:flex-end;
@@ -664,13 +656,11 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <div id="chat">
 
 <div id="header">
-  <!-- TASK 1: headerAvatar has NO onclick — profile pic change only from menu -->
   <img id="headerAvatar" src="" alt="Profile">
   <div id="headerInfo">
     <div id="headerName">Private Chat</div>
     <div id="statusText">Offline</div>
   </div>
-  <!-- TASK 3: Call button -->
   <button id="callBtn" onclick="initiateCall()" title="Voice Call">📞</button>
   <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
@@ -680,6 +670,8 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   <div onclick="triggerVoiceRecord()">🎤 Send Voice Message</div>
   <div onclick="openNickModal()">✏️ Change Nick Name</div>
   <div onclick="changeProfilePic()">🖼️ Change Profile Pic</div>
+  <!-- GIF Toggle menu item -->
+  <div id="gifToggleItem" onclick="toggleGifSuggestions()">☑️ GIF Suggestions</div>
   <div onclick="deleteAll()">Delete All Chat</div>
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
@@ -690,7 +682,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <div id="typingIndicator"></div>
 <div id="messages"></div>
 
-<!-- TASK 2: GIF panel -->
 <div id="gifPanel"></div>
 
 <div id="voicePreviewBar">
@@ -766,7 +757,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   </div>
 </div>
 
-<!-- TASK 3: Voice Call Overlay (WhatsApp style) -->
 <div id="callOverlay">
   <div class="callTop">
     <img id="callAvatar" src="" alt="">
@@ -775,7 +765,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
     <div id="callTimer">0:00</div>
   </div>
 
-  <!-- Incoming call buttons -->
   <div id="incomingActions" class="callActions">
     <div class="callBtnWrap">
       <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">📵</button>
@@ -787,7 +776,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
     </div>
   </div>
 
-  <!-- Active call buttons -->
   <div id="activeActions" class="callActions">
     <div class="callBtnWrap">
       <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">🎤</button>
@@ -804,7 +792,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   </div>
 </div>
 
-<!-- Hidden audio elements for call -->
 <audio id="remoteAudio" autoplay playsinline></audio>
 <audio id="ringtoneAudio" loop>
   <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
@@ -851,6 +838,29 @@ const headerName = document.getElementById("headerName")
 let seenListener = null
 
 // ─────────────────────────────────────────────
+// GIF ON/OFF TOGGLE — localStorage persisted
+// ─────────────────────────────────────────────
+let gifEnabled = localStorage.getItem("gifSuggestions") !== "off"
+
+function updateGifToggleLabel(){
+  const item = document.getElementById("gifToggleItem")
+  if(!item) return
+  item.innerText = gifEnabled ? "☑️ GIF Suggestions" : "☐ GIF Suggestions"
+}
+
+window.toggleGifSuggestions = function(){
+  document.getElementById("menuBox").style.display = "none"
+  gifEnabled = !gifEnabled
+  localStorage.setItem("gifSuggestions", gifEnabled ? "on" : "off")
+  // Instantly hide panel if turned off
+  if(!gifEnabled){ hideGifPanel() }
+  updateGifToggleLabel()
+}
+
+// Init label on page load
+updateGifToggleLabel()
+
+// ─────────────────────────────────────────────
 // PROFILE PICS
 // ─────────────────────────────────────────────
 let profilePics = {}
@@ -878,7 +888,6 @@ function listenProfilePics(){
   })
 }
 
-// TASK 1: changeProfilePic only from menu — avatar img has NO onclick
 window.changeProfilePic = function(){
   document.getElementById("menuBox").style.display = "none"
   document.getElementById("profilePicInput").click()
@@ -1091,354 +1100,122 @@ previewSendBtn.addEventListener("click",async()=>{
 })
 
 // ─────────────────────────────────────────────
-// TYPING INDICATOR
+// TYPING INDICATOR + GIF
 // ─────────────────────────────────────────────
 const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
-
-// TASK 2: GIF debounce
-
 let gifDebounceTimer = null
-
-const GIF_API_KEY =
-"20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
-
+const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
 const gifPanel = document.getElementById("gifPanel")
 
-// ✅ Professional hide helper
-
 function hideGifPanel() {
-
   gifPanel.style.display = "none"
-
   gifPanel.innerHTML = ""
-
 }
 
-// ✅ Keyboard close detect
-
-msgBox.addEventListener("blur", () => {
-
-  hideGifPanel()
-
-})
-
-// ✅ Mobile keyboard back detect
+msgBox.addEventListener("blur", () => { hideGifPanel() })
 
 window.visualViewport?.addEventListener("resize", () => {
-
-  if (document.activeElement !== msgBox) {
-
-    hideGifPanel()
-
-  }
-
+  if (document.activeElement !== msgBox) { hideGifPanel() }
 })
-
-// ✅ Outside tap close
 
 document.addEventListener("touchstart", e => {
-
-  if (
-    !gifPanel.contains(e.target) &&
-    e.target !== msgBox
-  ) {
-
-    hideGifPanel()
-
-  }
-
+  if (!gifPanel.contains(e.target) && e.target !== msgBox) { hideGifPanel() }
 })
-
-// ✅ Input listener
 
 msgBox.addEventListener("input", function () {
-
   this.style.height = "auto"
-
-  this.style.height =
-  Math.min(this.scrollHeight, 120) + "px"
+  this.style.height = Math.min(this.scrollHeight, 120) + "px"
 
   if (username && !isBlocked()) {
-
     set(ref(db, "typing/" + username), true)
-
     clearTimeout(typingTimeout)
-
-    typingTimeout = setTimeout(() => {
-
-      set(ref(db, "typing/" + username), false)
-
-    }, 2000)
-
+    typingTimeout = setTimeout(() => { set(ref(db, "typing/" + username), false) }, 2000)
   }
+
+  // GIF disabled — skip entirely
+  if (!gifEnabled) { hideGifPanel(); return }
 
   const val = this.value.trim()
-
   clearTimeout(gifDebounceTimer)
 
-  // ✅ Empty input → hide
+  if (!val) { hideGifPanel(); return }
+  if (val.endsWith(".") || val.endsWith("?") || val.endsWith("!")) { hideGifPanel(); return }
+  const sentenceCount = (val.match(/[.!?]/g) || []).length
+  if (sentenceCount >= 1) { hideGifPanel(); return }
 
-  if (!val) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  // ✅ Sentence completed → hide
-
-  if (
-    val.endsWith(".") ||
-    val.endsWith("?") ||
-    val.endsWith("!")
-  ) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  // ✅ Multiple sentence detect
-
-  const sentenceCount =
-  (val.match(/[.!?]/g) || []).length
-
-  if (sentenceCount >= 1) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  gifDebounceTimer = setTimeout(() => {
-
-    searchGifs(val)
-
-  }, 350)
-
+  gifDebounceTimer = setTimeout(() => { searchGifs(val) }, 350)
 })
 
-// ✅ GIF search
-
 async function searchGifs(query) {
-
-  // ✅ Long sentence → hide
-
-  if (query.split(" ").length > 4) {
-
-    hideGifPanel()
-
-    return
-
-  }
+  // Guard: if toggled off during debounce delay
+  if (!gifEnabled) { hideGifPanel(); return }
+  if (query.split(" ").length > 4) { hideGifPanel(); return }
 
   gifPanel.style.display = "flex"
-
   try {
-
-    const url =
-    `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
-
+    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
     const res = await fetch(url)
-
     const data = await res.json()
-
     let items = data?.data?.data || []
 
-    // ✅ Remove duplicates
-
     const usedUrls = new Set()
-
     items = items.filter(item => {
-
-      const url =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      if (!url || usedUrls.has(url)) {
-
-        return false
-
-      }
-
-      usedUrls.add(url)
-
-      return true
-
+      const url = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      if (!url || usedUrls.has(url)) return false
+      usedUrls.add(url); return true
     })
 
-    // ✅ Randomize results
-
     items = items.sort(() => Math.random() - 0.5)
-
-    // ✅ No relevant GIFs → hide
-
-    if (!items.length || items.length < 2) {
-
-      hideGifPanel()
-
-      return
-
-    }
+    if (!items.length || items.length < 2) { hideGifPanel(); return }
 
     gifPanel.innerHTML = ""
-
     items.forEach(item => {
-
-      const gifUrl =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      const previewUrl =
-      item?.file?.sm?.gif?.url ||
-      item?.file?.md?.gif?.url ||
-      gifUrl
-
+      const gifUrl = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      const previewUrl = item?.file?.sm?.gif?.url || item?.file?.md?.gif?.url || gifUrl
       if (!gifUrl) return
 
       const img = document.createElement("img")
-
       img.className = "gifItem"
-
       img.src = previewUrl
-
       img.loading = "lazy"
-
       img.alt = "GIF"
-
-      // ✅ Professional preview size
-
       img.style.width = "72px"
-
       img.style.height = "72px"
-
       img.style.objectFit = "cover"
-
       img.style.borderRadius = "10px"
-
       img.style.margin = "4px"
-
       img.style.cursor = "pointer"
-
       img.style.flexShrink = "0"
-
       img.style.transition = "0.2s"
 
-      // ✅ FIX: scroll + touch send both work
-
       let touchMoved = false
-
-      img.addEventListener("touchmove", () => {
-
-        touchMoved = true
-
-      }, { passive:true })
-
-      img.addEventListener("touchstart", () => {
-
-        touchMoved = false
-
-      }, { passive:true })
-
+      img.addEventListener("touchmove", () => { touchMoved = true }, { passive:true })
+      img.addEventListener("touchstart", () => { touchMoved = false }, { passive:true })
       img.addEventListener("touchend", async (e) => {
-
-        // ✅ If scrolling → don't send
-
         if (touchMoved) return
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
+        e.preventDefault(); e.stopPropagation()
         if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
       }, { passive:false })
 
-      // ✅ Desktop click support
-
       img.addEventListener("click", async (e) => {
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
+        e.preventDefault(); e.stopPropagation()
         if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
       })
 
       gifPanel.appendChild(img)
-
     })
-
-  } catch (e) {
-
-    console.error(e)
-
-    hideGifPanel()
-
-  }
-
+  } catch (e) { console.error(e); hideGifPanel() }
 }
 
-// ✅ Enter send
-
 msgBox.addEventListener("keydown", function (e) {
-
-  if (e.key === "Enter" && !e.shiftKey) {
-
-    e.preventDefault()
-
-    send()
-
-  }
-
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() }
 })
+
 // ─────────────────────────────────────────────
 // REPLY
 // ─────────────────────────────────────────────
@@ -1656,8 +1433,6 @@ window.start=async function(){
   listenBlockStatus()
   listenProfilePics()
   markSeenMessages()
-
-  // TASK 3: Start listening for incoming calls
   listenIncomingCalls()
 }
 
@@ -1773,7 +1548,6 @@ function createMessage(message,key){
   avatarImg.src=getAvatar(message.name)
   avatarImg.alt=displayName
   avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
-  // TASK 1: avatar click only for own pic change
   avatarImg.addEventListener("click",e=>{
     e.stopPropagation()
     if(message.name===username) changeProfilePic()
@@ -1804,7 +1578,6 @@ function createMessage(message,key){
   if(message.text.startsWith("__voice__")){
     div.insertBefore(createVoicePlayer(message.text.replace("__voice__","")),timeDiv)
   } else if(message.text.startsWith("__gif__")){
-    // TASK 2: Render GIF message
     const gifUrl = message.text.replace("__gif__","")
     const img=document.createElement("img")
     img.src=gifUrl
@@ -2017,7 +1790,7 @@ window.uploadImage=async function(input){
 }
 
 // ══════════════════════════════════════════════
-// TASK 3: VOICE CALL — WebRTC + Firebase signaling
+// VOICE CALL — WebRTC + Firebase signaling
 // ══════════════════════════════════════════════
 
 const ICE_SERVERS = {
@@ -2063,7 +1836,6 @@ const remoteAudio = document.getElementById("remoteAudio")
 const ringtoneAudio = document.getElementById("ringtoneAudio")
 
 function showCallOverlay(mode){
-  // mode: "outgoing" | "incoming" | "active"
   callOverlay.style.display="flex"
   callAvatarEl.src = getAvatar(otherUser)
   callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
@@ -2076,9 +1848,7 @@ function showCallOverlay(mode){
   if(mode==="outgoing"){
     callStatusEl.innerText="Calling..."
     callAvatarEl.classList.add("ringing")
-    // Show only end button
     activeActions.style.display="flex"
-    // hide mute & speaker, only end
     document.getElementById("muteCallBtn").style.display="none"
     document.getElementById("speakerBtn").style.display="none"
     document.getElementById("endCallBtn").style.display="flex"
@@ -2132,14 +1902,12 @@ function stopCallTimer(){
 async function createPeerConnection(){
   peerConnection = new RTCPeerConnection(ICE_SERVERS)
 
-  // Add local audio tracks
   if(localStream){
     localStream.getTracks().forEach(track=>{
       peerConnection.addTrack(track, localStream)
     })
   }
 
-  // When remote track arrives
   peerConnection.ontrack = e=>{
     if(e.streams && e.streams[0]){
       remoteAudio.srcObject = e.streams[0]
@@ -2147,14 +1915,12 @@ async function createPeerConnection(){
     }
   }
 
-  // ICE candidate — send to Firebase
   peerConnection.onicecandidate = e=>{
     if(e.candidate && currentCallId){
       push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
     }
   }
 
-  // Connection state
   peerConnection.onconnectionstatechange = ()=>{
     const state = peerConnection.connectionState
     if(state==="connected"){
@@ -2166,7 +1932,6 @@ async function createPeerConnection(){
   }
 }
 
-// Initiate call (caller side)
 window.initiateCall = async function(){
   if(isCallActive){ return }
   if(!username){ alert("Please login first"); return }
@@ -2188,7 +1953,6 @@ window.initiateCall = async function(){
   const offer = await peerConnection.createOffer()
   await peerConnection.setLocalDescription(offer)
 
-  // Write call to Firebase
   await set(ref(db, "calls/"+currentCallId), {
     caller: username,
     callee: otherUser,
@@ -2199,7 +1963,6 @@ window.initiateCall = async function(){
 
   showCallOverlay("outgoing")
 
-  // Listen for answer
   onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
     const answer = snap.val()
     if(answer && peerConnection && peerConnection.signalingState!=="stable"){
@@ -2209,7 +1972,6 @@ window.initiateCall = async function(){
     }
   })
 
-  // Listen for remote ICE candidates
   onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
     const candidate = snap.val()
     if(candidate && peerConnection){
@@ -2217,7 +1979,6 @@ window.initiateCall = async function(){
     }
   })
 
-  // Listen for call status (rejected/ended)
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
     if(status==="rejected"||status==="ended"){
@@ -2226,7 +1987,6 @@ window.initiateCall = async function(){
   })
 }
 
-// Listen for incoming calls
 function listenIncomingCalls(){
   onValue(ref(db,"calls"), snap=>{
     const calls=snap.val()
@@ -2246,7 +2006,6 @@ function showIncomingCall(callData){
   showCallOverlay("incoming")
 }
 
-// Accept call
 window.acceptCall = async function(){
   if(!currentCallId) return
   stopRingtone()
@@ -2263,11 +2022,25 @@ window.acceptCall = async function(){
 
   await createPeerConnection()
 
-  const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
-  const offer = snap.val()
+  // Show connecting immediately
+  callStatusEl.innerText = "Connecting..."
+  document.getElementById("incomingActions").style.display = "none"
+
+  // Retry offer fetch up to 10 times
+  let offer = null
+  for(let i = 0; i < 10; i++){
+    const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
+    offer = snap.val()
+    if(offer) break
+    await new Promise(r => setTimeout(r, 400))
+  }
+
   if(!offer){ cleanupCall(); return }
 
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  try{
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  }catch(e){ cleanupCall(); return }
+
   const answer = await peerConnection.createAnswer()
   await peerConnection.setLocalDescription(answer)
 
@@ -2276,9 +2049,10 @@ window.acceptCall = async function(){
     status:"active"
   })
 
+  // Show active immediately
+  showCallOverlay("active")
   isCallActive=true
 
-  // Listen for caller's ICE candidates
   const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
   const caller = callerSnap.val() || otherUser
   onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
@@ -2288,14 +2062,12 @@ window.acceptCall = async function(){
     }
   })
 
-  // Listen for ended status
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
     if(status==="ended"){ cleanupCall() }
   })
 }
 
-// Reject call
 window.rejectCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
@@ -2303,7 +2075,6 @@ window.rejectCall = async function(){
   cleanupCall()
 }
 
-// End active call
 window.endCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"ended"})
@@ -2338,7 +2109,6 @@ window.toggleSpeaker = function(){
   const lbl=document.getElementById("speakerLabel")
   btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
   lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
-  // On mobile, speakerphone is handled by the OS — this is a visual indicator
 }
 
 </script>

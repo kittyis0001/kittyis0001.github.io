@@ -1,0 +1,409 @@
+/* ═══════════════════════════════════════════════
+   STORY SYSTEM — Instagram Style
+   ═══════════════════════════════════════════════ */
+
+/* ── Story Bar (header strip) ── */
+#storyBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+#storyBar::-webkit-scrollbar { display: none; }
+
+/* ── Single story circle wrapper ── */
+.story-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── RGB gradient ring ── */
+.story-ring {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 2.5px;
+  background: conic-gradient(
+    #f09433, #e6683c, #dc2743,
+    #cc2366, #bc1888, #9c27b0,
+    #673ab7, #3f51b5, #2196f3,
+    #00bcd4, #4caf50, #8bc34a,
+    #cddc39, #ffeb3b, #ffc107,
+    #ff9800, #f09433
+  );
+  position: relative;
+  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1);
+}
+.story-ring:active { transform: scale(0.93); }
+
+/* Viewed ring — greyed out */
+.story-ring.viewed {
+  background: conic-gradient(#555, #888, #555);
+}
+
+/* Inner white border */
+.story-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #111;
+  border: 2.5px solid #111;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-ring-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* My story plus icon */
+.story-plus {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 20px;
+  height: 20px;
+  background: #0095f6;
+  border-radius: 50%;
+  border: 2px solid #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: white;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Story username label */
+.story-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  max-width: 62px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Upload overlay ── */
+#storyUploadOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 20000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInStory 0.22s ease;
+}
+
+#storyUploadOverlay.active { display: flex; }
+
+#storyUploadOverlay h2 {
+  color: white;
+  font-size: 18px;
+  font-family: Arial;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.story-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 16px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-family: Arial;
+  cursor: pointer;
+  width: 220px;
+  justify-content: center;
+  transition: background 0.18s, transform 0.15s;
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+}
+.story-upload-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.18); }
+
+.story-upload-preview {
+  width: 180px;
+  height: 280px;
+  border-radius: 16px;
+  object-fit: cover;
+  display: none;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+
+.story-upload-preview.active { display: block; }
+
+#storyCaption {
+  width: 220px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: white;
+  font-size: 14px;
+  font-family: Arial;
+  outline: none;
+  resize: none;
+  display: none;
+}
+#storyCaption::placeholder { color: rgba(255,255,255,0.45); }
+#storyCaption.active { display: block; }
+
+.story-action-row {
+  display: flex;
+  gap: 12px;
+}
+
+#storySubmitBtn {
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  border: none;
+  border-radius: 20px;
+  padding: 12px 32px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  font-weight: bold;
+  cursor: pointer;
+  display: none;
+  transition: opacity 0.2s, transform 0.15s;
+}
+#storySubmitBtn.active { display: block; }
+#storySubmitBtn:active { transform: scale(0.96); opacity: 0.85; }
+#storySubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#storyUploadCancelBtn {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+}
+#storyUploadCancelBtn:active { transform: scale(0.96); }
+
+/* ── Fullscreen Story Viewer ── */
+#storyViewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 30000;
+  flex-direction: column;
+  overflow: hidden;
+}
+#storyViewer.active { display: flex; }
+
+/* Progress bars */
+#storyProgressBars {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.story-prog-track {
+  flex: 1;
+  height: 2.5px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.story-prog-fill {
+  height: 100%;
+  background: white;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+.story-prog-fill.done { width: 100%; transition: none; }
+.story-prog-fill.empty { width: 0%; transition: none; }
+
+/* Viewer header */
+#storyViewerHeader {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  z-index: 10;
+}
+
+#storyViewerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+#storyViewerName {
+  color: white;
+  font-size: 14px;
+  font-family: Arial;
+  font-weight: bold;
+  flex: 1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+#storyViewerTime {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  font-family: Arial;
+}
+
+#storyCloseBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Media container */
+#storyMediaWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#storyImg {
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+  display: none;
+  border-radius: 0;
+  user-select: none;
+  pointer-events: none;
+}
+#storyImg.active { display: block; }
+
+#storyVid {
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+  display: none;
+  user-select: none;
+}
+#storyVid.active { display: block; }
+
+/* Caption overlay */
+#storyCapOverlay {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0 20px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  pointer-events: none;
+  display: none;
+}
+#storyCapOverlay.active { display: block; }
+
+/* Tap zones */
+#storyTapLeft {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 35%;
+  height: 100%;
+  z-index: 5;
+  cursor: pointer;
+}
+
+#storyTapRight {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 35%;
+  height: 100%;
+  z-index: 5;
+  cursor: pointer;
+}
+
+/* Delete button (own story) */
+#storyDeleteBtn {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  background: rgba(255,59,48,0.85);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  color: white;
+  font-size: 13px;
+  font-family: Arial;
+  cursor: pointer;
+  z-index: 10;
+  display: none;
+  backdrop-filter: blur(6px);
+}
+#storyDeleteBtn.active { display: block; }
+
+/* ── Animations ── */
+@keyframes fadeInStory {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes storySlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Empty story state */
+.story-empty {
+  color: rgba(255,255,255,0.4);
+  font-size: 12px;
+  font-family: Arial;
+  padding: 8px 0;
+  white-space: nowrap;
+}

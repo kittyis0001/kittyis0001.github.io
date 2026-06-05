@@ -571,7 +571,13 @@ function timeAgo(ts) {
 // ────────────────────────────────────────────────────────────
 // 8. INIT
 // ────────────────────────────────────────────────────────────
-function init() {
+const chat = document.getElementById("chat")
+
+if (chat.style.display !== "flex") {
+  return
+}
+
+  function init() {
   injectHTML()
   bindEvents()
   injectMenuItem()

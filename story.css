@@ -1,249 +1,263 @@
-cat > /home/claude/story.css << 'EOF'
-/* ═══════════════════════════════════════
-   STORY SYSTEM — Modal + Viewer Only
-   ═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   STORY SYSTEM — Instagram Style
+   ═══════════════════════════════════════════════ */
 
-/* ── Upload Modal Overlay ── */
-#storyModalOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  z-index: 50000;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-#storyModalOverlay.s-active {
-  display: flex;
-}
-
-/* ── Modal Box ── */
-#storyModalBox {
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 360px;
-  padding: 24px 20px;
-  box-sizing: border-box;
-  animation: sModalIn 0.25s cubic-bezier(.34,1.56,.64,1);
-  position: relative;
-}
-
-@keyframes sModalIn {
-  from { transform: scale(0.88) translateY(20px); opacity: 0; }
-  to   { transform: scale(1) translateY(0);       opacity: 1; }
-}
-
-#storyModalBox h2 {
-  color: #fff;
-  font-size: 17px;
-  font-family: Arial, sans-serif;
-  margin: 0 0 20px;
-  text-align: center;
-  letter-spacing: 0.3px;
-}
-
-/* ── Preview Area ── */
-#sPreviewWrap {
-  width: 100%;
-  height: 200px;
-  border-radius: 14px;
-  background: #111;
-  border: 1.5px dashed rgba(255,255,255,0.2);
+/* ── Story Bar (header strip) ── */
+#storyBar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  margin-bottom: 14px;
-  position: relative;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+#storyBar::-webkit-scrollbar { display: none; }
 
-#sPreviewImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 14px;
-  display: none;
-}
-#sPreviewImg.s-active { display: block; }
-
-#sPreviewVid {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 14px;
-  display: none;
-}
-#sPreviewVid.s-active { display: block; }
-
-#sPreviewPlaceholder {
+/* ── Single story circle wrapper ── */
+.story-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  color: rgba(255,255,255,0.35);
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  pointer-events: none;
-}
-#sPreviewPlaceholder span {
-  font-size: 32px;
-}
-#sPreviewPlaceholder.s-hidden { display: none; }
-
-/* ── File picker buttons ── */
-.s-pick-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.s-pick-btn {
-  flex: 1;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.15);
-  border-radius: 12px;
-  padding: 11px 6px;
-  color: #fff;
-  font-size: 13px;
-  font-family: Arial, sans-serif;
+  gap: 5px;
   cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── RGB gradient ring ── */
+.story-ring {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 2.5px;
+  background: conic-gradient(
+    #f09433, #e6683c, #dc2743,
+    #cc2366, #bc1888, #9c27b0,
+    #673ab7, #3f51b5, #2196f3,
+    #00bcd4, #4caf50, #8bc34a,
+    #cddc39, #ffeb3b, #ffc107,
+    #ff9800, #f09433
+  );
+  position: relative;
+  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1);
+}
+.story-ring:active { transform: scale(0.93); }
+
+/* Viewed ring — greyed out */
+.story-ring.viewed {
+  background: conic-gradient(#555, #888, #555);
+}
+
+/* Inner white border */
+.story-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #111;
+  border: 2.5px solid #111;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: background 0.18s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.s-pick-btn:active {
-  transform: scale(0.96);
-  background: rgba(255,255,255,0.14);
 }
 
-/* ── Caption ── */
-#sCaptionInput {
+.story-ring-inner img {
   width: 100%;
-  box-sizing: border-box;
-  background: rgba(255,255,255,0.07);
-  border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  padding: 11px 14px;
-  color: #fff;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  resize: none;
-  outline: none;
-  margin-bottom: 16px;
-  min-height: 56px;
-  transition: border-color 0.2s;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
-#sCaptionInput::placeholder { color: rgba(255,255,255,0.3); }
-#sCaptionInput:focus { border-color: rgba(255,255,255,0.35); }
 
-/* ── Action buttons ── */
-.s-action-row {
+/* My story plus icon */
+.story-plus {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 20px;
+  height: 20px;
+  background: #0095f6;
+  border-radius: 50%;
+  border: 2px solid #111;
   display: flex;
-  gap: 10px;
-}
-
-#sCancelBtn {
-  flex: 1;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.15);
-  border-radius: 14px;
-  padding: 13px;
-  color: #fff;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  cursor: pointer;
-  transition: background 0.18s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-#sCancelBtn:active { transform: scale(0.96); }
-
-#sShareBtn {
-  flex: 2;
-  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  border: none;
-  border-radius: 14px;
-  padding: 13px;
-  color: #fff;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: white;
   font-weight: bold;
+  line-height: 1;
+}
+
+/* Story username label */
+.story-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  max-width: 62px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Upload overlay ── */
+#storyUploadOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 20000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInStory 0.22s ease;
+}
+
+#storyUploadOverlay.active { display: flex; }
+
+#storyUploadOverlay h2 {
+  color: white;
+  font-size: 18px;
+  font-family: Arial;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.story-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 16px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-family: Arial;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
+  width: 220px;
+  justify-content: center;
+  transition: background 0.18s, transform 0.15s;
+  backdrop-filter: blur(8px);
   -webkit-tap-highlight-color: transparent;
 }
-#sShareBtn:active { transform: scale(0.96); opacity: 0.85; }
-#sShareBtn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.story-upload-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.18); }
 
-/* ── Upload progress ── */
-#sUploadStatus {
-  text-align: center;
-  font-size: 12px;
-  font-family: Arial, sans-serif;
-  color: rgba(255,255,255,0.55);
-  margin-bottom: 12px;
-  min-height: 16px;
+.story-upload-preview {
+  width: 180px;
+  height: 280px;
+  border-radius: 16px;
+  object-fit: cover;
+  display: none;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+
+.story-upload-preview.active { display: block; }
+
+#storyCaption {
+  width: 220px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: white;
+  font-size: 14px;
+  font-family: Arial;
+  outline: none;
+  resize: none;
   display: none;
 }
-#sUploadStatus.s-active { display: block; }
+#storyCaption::placeholder { color: rgba(255,255,255,0.45); }
+#storyCaption.active { display: block; }
 
-/* ═══════════════════════════════════════
-   FULLSCREEN STORY VIEWER
-   ═══════════════════════════════════════ */
+.story-action-row {
+  display: flex;
+  gap: 12px;
+}
 
+#storySubmitBtn {
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  border: none;
+  border-radius: 20px;
+  padding: 12px 32px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  font-weight: bold;
+  cursor: pointer;
+  display: none;
+  transition: opacity 0.2s, transform 0.15s;
+}
+#storySubmitBtn.active { display: block; }
+#storySubmitBtn:active { transform: scale(0.96); opacity: 0.85; }
+#storySubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#storyUploadCancelBtn {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+}
+#storyUploadCancelBtn:active { transform: scale(0.96); }
+
+/* ── Fullscreen Story Viewer ── */
 #storyViewer {
   display: none;
   position: fixed;
   inset: 0;
   background: #000;
-  z-index: 60000;
+  z-index: 30000;
   flex-direction: column;
   overflow: hidden;
-  touch-action: pan-y;
 }
-#storyViewer.s-active { display: flex; }
+#storyViewer.active { display: flex; }
 
 /* Progress bars */
-#sProgressBars {
+#storyProgressBars {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 0;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  display: flex;
-  gap: 3px;
-  padding: 10px 10px 0;
   z-index: 10;
-  box-sizing: border-box;
 }
 
-.s-prog-track {
+.story-prog-track {
   flex: 1;
-  height: 2px;
+  height: 2.5px;
   background: rgba(255,255,255,0.3);
   border-radius: 2px;
   overflow: hidden;
 }
-.s-prog-fill {
+
+.story-prog-fill {
   height: 100%;
-  background: #fff;
+  background: white;
   width: 0%;
   border-radius: 2px;
+  transition: width 0.1s linear;
 }
-.s-prog-fill.s-done  { width: 100%; }
-.s-prog-fill.s-empty { width: 0%;   }
+.story-prog-fill.done { width: 100%; transition: none; }
+.story-prog-fill.empty { width: 0%; transition: none; }
 
 /* Viewer header */
-#sViewerHeader {
+#storyViewerHeader {
   position: absolute;
-  top: 22px;
+  top: 28px;
   left: 0;
   right: 0;
   display: flex;
@@ -253,48 +267,42 @@ cat > /home/claude/story.css << 'EOF'
   z-index: 10;
 }
 
-#sViewerAvatar {
-  width: 34px;
-  height: 34px;
+#storyViewerAvatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid rgba(255,255,255,0.7);
-  flex-shrink: 0;
+  border: 2px solid white;
 }
 
-#sViewerName {
-  color: #fff;
-  font-size: 13px;
-  font-family: Arial, sans-serif;
+#storyViewerName {
+  color: white;
+  font-size: 14px;
+  font-family: Arial;
   font-weight: bold;
   flex: 1;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
 }
 
-#sViewerTime {
-  color: rgba(255,255,255,0.65);
-  font-size: 11px;
-  font-family: Arial, sans-serif;
-  flex-shrink: 0;
+#storyViewerTime {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  font-family: Arial;
 }
 
-#sCloseBtn {
+#storyCloseBtn {
   background: none;
   border: none;
-  color: #fff;
-  font-size: 24px;
+  color: white;
+  font-size: 26px;
   cursor: pointer;
-  padding: 0 2px;
+  padding: 0 4px;
   line-height: 1;
-  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Media area */
-#sMediaWrap {
+/* Media container */
+#storyMediaWrap {
   flex: 1;
   display: flex;
   align-items: center;
@@ -303,211 +311,99 @@ cat > /home/claude/story.css << 'EOF'
   overflow: hidden;
 }
 
-#sViewerImg {
+#storyImg {
   max-width: 100%;
   max-height: 100vh;
   object-fit: contain;
   display: none;
+  border-radius: 0;
   user-select: none;
   pointer-events: none;
-  -webkit-user-drag: none;
 }
-#sViewerImg.s-active { display: block; }
+#storyImg.active { display: block; }
 
-#sViewerVid {
+#storyVid {
   max-width: 100%;
   max-height: 100vh;
   object-fit: contain;
   display: none;
   user-select: none;
 }
-#sViewerVid.s-active { display: block; }
+#storyVid.active { display: block; }
+
+/* Caption overlay */
+#storyCapOverlay {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0 20px;
+  color: white;
+  font-size: 15px;
+  font-family: Arial;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  pointer-events: none;
+  display: none;
+}
+#storyCapOverlay.active { display: block; }
 
 /* Tap zones */
-#sTapLeft {
+#storyTapLeft {
   position: absolute;
-  left: 0; top: 0;
-  width: 33%;
-  height: 100%;
-  z-index: 5;
-  cursor: pointer;
-}
-#sTapRight {
-  position: absolute;
-  right: 0; top: 0;
-  width: 33%;
+  left: 0;
+  top: 0;
+  width: 35%;
   height: 100%;
   z-index: 5;
   cursor: pointer;
 }
 
-/* Caption */
-#sViewerCaption {
+#storyTapRight {
   position: absolute;
-  bottom: 70px;
-  left: 0; right: 0;
-  text-align: center;
-  padding: 0 24px;
-  color: #fff;
-  font-size: 15px;
-  font-family: Arial, sans-serif;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-  pointer-events: none;
-  display: none;
-  word-break: break-word;
+  right: 0;
+  top: 0;
+  width: 35%;
+  height: 100%;
+  z-index: 5;
+  cursor: pointer;
 }
-#sViewerCaption.s-active { display: block; }
 
-/* Delete button */
-#sDeleteBtn {
+/* Delete button (own story) */
+#storyDeleteBtn {
   position: absolute;
-  bottom: 20px;
+  bottom: 24px;
   right: 16px;
-  background: rgba(255,59,48,0.88);
+  background: rgba(255,59,48,0.85);
   border: none;
   border-radius: 20px;
-  padding: 9px 18px;
-  color: #fff;
+  padding: 10px 20px;
+  color: white;
   font-size: 13px;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   cursor: pointer;
   z-index: 10;
   display: none;
   backdrop-filter: blur(6px);
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.18s, transform 0.15s;
 }
-#sDeleteBtn.s-active { display: block; }
-#sDeleteBtn:active   { transform: scale(0.95); }
+#storyDeleteBtn.active { display: block; }
 
-/* Swipe down indicator */
-#sSwipeHint {
-  position: absolute;
-  top: 78px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255,255,255,0.3);
-  font-size: 11px;
-  font-family: Arial, sans-serif;
-  pointer-events: none;
-  z-index: 10;
-  white-space: nowrap;
-}
-
-/* Story viewer slide animation */
-@keyframes sViewerIn {
+/* ── Animations ── */
+@keyframes fadeInStory {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-#storyViewer.s-active {
-  animation: sViewerIn 0.2s ease;
+
+@keyframes storySlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* View stories list modal */
-#sViewListOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 50000;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0;
-}
-#sViewListOverlay.s-active { display: flex; }
-
-#sViewListBox {
-  background: #1c1c1e;
-  border-radius: 24px 24px 0 0;
-  width: 100%;
-  max-width: 480px;
-  padding: 16px 0 30px;
-  animation: sListIn 0.28s cubic-bezier(.34,1.56,.64,1);
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-@keyframes sListIn {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0);    }
-}
-
-#sViewListBox h3 {
-  color: #fff;
-  font-size: 16px;
-  font-family: Arial, sans-serif;
-  margin: 0 0 12px;
-  padding: 0 20px;
-  text-align: center;
-}
-
-.s-story-list-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.s-story-list-item:active { background: rgba(255,255,255,0.07); }
-
-.s-list-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid;
-  border-image: linear-gradient(135deg,#f09433,#bc1888) 1;
-  flex-shrink: 0;
-}
-
-.s-list-info { flex: 1; }
-.s-list-name {
-  color: #fff;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  font-weight: bold;
-}
-.s-list-meta {
-  color: rgba(255,255,255,0.45);
-  font-size: 11px;
-  font-family: Arial, sans-serif;
-  margin-top: 2px;
-}
-.s-list-count {
+/* Empty story state */
+.story-empty {
   color: rgba(255,255,255,0.4);
   font-size: 12px;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
+  padding: 8px 0;
+  white-space: nowrap;
 }
-
-#sViewListClose {
-  display: block;
-  width: calc(100% - 40px);
-  margin: 12px 20px 0;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  padding: 13px;
-  color: #fff;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.s-no-stories {
-  color: rgba(255,255,255,0.35);
-  font-size: 13px;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 20px;
-}
-EOF
-echo "story.css done — $(wc -l < /home/claude/story.css) lines"
-Output
-
-story.css done — 506 lines
-Done

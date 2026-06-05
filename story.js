@@ -575,7 +575,7 @@ function init() {
   injectHTML()
   bindEvents()
   injectMenuItem()
-  fetchAndRenderBar()
+  
 
   // Auto-refresh every 60s
   setInterval(fetchAndRenderBar, 60000)

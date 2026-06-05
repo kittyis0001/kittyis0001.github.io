@@ -32,16 +32,7 @@ let storyBar, uploadOverlay, viewer
 // 1. INJECT HTML
 // ────────────────────────────────────────────────────────────
 function injectHTML() {
-  // ── Story Bar ──
-  storyBar = document.createElement('div')
-  storyBar.id = 'storyBar'
-
-  // Insert after header, before messages
-  const chat = document.getElementById('chat')
-  const header = document.getElementById('header')
-  if (!chat || !header) return
-  header.insertAdjacentElement('afterend', storyBar)
-
+ 
   // ── Upload Overlay ──
   uploadOverlay = document.createElement('div')
   uploadOverlay.id = 'storyUploadOverlay'

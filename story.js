@@ -168,19 +168,25 @@ function renderBar() {
   if (!storyBar) return
   storyBar.innerHTML = ''
 
-  // My story item — always show
-  const myGroup = allStories.find(g => g.userId === (typeof username !== 'undefined' ? username : ''))
-  const myItem  = makeStoryCircle({
-    userId:  typeof username !== 'undefined' ? username : 'me',
-    label:   'Your Story',
-    isMe:    true,
-    hasNew:  !!myGroup,
-    viewed:  false,
-    onClick: () => {
-      if (myGroup) openViewer(allStories.indexOf(myGroup))
-      else openUploadOverlay()
+// My story item — always show
+const myGroup = allStories.find(
+  g => g.userId === currentUser
+)
+
+const myItem = makeStoryCircle({
+  userId: currentUser,
+  label: 'Your Story',
+  isMe: true,
+  hasNew: !!myGroup,
+  viewed: false,
+  onClick: () => {
+    if (myGroup) {
+      openViewer(allStories.indexOf(myGroup))
+    } else {
+      openUploadOverlay()
     }
-  })
+  }
+})
   storyBar.appendChild(myItem)
 
   // Other users

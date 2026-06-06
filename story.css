@@ -4,7 +4,7 @@
 
 /* ── Story Bar ── */
 #storyBar {
-  display: none; /* shown only after login via showStoryBar() */
+  display: none;
   align-items: center;
   gap: 14px;
   padding: 10px 14px;
@@ -17,6 +17,12 @@
   flex-shrink: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
+
+/* ✅ FIX: login এর পরে showStoryBar() এই class add করবে */
+#storyBar.visible {
+  display: flex;
+}
+
 #storyBar::-webkit-scrollbar { display: none; }
 
 /* ── Story circle wrapper ── */
@@ -55,7 +61,7 @@
   background: conic-gradient(#555, #888, #555);
 }
 
-/* Inner circle border */
+/* Inner circle */
 .story-ring-inner {
   width: 100%;
   height: 100%;
@@ -105,11 +111,10 @@
   font-family: Arial, sans-serif;
 }
 
-/* ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
    UPLOAD OVERLAY
-   ──────────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 #storyUploadOverlay {
-  /* ✅ Hidden by default — only .active shows it */
   display: none;
   position: fixed;
   inset: 0;
@@ -202,7 +207,7 @@
   display: none;
   transition: opacity 0.2s, transform 0.15s;
 }
-#storySubmitBtn.active { display: block; }
+#storySubmitBtn.active  { display: block; }
 #storySubmitBtn:active  { transform: scale(0.96); opacity: 0.85; }
 #storySubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -219,9 +224,9 @@
 }
 #storyUploadCancelBtn:active { transform: scale(0.96); }
 
-/* ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
    FULLSCREEN VIEWER
-   ──────────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 #storyViewer {
   display: none;
   position: fixed;
@@ -261,7 +266,7 @@
 .story-prog-fill.done  { width: 100%; transition: none; }
 .story-prog-fill.empty { width: 0%;   transition: none; }
 
-/* Viewer header — avatar + name + time + close btn */
+/* Viewer header */
 #storyViewerHeader {
   position: absolute;
   top: 26px;
@@ -385,17 +390,17 @@
 }
 #storyDeleteBtn.active { display: block; }
 
-/* ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
    ANIMATIONS
-   ──────────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 @keyframes fadeInStory {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-/* ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
    MENU PROFILE ROW
-   ──────────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 #menuProfileRow {
   display: flex;
   align-items: center;
@@ -405,6 +410,7 @@
   cursor: pointer;
 }
 #menuProfileRow:hover { background: #f9f9f9; }
+
 #menuProfileAvatar {
   width: 42px;
   height: 42px;
@@ -413,8 +419,9 @@
   border: 2px solid #075E54;
   flex-shrink: 0;
 }
+
 #menuProfileName {
   font-weight: bold;
   font-size: 14px;
   color: #111;
-     }
+}

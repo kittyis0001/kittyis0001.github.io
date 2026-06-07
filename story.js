@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════
-// STORY SYSTEM — Instagram Style
+// STORY SYSTEM — Instagram Style  ✅ FIXED VERSION
 // ─────────────────────────────────────────────────────────
-// index.html এ login success এর পরে এটা call করতে হবে:
+// index.html এ login success এর পরে call করো:
 //   showStoryBar()
 // ═══════════════════════════════════════════════════════════
 
@@ -15,9 +15,6 @@
       ? BACKEND
       : 'https://chat-backend-myvs.onrender.com'
 
-  // ── FIX: constant না — function করো
-  // File load হওয়ার সময় localStorage খালি থাকে।
-  // login এর পরে প্রতিটি call এ fresh value পড়তে হবে।
   function getCurrentUser() {
     return (
       localStorage.getItem('chatUser') ||
@@ -42,15 +39,40 @@
 
   // ── DOM refs ────────────────────────────────────────────
   let storyBar, uploadOverlay, viewer
+  let domReady = false
+
+  // ══════════════════════════════════════════════════════
+  // ✅ FIX: DOMContentLoaded এ HTML inject করো
+  // ══════════════════════════════════════════════════════
+  function init() {
+    injectHTML()
+    bindEvents()
+    injectMenuItem()
+    domReady = true
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init)
+  } else {
+    init()
+  }
 
   // ═══════════════════════════════════════════════════════
-  // PUBLIC API
-  // index.html → start() function এ login success এর পরে:
-  //   showStoryBar()
+  // PUBLIC API — login এর পরে call করো
   // ═══════════════════════════════════════════════════════
   window.showStoryBar = function () {
+    // ✅ FIX: DOM ready না হলে wait করো
+    if (!domReady) {
+      setTimeout(window.showStoryBar, 100)
+      return
+    }
     if (!storyBar) return
-    storyBar.classList.add('visible') // CSS: #storyBar.visible { display:flex }
+    storyBar.classList.add('visible')
+    fetchAndRenderBar()
+  }
+
+  // story bar কে manually refresh করতে চাইলে
+  window.refreshStoryBar = function () {
     fetchAndRenderBar()
   }
 
@@ -58,13 +80,24 @@
   // 1. HTML INJECT
   // ═══════════════════════════════════════════════════════
   function injectHTML() {
+    // ✅ FIX: duplicate inject check
+    if (document.getElementById('storyBar')) {
+      storyBar = document.getElementById('storyBar')
+      uploadOverlay = document.getElementById('storyUploadOverlay')
+      viewer = document.getElementById('storyViewer')
+      return
+    }
+
     storyBar = document.createElement('div')
     storyBar.id = 'storyBar'
-    // 'visible' class login এর পরে add হবে
 
     const header = document.getElementById('header')
-    if (!header) return
-    header.insertAdjacentElement('afterend', storyBar)
+    if (header) {
+      header.insertAdjacentElement('afterend', storyBar)
+    } else {
+      // ✅ FIX: header না পেলে body এর শুরুতে দাও
+      document.body.insertAdjacentElement('afterbegin', storyBar)
+    }
 
     // Upload overlay
     uploadOverlay = document.createElement('div')
@@ -172,14 +205,16 @@
       const res  = await fetch(BACKEND_URL + '/stories')
       const data = await res.json()
 
-      // FIX: array এবং {stories:[]} দুটো format handle করো
-      const stories = Array.isArray(data) ? data : data.stories || []
-      console.log('[Story] API response:', data)
-      console.log('[Story] Stories count:', stories.length)
+      const stories = Array.isArray(data) ? data : (data.stories || [])
+      console.log('[Story] fetched:', stories.length, 'stories')
 
-      allStories = groupByUser(stories)
+      // ✅ FIX: expired story filter করো frontend এও
+      const now = Date.now()
+      const active = stories.filter(s => !s.expiresAt || s.expiresAt > now)
+
+      allStories = groupByUser(active)
     } catch (e) {
-      console.error('[Story] fetchAndRenderBar error:', e)
+      console.error('[Story] fetch error:', e)
       allStories = []
     }
     renderBar()
@@ -191,7 +226,7 @@
       if (!map[s.userId]) map[s.userId] = { userId: s.userId, stories: [] }
       map[s.userId].stories.push(s)
     })
-    const me = getCurrentUser() // FIX: function call
+    const me = getCurrentUser()
     return Object.values(map).sort((a, b) =>
       a.userId === me ? -1 : b.userId === me ? 1 : 0
     )
@@ -201,17 +236,19 @@
     if (!storyBar) return
     storyBar.innerHTML = ''
 
-    const me = getCurrentUser() // FIX: function call — fresh value
-    console.log('[Story] renderBar — currentUser:', me)
+    const me = getCurrentUser()
+    console.log('[Story] renderBar — user:', me, '| groups:', allStories.length)
 
     const myGroup = allStories.find((g) => g.userId === me)
 
+    // ✅ "Your Story" circle সবসময় দেখাও
     storyBar.appendChild(
       makeStoryCircle({
-        userId: me,
-        label: 'Your Story',
-        isMe: true,
-        viewed: false,
+        userId:  me,
+        label:   'Your Story',
+        isMe:    true,
+        viewed:  false,
+        hasStory: !!myGroup,
         onClick: () => {
           if (myGroup) openViewer(allStories.indexOf(myGroup))
           else openUploadOverlay()
@@ -219,6 +256,7 @@
       })
     )
 
+    // অন্য user দের story
     allStories.forEach((group, idx) => {
       if (group.userId === me) return
       const hasUnviewed = group.stories.some(
@@ -226,23 +264,31 @@
       )
       storyBar.appendChild(
         makeStoryCircle({
-          userId: group.userId,
-          label:
-            typeof getNick === 'function' ? getNick(group.userId) : group.userId,
-          isMe: false,
-          viewed: !hasUnviewed,
-          onClick: () => openViewer(idx),
+          userId:   group.userId,
+          label:    typeof getNick === 'function' ? getNick(group.userId) : group.userId,
+          isMe:     false,
+          viewed:   !hasUnviewed,
+          hasStory: true,
+          onClick:  () => openViewer(idx),
         })
       )
     })
   }
 
-  function makeStoryCircle({ userId, label, isMe, viewed, onClick }) {
+  // ✅ FIX: hasStory param add — ring color আলাদা করো
+  function makeStoryCircle({ userId, label, isMe, viewed, hasStory, onClick }) {
     const wrap = document.createElement('div')
     wrap.className = 'story-item'
 
     const ring = document.createElement('div')
-    ring.className = 'story-ring' + (viewed && !isMe ? ' viewed' : '')
+    // ✅ FIX: story না থাকলে grey ring, viewed হলেও grey
+    if (!hasStory) {
+      ring.className = 'story-ring viewed'
+    } else if (viewed && !isMe) {
+      ring.className = 'story-ring viewed'
+    } else {
+      ring.className = 'story-ring'
+    }
 
     const inner = document.createElement('div')
     inner.className = 'story-ring-inner'
@@ -250,7 +296,9 @@
     const img = document.createElement('img')
     img.src = typeof getAvatar === 'function' ? getAvatar(userId) : ''
     img.onerror = () => {
-      img.src = typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : ''
+      img.src = typeof DEFAULT_PIC !== 'undefined'
+        ? DEFAULT_PIC
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(userId)}&background=333&color=fff&size=64`
     }
     inner.appendChild(img)
     ring.appendChild(inner)
@@ -275,11 +323,11 @@
   // ═══════════════════════════════════════════════════════
   // 4. UPLOAD FLOW
   // ═══════════════════════════════════════════════════════
-  let selectedFile = null
+  let selectedFile    = null
   let selectedFileURL = null
 
   function openUploadOverlay() {
-    selectedFile = null
+    selectedFile    = null
     selectedFileURL = null
     document.getElementById('storyUploadPreview').classList.remove('active')
     document.getElementById('storyUploadVideoPreview').classList.remove('active')
@@ -300,22 +348,20 @@
   function onFileSelected(e) {
     const file = e.target.files[0]
     if (!file) return
-    selectedFile = file
+    selectedFile    = file
     selectedFileURL = URL.createObjectURL(file)
 
-    const isVid  = file.type.startsWith('video/')
+    const isVid   = file.type.startsWith('video/')
     const imgPrev = document.getElementById('storyUploadPreview')
     const vidPrev = document.getElementById('storyUploadVideoPreview')
 
     if (isVid) {
-      imgPrev.classList.remove('active')
-      imgPrev.src = ''
+      imgPrev.classList.remove('active'); imgPrev.src = ''
       vidPrev.src = selectedFileURL
       vidPrev.classList.add('active')
       vidPrev.play().catch(() => {})
     } else {
-      vidPrev.classList.remove('active')
-      vidPrev.src = ''
+      vidPrev.classList.remove('active'); vidPrev.src = ''
       imgPrev.src = selectedFileURL
       imgPrev.classList.add('active')
     }
@@ -326,63 +372,52 @@
   async function submitStory() {
     if (!selectedFile) return
     const btn = document.getElementById('storySubmitBtn')
-    btn.disabled = true
+    btn.disabled  = true
     btn.innerText = 'Uploading...'
 
     try {
-      // Step 1: media upload
+      // Step 1: media upload → Cloudinary
       const fd = new FormData()
       fd.append('file', selectedFile)
       const upRes  = await fetch(BACKEND_URL + '/upload', { method: 'POST', body: fd })
       const upData = await upRes.json()
       if (!upData.url) throw new Error('Upload failed — no URL returned')
 
-      // Step 2: payload build
-      const me      = getCurrentUser() // FIX: function call
+      // Step 2: story create
+      const me      = getCurrentUser()
       const caption = document.getElementById('storyCaption').value.trim()
       const isVid   = selectedFile.type.startsWith('video/')
+
+      if (me === 'unknown') throw new Error('Not logged in')
+
       const payload = {
         userId:  me,
         type:    isVid ? 'video' : 'image',
         media:   upData.url,
         caption: caption,
       }
+      console.log('[Story] creating:', payload)
 
-      console.log('[Story] currentUser:', me)
-      console.log('[Story] payload:', payload)
-
-      // Guard: login না হলে block করো
-      if (me === 'unknown') {
-        throw new Error('Not logged in — please refresh and login again')
-      }
-
-      // Step 3: story create
       const stRes  = await fetch(BACKEND_URL + '/stories/create', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
       })
       const stData = await stRes.json()
-      console.log('[Story] create response:', stData)
 
-      // FIX: HTTP status দেখো — success field সব backend দেয় না
-      if (!stRes.ok) {
-        throw new Error(
-          stData.message || 'Story create failed (HTTP ' + stRes.status + ')'
-        )
-      }
-      // success: false explicitly থাকলেই fail করো
-      if (stData.success === false) {
+      if (!stRes.ok || stData.success === false) {
         throw new Error(stData.message || 'Story create failed')
       }
 
       closeUploadOverlay()
+      // ✅ FIX: story bar refresh + ring update
       await fetchAndRenderBar()
+
     } catch (err) {
-      console.error('[Story] submitStory error:', err)
+      console.error('[Story] submit error:', err)
       alert('Story upload failed ⚠️ ' + err.message)
     } finally {
-      btn.disabled = false
+      btn.disabled  = false
       btn.innerText = 'Share Story'
     }
   }
@@ -402,8 +437,9 @@
     viewer.classList.remove('active')
     stopProgress()
     const vid = document.getElementById('storyVid')
-    vid.pause()
-    vid.src = ''
+    vid.pause(); vid.src = ''
+    // ✅ FIX: viewer বন্ধ হলে bar refresh — viewed ring update
+    renderBar()
   }
 
   function loadCurrentStory() {
@@ -426,7 +462,7 @@
       typeof getNick === 'function' ? getNick(group.userId) : group.userId
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
 
-    // Delete button — FIX: getCurrentUser()
+    // Delete button
     const deleteBtn = document.getElementById('storyDeleteBtn')
     if (group.userId === getCurrentUser()) {
       deleteBtn.classList.add('active')
@@ -440,8 +476,8 @@
     const vid = document.getElementById('storyVid')
     if (story.type === 'video') {
       img.classList.remove('active'); img.src = ''
-      vid.classList.add('active')
       vid.src = story.media
+      vid.classList.add('active')
       vid.play().catch(() => {})
       vid.onended = () => nextStory()
     } else {
@@ -488,10 +524,7 @@
     clearInterval(progTimer)
     progTimer = setInterval(() => {
       if (isPaused) return
-      const pct = Math.min(
-        ((Date.now() - progStart) / duration) * 100,
-        100
-      )
+      const pct = Math.min(((Date.now() - progStart) / duration) * 100, 100)
       fill.style.width = pct + '%'
       if (pct >= 100) nextStory()
     }, 40)
@@ -572,6 +605,9 @@
     const menuBox = document.getElementById('menuBox')
     if (!menuBox) return
 
+    // ✅ FIX: duplicate inject check
+    if (document.getElementById('menuProfileRow')) return
+
     const profileRow = document.createElement('div')
     profileRow.id = 'menuProfileRow'
 
@@ -587,6 +623,7 @@
     const nameCol = document.createElement('div')
     const nameTxt = document.createElement('div')
     nameTxt.id = 'menuProfileName'
+    nameTxt.style.cssText = 'font-weight:bold;font-size:14px;color:#111;'
     const subTxt = document.createElement('div')
     subTxt.style.cssText = 'font-size:11px;color:#888;margin-top:2px;'
     subTxt.innerText = 'Tap to add story'
@@ -601,14 +638,16 @@
     })
     menuBox.insertBefore(profileRow, menuBox.firstChild)
 
-    // toggleMenu override — FIX: getCurrentUser()
+    // toggleMenu override
     const orig = window.toggleMenu
     window.toggleMenu = function () {
       orig && orig()
       const u = getCurrentUser()
       avImg.src = typeof getAvatar === 'function' ? getAvatar(u) : ''
       avImg.onerror = () => {
-        avImg.src = typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : ''
+        avImg.src = typeof DEFAULT_PIC !== 'undefined'
+          ? DEFAULT_PIC
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(u)}&background=333&color=fff&size=64`
       }
       nameTxt.innerText = typeof getNick === 'function' ? getNick(u) : u
     }
@@ -619,35 +658,13 @@
   // ═══════════════════════════════════════════════════════
   function timeAgo(ts) {
     if (!ts) return ''
-    const m = Math.floor((Date.now() - ts) / 60000)
+    const diff = Date.now() - ts
+    const m    = Math.floor(diff / 60000)
+    const h    = Math.floor(diff / 3600000)
     if (m < 1)  return 'just now'
     if (m < 60) return m + 'm ago'
-    const h = Math.floor(m / 60)
     if (h < 24) return h + 'h ago'
     return Math.floor(h / 24) + 'd ago'
   }
 
-  // ═══════════════════════════════════════════════════════
-  // 8. INIT
-  // ═══════════════════════════════════════════════════════
-  function init() {
-    injectHTML()
-    bindEvents()
-    injectMenuItem()
-    // fetchAndRenderBar() এখানে call করা হয় না।
-    // showStoryBar() login এর পরে call হলে সেটাই fetch করবে।
-
-    // Auto-refresh — শুধু bar visible থাকলে
-    setInterval(() => {
-      if (storyBar && storyBar.classList.contains('visible')) {
-        fetchAndRenderBar()
-      }
-    }, 60000)
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init)
-  } else {
-    setTimeout(init, 300)
-  }
 })()

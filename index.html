@@ -888,6 +888,10 @@ function listenProfilePics(){
       const u = img.dataset.user
       if(u) img.src = getAvatar(u)
     })
+    // menu avatar instant sync
+    const menuAv = document.getElementById('menuProfileAvatar')
+    if(menuAv) menuAv.src = getAvatar(username)
+    if(typeof window.refreshStoryBar === 'function') window.refreshStoryBar()
   })
 }
 

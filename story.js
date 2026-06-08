@@ -235,17 +235,41 @@
     const avWrap = document.getElementById('sv2MenuAvatarWrap')
     if (!avWrap) return
 
-    const me      = getCurrentUser()
-    const myGroup = getGroupFor(me)
+    const me       = getCurrentUser()
+    const myGroup  = getGroupFor(me)
     const hasStory = !!myGroup
 
+    // Ring update
     applyRing(avWrap, hasStory, false)
 
+    // + badge: story থাকলে hide, না থাকলে show
     const plus = document.getElementById('sv2PlusBadge')
     if (plus) plus.style.display = hasStory ? 'none' : 'flex'
 
-    const sub = document.getElementById('sv2MenuSub')
-    if (sub) sub.innerText = hasStory ? 'Tap to view story' : 'Tap to add story'
+    // Avatar sync — getAvatar() এর latest value নাও
+    const avImg = document.getElementById('menuProfileAvatar')
+    if (avImg && typeof getAvatar === 'function') {
+      const pic = getAvatar(me)
+      if (pic) avImg.src = pic
+    }
+
+    // Name sync — getNick() এর latest value নাও
+    const nameTxt = document.getElementById('menuProfileName')
+    if (nameTxt && typeof getNick === 'function') {
+      const nick = getNick(me)
+      nameTxt.innerText = nick || me
+    }
+
+    // avWrap click handler update (story state বদলায়)
+    avWrap.onclick = (e) => {
+      e.stopPropagation()
+      const mb = document.getElementById('menuBox')
+      if (mb) mb.style.display = 'none'
+      const g = getGroupFor(getCurrentUser())
+      if (g) openViewer(allStories.indexOf(g))
+      else openUploadOverlay()
+    }
+    avWrap.style.cursor = 'pointer'
   }
 
   // ── Inject menu item ──────────────────────────────────
@@ -254,93 +278,102 @@
     if (!menuBox) { setTimeout(injectMenuItem, 200); return }
     if (document.getElementById('menuProfileRow')) { updateMenuRing(); return }
 
-    const me = getCurrentUser()
-
+    // ── Row ──
     const row = document.createElement('div')
     row.id = 'menuProfileRow'
-    row.style.cssText = [
-      'display:flex', 'align-items:center', 'gap:12px',
-      'padding:14px 16px 12px', 'border-bottom:1px solid #f0f0f0',
-      'cursor:pointer', '-webkit-tap-highlight-color:transparent'
-    ].join(';')
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid #f0f0f0;-webkit-tap-highlight-color:transparent;'
 
-    // Avatar wrapper — ring এখানে
+    // ── Avatar wrapper (ring এখানে) ──
     const avWrap = document.createElement('div')
     avWrap.id = 'sv2MenuAvatarWrap'
     avWrap.className = 'sv2-avatar-wrap'
-    avWrap.style.position = 'relative'
+    avWrap.style.cssText = 'position:relative;flex-shrink:0;cursor:pointer;'
 
     const avImg = document.createElement('img')
     avImg.id = 'menuProfileAvatar'
     avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;'
-    avImg.src = typeof getAvatar === 'function'
-      ? getAvatar(me)
-      : `https://ui-avatars.com/api/?name=${encodeURIComponent(me)}&background=333&color=fff&size=64`
+    // DEFAULT_PIC fallback — getAvatar later called in updateMenuRing
+    avImg.src = typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : ''
     avImg.onerror = () => {
-      avImg.src = typeof DEFAULT_PIC !== 'undefined'
-        ? DEFAULT_PIC
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(me)}&background=333&color=fff&size=64`
+      if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC
     }
     avWrap.appendChild(avImg)
 
-    // + badge
+    // ── Instagram style + badge (bottom-right, small) ──
     const plus = document.createElement('div')
     plus.id = 'sv2PlusBadge'
     plus.style.cssText = [
-      'position:absolute', 'bottom:-1px', 'right:-1px',
-      'width:20px', 'height:20px',
-      'background:#0095f6', 'border-radius:50%',
-      'border:2px solid white',
-      'display:flex', 'align-items:center', 'justify-content:center',
-      'font-size:14px', 'color:white', 'font-weight:bold', 'line-height:1',
-      'pointer-events:none', 'z-index:2'
+      'position:absolute',
+      'bottom:0px',
+      'right:0px',
+      'width:18px',
+      'height:18px',
+      'background:#0095f6',
+      'border-radius:50%',
+      'border:2px solid #fff',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'font-size:13px',
+      'color:white',
+      'font-weight:bold',
+      'line-height:1',
+      'pointer-events:none',
+      'z-index:3'
     ].join(';')
     plus.innerText = '+'
     avWrap.appendChild(plus)
 
-    // Name + subtitle
+    // ── Name column ──
     const nameCol = document.createElement('div')
-    nameCol.style.cssText = 'display:flex;flex-direction:column;gap:2px;flex:1;'
+    nameCol.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;'
 
     const nameTxt = document.createElement('div')
     nameTxt.id = 'menuProfileName'
     nameTxt.style.cssText = 'font-weight:bold;font-size:14px;color:#111;'
-    nameTxt.innerText = typeof getNick === 'function' ? getNick(me) : me
+    nameTxt.innerText = ''   // updateMenuRing এ set হবে
 
-    const sub = document.createElement('div')
-    sub.id = 'sv2MenuSub'
-    sub.style.cssText = 'font-size:11px;color:#888;'
-    sub.innerText = 'Tap to add story'
-
-    nameCol.appendChild(nameTxt)
-    nameCol.appendChild(sub)
-    row.appendChild(avWrap)
-    row.appendChild(nameCol)
-
-    row.addEventListener('click', () => {
+    // ── "Upload Story" text — সবসময় visible, সবসময় upload খোলে ──
+    const uploadTxt = document.createElement('div')
+    uploadTxt.id = 'sv2UploadStoryTxt'
+    uploadTxt.style.cssText = 'font-size:11px;color:#0095f6;cursor:pointer;font-weight:500;'
+    uploadTxt.innerText = 'Upload Story'
+    uploadTxt.addEventListener('click', (e) => {
+      e.stopPropagation()
       const mb = document.getElementById('menuBox')
       if (mb) mb.style.display = 'none'
-      const myGroup = getGroupFor(getCurrentUser())
-      if (myGroup) openViewer(allStories.indexOf(myGroup))
-      else openUploadOverlay()
+      openUploadOverlay()   // সবসময় upload — story থাকুক বা না থাকুক
     })
 
+    nameCol.appendChild(nameTxt)
+    nameCol.appendChild(uploadTxt)
+
+    row.appendChild(avWrap)
+    row.appendChild(nameCol)
     menuBox.insertBefore(row, menuBox.firstChild)
 
-    // toggleMenu override
+    // ── toggleMenu override — menu খোলার সাথে সাথে sync ──
     const origToggle = window.toggleMenu
     window.toggleMenu = function () {
       origToggle && origToggle()
-      const u = getCurrentUser()
-      avImg.src = typeof getAvatar === 'function'
-        ? getAvatar(u)
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(u)}&background=333&color=fff&size=64`
-      avImg.onerror = () => { avImg.src = typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '' }
-      nameTxt.innerText = typeof getNick === 'function' ? getNick(u) : u
-      updateMenuRing()
+      updateMenuRing()  // avatar + name + ring সব sync
     }
 
-    updateMenuRing()
+    // ── প্রথমবার render — getNick/getAvatar ready না হলে retry ──
+    function tryFirstRender() {
+      const u    = getCurrentUser()
+      const nick = typeof getNick   === 'function' ? getNick(u)   : ''
+      const pic  = typeof getAvatar === 'function' ? getAvatar(u) : ''
+      if (nick) {
+        nameTxt.innerText = nick
+      } else {
+        // nick এখনো ready না — 300ms পরে retry
+        setTimeout(tryFirstRender, 300)
+      }
+      if (pic) avImg.src = pic
+      updateMenuRing()
+    }
+    tryFirstRender()
   }
   injectMenuItem()
 

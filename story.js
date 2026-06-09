@@ -19,16 +19,25 @@
     )
   }
 
-  // ── nick helper — katis1→Kat, kittyis0001→Kitty (hardcoded fallback) ──
+  // nick helper — hardcoded fallback
   function getDisplayName(u) {
     if (typeof getNick === 'function') {
       const n = getNick(u)
       if (n && n !== u) return n
     }
-    // hardcoded fallback যদি getNick ready না হয়
     if (u === 'katis1')      return 'Kat'
     if (u === 'kittyis0001') return 'Kitty'
     return u
+  }
+
+  // ── TASK 3 FIX: avatar helper with DEFAULT_PIC fallback ──
+  function getAvatarSafe(userId) {
+    if (typeof getAvatar === 'function') {
+      const pic = getAvatar(userId)
+      if (pic) return pic
+    }
+    if (typeof DEFAULT_PIC !== 'undefined') return DEFAULT_PIC
+    return ''
   }
 
   let allStories     = []
@@ -40,6 +49,7 @@
   let touchStartX    = 0
   let touchStartY    = 0
   let holdTimer      = null
+  // viewedStoryIds — এই device এ কোন story দেখা হয়েছে
   let viewedStoryIds = JSON.parse(localStorage.getItem('viewedStories') || '[]')
 
   let uploadOverlay, viewer
@@ -212,16 +222,19 @@
       headerAv.style.width        = '100%'
       headerAv.style.height       = '100%'
       headerAv.style.borderRadius = '50%'
-      headerAv.style.objectFit   = 'cover'
-      headerAv.style.border      = 'none'
-      headerAv.style.display     = 'block'
+      headerAv.style.objectFit    = 'cover'
+      headerAv.style.border       = 'none'
+      headerAv.style.display      = 'block'
     }
 
     const me          = getCurrentUser()
     const otherUserId = me === 'katis1' ? 'kittyis0001' : 'katis1'
     const otherGroup  = getGroupFor(otherUserId)
     const hasStory    = !!otherGroup
-    const allViewed   = hasStory
+
+    // ── TASK 2 FIX: viewed = সব story এই device এ দেখা হয়েছে কিনা ──
+    // নতুন story upload হলে তার id viewedStoryIds এ নেই → RGB ring দেখাবে
+    const allViewed = hasStory
       ? otherGroup.stories.every(s => viewedStoryIds.includes(s.id))
       : false
 
@@ -236,7 +249,7 @@
     wrapper.style.cursor = hasStory ? 'pointer' : 'default'
   }
 
-  // ── Menu profile row ring ─────────────────────────────
+  // ── Menu profile row ring (own story) ─────────────────
   function updateMenuRing() {
     const avWrap = document.getElementById('sv2MenuAvatarWrap')
     if (!avWrap) return
@@ -245,27 +258,28 @@
     const myGroup  = getGroupFor(me)
     const hasStory = !!myGroup
 
-    // Ring
+    // নিজের story — viewed হওয়ার প্রশ্ন নেই, সবসময় RGB দেখাও
     applyRing(avWrap, hasStory, false)
 
     // + badge: story থাকলে hide
     const plus = document.getElementById('sv2PlusBadge')
     if (plus) plus.style.display = hasStory ? 'none' : 'flex'
 
-    // Avatar — getAvatar() এর latest
+    // Avatar sync
     const avImg = document.getElementById('menuProfileAvatar')
-    if (avImg && typeof getAvatar === 'function') {
-      const pic = getAvatar(me)
+    if (avImg) {
+      const pic = getAvatarSafe(me)
       if (pic) avImg.src = pic
+      avImg.onerror = () => {
+        if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC
+      }
     }
 
-    // ── NAME FIX: getDisplayName সবসময় correct nick দেবে ──
+    // Name sync
     const nameTxt = document.getElementById('menuProfileName')
-    if (nameTxt) {
-      nameTxt.innerText = getDisplayName(me)
-    }
+    if (nameTxt) nameTxt.innerText = getDisplayName(me)
 
-    // avWrap click: story থাকলে view, না থাকলে upload
+    // avWrap click
     avWrap.onclick = (e) => {
       e.stopPropagation()
       const mb = document.getElementById('menuBox')
@@ -285,12 +299,10 @@
 
     const me = getCurrentUser()
 
-    // Row
     const row = document.createElement('div')
     row.id = 'menuProfileRow'
     row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid #f0f0f0;-webkit-tap-highlight-color:transparent;'
 
-    // Avatar wrapper
     const avWrap = document.createElement('div')
     avWrap.id = 'sv2MenuAvatarWrap'
     avWrap.className = 'sv2-avatar-wrap'
@@ -299,40 +311,38 @@
     const avImg = document.createElement('img')
     avImg.id = 'menuProfileAvatar'
     avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;'
-    avImg.src = (typeof getAvatar === 'function' && me !== 'unknown')
-      ? getAvatar(me)
-      : (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
+    avImg.src = getAvatarSafe(me)
     avImg.onerror = () => {
       if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC
     }
     avWrap.appendChild(avImg)
 
-    // ── Instagram style + badge: 16px, bottom-right ──
+    // ── TASK 1 FIX: Instagram style plus badge ──
+    // Instagram: ~20px badge, profile pic ~56px
+    // bottom-right, white border 2px, blue bg, small white +
     const plus = document.createElement('div')
     plus.id = 'sv2PlusBadge'
     plus.style.cssText = [
       'position:absolute',
-      'bottom:0px',
-      'right:0px',
-      'width:16px',
-      'height:16px',
+      'bottom:-2px',
+      'right:-2px',
+      'width:20px',
+      'height:20px',
       'background:#0095f6',
       'border-radius:50%',
-      'border:2.5px solid #ffffff',
+      'border:2px solid #ffffff',
       'display:flex',
       'align-items:center',
       'justify-content:center',
-      'font-size:10px',
+      'font-size:12px',
       'color:white',
-      'font-weight:900',
+      'font-weight:700',
       'line-height:1',
       'z-index:4',
-      'box-shadow:0 1px 2px rgba(0,0,0,0.3)',
       'cursor:pointer',
       'pointer-events:auto'
     ].join(';')
     plus.innerText = '+'
-    // + badge click → সবসময় upload
     plus.addEventListener('click', (e) => {
       e.stopPropagation()
       const mb = document.getElementById('menuBox')
@@ -341,17 +351,15 @@
     })
     avWrap.appendChild(plus)
 
-    // Name column
     const nameCol = document.createElement('div')
     nameCol.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;'
 
-    // ── NAME: getDisplayName — hardcoded fallback আছে ──
     const nameTxt = document.createElement('div')
     nameTxt.id = 'menuProfileName'
     nameTxt.style.cssText = 'font-weight:bold;font-size:14px;color:#111;'
     nameTxt.innerText = getDisplayName(me)
 
-    // ── "Upload Story" text — NEVER changes, সবসময় upload খোলে ──
+    // "Upload Story" — সবসময় এই text, কখনো change হয় না
     const uploadTxt = document.createElement('div')
     uploadTxt.id = 'sv2UploadStoryTxt'
     uploadTxt.style.cssText = 'font-size:11px;color:#555;cursor:pointer;user-select:none;'
@@ -360,7 +368,7 @@
       e.stopPropagation()
       const mb = document.getElementById('menuBox')
       if (mb) mb.style.display = 'none'
-      openUploadOverlay()   // story থাকুক বা না থাকুক — সবসময় upload
+      openUploadOverlay()
     })
 
     nameCol.appendChild(nameTxt)
@@ -369,22 +377,16 @@
     row.appendChild(nameCol)
     menuBox.insertBefore(row, menuBox.firstChild)
 
-    // toggleMenu override — menu খোলার সময় সব sync
     const origToggle = window.toggleMenu
     window.toggleMenu = function () {
       origToggle && origToggle()
-      // avatar sync
       const u = getCurrentUser()
-      if (typeof getAvatar === 'function') {
-        const pic = getAvatar(u)
-        if (pic) avImg.src = pic
-      }
-      // name sync — nicknames এখন loaded হবে
+      const pic = getAvatarSafe(u)
+      if (pic) avImg.src = pic
       nameTxt.innerText = getDisplayName(u)
       updateMenuRing()
     }
 
-    // প্রথমবার ring update
     updateMenuRing()
   }
   injectMenuItem()
@@ -452,7 +454,7 @@
       if (!stRes.ok || stData.success === false) throw new Error(stData.message || 'Story create failed')
 
       closeUploadOverlay()
-      await fetchStories()   // ring instant update
+      await fetchStories()
     } catch (err) {
       alert('Story upload failed ⚠️ ' + err.message)
     } finally {
@@ -483,13 +485,21 @@
     const story = group.stories[viewerStoryIdx]
     if (!story) { closeViewer(); return }
 
+    // ── TASK 2 FIX: viewed mark — story খোলার সময়ই mark করো ──
     if (!viewedStoryIds.includes(story.id)) {
       viewedStoryIds.push(story.id)
       localStorage.setItem('viewedStories', JSON.stringify(viewedStoryIds))
     }
 
-    document.getElementById('storyViewerAvatar').src =
-      typeof getAvatar === 'function' ? getAvatar(group.userId) : ''
+    // ── TASK 3 FIX: viewer avatar — getAvatarSafe দিয়ে, onerror fallback ──
+    const viewerAv = document.getElementById('storyViewerAvatar')
+    if (viewerAv) {
+      viewerAv.src = getAvatarSafe(group.userId)
+      viewerAv.onerror = () => {
+        if (typeof DEFAULT_PIC !== 'undefined') viewerAv.src = DEFAULT_PIC
+      }
+    }
+
     document.getElementById('storyViewerName').innerText = getDisplayName(group.userId)
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
 

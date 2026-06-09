@@ -320,7 +320,7 @@
     const avWrap = document.createElement('div')
     avWrap.id = 'sv2MenuAvatarWrap'
     avWrap.className = 'sv2-avatar-wrap'
-    avWrap.style.cssText = 'position:relative;flex-shrink:0;cursor:pointer;'
+    avWrap.style.cssText = 'position:relative;flex-shrink:0;flex-grow:0;cursor:pointer;'
 
     const avImg = document.createElement('img')
     avImg.id = 'menuProfileAvatar'
@@ -336,27 +336,8 @@
     // bottom-right, white border 2px, blue bg, small white +
     const plus = document.createElement('div')
     plus.id = 'sv2PlusBadge'
-    // Instagram style: black badge, white +, small, bottom-right
-    plus.style.cssText = [
-      'position:absolute',
-      'bottom:-1px',
-      'right:-1px',
-      'width:19px',
-      'height:19px',
-      'background:#000000',
-      'border-radius:50%',
-      'border:2px solid #ffffff',
-      'display:flex',
-      'align-items:center',
-      'justify-content:center',
-      'font-size:13px',
-      'color:white',
-      'font-weight:300',
-      'line-height:1',
-      'z-index:4',
-      'cursor:pointer',
-      'pointer-events:auto'
-    ].join(';')
+    // Plus badge — CSS (#sv2PlusBadge) handles all sizing with !important
+    // JS only sets id — no inline style override
     plus.innerText = '+'
     plus.addEventListener('click', (e) => {
       e.stopPropagation()

@@ -7,29 +7,34 @@
   position: relative;
   border-radius: 50%;
   flex-shrink: 0;
-  /* ring এর জন্য padding — image shrink হবে */
   padding: 3px;
   background: transparent;
-  /* size গুলো JS wrapper এ দেওয়া হবে */
+  box-sizing: border-box;
 }
 
 /* ── Header avatar wrapper size ── */
 #sv2HeaderWrap {
   width: 46px;
   height: 46px;
-  /* header এর original margin/gap maintain করতে */
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-/* ── Menu avatar wrapper size ── */
+/* ── Menu avatar wrapper ──
+   IMPORTANT: display:block, exact size, no flex-grow
+   Plus badge (position:absolute) needs block/relative parent ── */
 #sv2MenuAvatarWrap {
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 48px;
+  height: 48px;
+  display: block;        /* flex নয় — badge absolute positioning ঠিক থাকে */
+  flex-shrink: 0;
+  flex-grow: 0;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
 }
 
 /* ── Instagram RGB gradient ring ── */
@@ -48,7 +53,7 @@
   padding: 3px !important;
 }
 
-/* ring এর ভেতরে white border যাতে gap দেখায় */
+/* ring ভেতরে white gap */
 .sv2-ring-active img,
 .sv2-ring-viewed img {
   box-shadow: 0 0 0 2px white inset;
@@ -60,7 +65,7 @@
   padding: 3px !important;
 }
 
-/* ── No story — no ring ── */
+/* ── No story — no ring, no padding ── */
 .sv2-ring-none {
   background: transparent !important;
   padding: 0 !important;
@@ -73,7 +78,6 @@
   border-radius: 50%;
   object-fit: cover;
   display: block;
-  /* white gap between ring and pic */
   outline: 2px solid white;
   outline-offset: -2px;
 }
@@ -81,6 +85,39 @@
 /* story নেই — outline দরকার নেই */
 .sv2-ring-none img {
   outline: none;
+}
+
+/* ── Plus badge — exact Instagram size ──
+   Parent: #sv2MenuAvatarWrap (48x48, position:relative, display:block)
+   Badge sits at bottom-right corner, 20px circle ── */
+#sv2PlusBadge {
+  position: absolute !important;
+  bottom: -2px !important;
+  right: -2px !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  background: #000000 !important;
+  border-radius: 50% !important;
+  border: 2px solid #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  color: white !important;
+  font-weight: 300 !important;
+  line-height: 1 !important;
+  z-index: 10 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+  /* override any inherited padding/margin */
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ── Upload Overlay ── */
@@ -226,6 +263,7 @@
   width: 36px; height: 36px;
   border-radius: 50%; object-fit: cover;
   border: 2px solid white;
+  flex-shrink: 0;
 }
 #storyViewerName {
   color: white; font-size: 14px;
@@ -311,4 +349,5 @@
   font-weight: bold;
   font-size: 14px;
   color: #111;
-}
+   }
+   

@@ -30,14 +30,28 @@
     return u
   }
 
-  // ── TASK 3 FIX: avatar helper with DEFAULT_PIC fallback ──
+  // avatar helper — always reads latest profilePics from getAvatar()
   function getAvatarSafe(userId) {
+    // getAvatar() reads from profilePics object which Firebase updates in realtime
     if (typeof getAvatar === 'function') {
       const pic = getAvatar(userId)
-      if (pic) return pic
+      if (pic && pic !== '') return pic
     }
     if (typeof DEFAULT_PIC !== 'undefined') return DEFAULT_PIC
     return ''
+  }
+
+  // Force re-apply viewer avatar after a short delay
+  // (in case profilePics Firebase load completes after viewer opens)
+  function refreshViewerAvatar(userId) {
+    setTimeout(() => {
+      const viewerAv = document.getElementById('storyViewerAvatar')
+      if (!viewerAv) return
+      const pic = getAvatarSafe(userId)
+      if (pic && viewerAv.src !== pic) {
+        viewerAv.src = pic
+      }
+    }, 800)
   }
 
   let allStories     = []
@@ -322,21 +336,22 @@
     // bottom-right, white border 2px, blue bg, small white +
     const plus = document.createElement('div')
     plus.id = 'sv2PlusBadge'
+    // Instagram style: black badge, white +, small, bottom-right
     plus.style.cssText = [
       'position:absolute',
-      'bottom:-2px',
-      'right:-2px',
-      'width:20px',
-      'height:20px',
-      'background:#0095f6',
+      'bottom:-1px',
+      'right:-1px',
+      'width:19px',
+      'height:19px',
+      'background:#000000',
       'border-radius:50%',
       'border:2px solid #ffffff',
       'display:flex',
       'align-items:center',
       'justify-content:center',
-      'font-size:12px',
+      'font-size:13px',
       'color:white',
-      'font-weight:700',
+      'font-weight:300',
       'line-height:1',
       'z-index:4',
       'cursor:pointer',
@@ -491,17 +506,24 @@
       localStorage.setItem('viewedStories', JSON.stringify(viewedStoryIds))
     }
 
-    // ── TASK 3 FIX: viewer avatar — getAvatarSafe দিয়ে, onerror fallback ──
+    // FIX: viewer avatar — getAvatar() directly (same source as chat header)
     const viewerAv = document.getElementById('storyViewerAvatar')
     if (viewerAv) {
-      viewerAv.src = getAvatarSafe(group.userId)
-      viewerAv.onerror = () => {
-        if (typeof DEFAULT_PIC !== 'undefined') viewerAv.src = DEFAULT_PIC
+      // getAvatar() same function chat header uses — profilePics[userId]
+      const avSrc = (typeof getAvatar === 'function')
+        ? getAvatar(group.userId)
+        : (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
+      viewerAv.src = avSrc || (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
+      viewerAv.onerror = function() {
+        this.onerror = null
+        if (typeof DEFAULT_PIC !== 'undefined') this.src = DEFAULT_PIC
       }
     }
 
     document.getElementById('storyViewerName').innerText = getDisplayName(group.userId)
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
+    // Retry avatar after delay — profilePics may not be loaded yet
+    refreshViewerAvatar(group.userId)
 
     const deleteBtn = document.getElementById('storyDeleteBtn')
     if (group.userId === getCurrentUser()) {

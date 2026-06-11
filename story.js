@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// STORY SYSTEM v2 — Instagram Style (Profile Ring Edition)
+// STORY SYSTEM v2 — Instagram Style + Music Feature
 // ═══════════════════════════════════════════════════════════
 
 ;(function () {
@@ -19,7 +19,6 @@
     )
   }
 
-  // nick helper — hardcoded fallback
   function getDisplayName(u) {
     if (typeof getNick === 'function') {
       const n = getNick(u)
@@ -30,9 +29,7 @@
     return u
   }
 
-  // avatar helper — always reads latest profilePics from getAvatar()
   function getAvatarSafe(userId) {
-    // getAvatar() reads from profilePics object which Firebase updates in realtime
     if (typeof getAvatar === 'function') {
       const pic = getAvatar(userId)
       if (pic && pic !== '') return pic
@@ -41,19 +38,16 @@
     return ''
   }
 
-  // Force re-apply viewer avatar after a short delay
-  // (in case profilePics Firebase load completes after viewer opens)
   function refreshViewerAvatar(userId) {
     setTimeout(() => {
       const viewerAv = document.getElementById('storyViewerAvatar')
       if (!viewerAv) return
       const pic = getAvatarSafe(userId)
-      if (pic && viewerAv.src !== pic) {
-        viewerAv.src = pic
-      }
+      if (pic && viewerAv.src !== pic) viewerAv.src = pic
     }, 800)
   }
 
+  // ── State ──────────────────────────────────────────────
   let allStories     = []
   let viewerUserIdx  = 0
   let viewerStoryIdx = 0
@@ -63,17 +57,25 @@
   let touchStartX    = 0
   let touchStartY    = 0
   let holdTimer      = null
-  // viewedStoryIds — এই device এ কোন story দেখা হয়েছে
   let viewedStoryIds = JSON.parse(localStorage.getItem('viewedStories') || '[]')
 
   let uploadOverlay, viewer
   let domReady = false
   let refreshInterval = null
 
+  // ── MUSIC STATE ─────────────────────────────────────────
+  let selectedMusic   = null   // { videoId, jamendoId, title, artist, thumbnail, audioUrl, source }
+  let musicPlayer     = null   // YouTube IFrame Player instance
+  let jamendoAudio    = null   // <audio> for Jamendo
+  let musicPickerOpen = false
+  let musicTabActive  = 'foryou'  // 'foryou' | 'trending' | 'saved'
+  let musicSearchTimer = null
+
   // ── Init ──────────────────────────────────────────────
   function init() {
     injectOverlays()
     bindEvents()
+    injectYouTubeAPI()
     domReady = true
   }
 
@@ -87,21 +89,48 @@
   window.showStoryBar = function () {
     if (!domReady) { setTimeout(window.showStoryBar, 100); return }
     fetchStories()
-    if (!refreshInterval) {
-      refreshInterval = setInterval(fetchStories, 60000)
-    }
+    if (!refreshInterval) refreshInterval = setInterval(fetchStories, 60000)
   }
   window.refreshStoryBar = function () { fetchStories() }
 
-  // ── Inject overlays ───────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // YOUTUBE IFRAME API LOADER
+  // ══════════════════════════════════════════════════════
+  function injectYouTubeAPI() {
+    if (window.YT || document.getElementById('yt-iframe-api')) return
+    const tag = document.createElement('script')
+    tag.id  = 'yt-iframe-api'
+    tag.src = 'https://www.youtube.com/iframe_api'
+    document.head.appendChild(tag)
+  }
+
+  // ══════════════════════════════════════════════════════
+  // INJECT OVERLAYS
+  // ══════════════════════════════════════════════════════
   function injectOverlays() {
+    // ── Upload Overlay (with music button) ──
     if (!document.getElementById('storyUploadOverlay')) {
       uploadOverlay = document.createElement('div')
       uploadOverlay.id = 'storyUploadOverlay'
       uploadOverlay.innerHTML = `
         <h2>Add to Your Story</h2>
-        <img id="storyUploadPreview" class="story-upload-preview" alt="preview">
-        <video id="storyUploadVideoPreview" class="story-upload-preview" muted playsinline></video>
+        <div id="storyEditorWrap" style="position:relative;display:inline-block;">
+          <img id="storyUploadPreview" class="story-upload-preview" alt="preview">
+          <video id="storyUploadVideoPreview" class="story-upload-preview" muted playsinline></video>
+          <!-- Right toolbar — appears after file selected -->
+          <div id="storyRightToolbar">
+            <button id="storyMusicBtn" title="Add Music">🎵</button>
+          </div>
+        </div>
+        <!-- Selected music badge -->
+        <div id="selectedMusicBadge" style="display:none;">
+          <img id="selectedMusicThumb" src="" alt="">
+          <div id="selectedMusicInfo">
+            <span id="selectedMusicTitle"></span>
+            <span id="selectedMusicArtist"></span>
+          </div>
+          <button id="removeMusicBtn">✕</button>
+        </div>
         <textarea id="storyCaption" placeholder="Add a caption..." rows="2" maxlength="120"></textarea>
         <button class="story-upload-btn" id="storyPickFileBtn">📷 Choose Photo / Video</button>
         <input type="file" id="storyFileInput" accept="image/*,video/*" style="display:none">
@@ -115,6 +144,7 @@
       uploadOverlay = document.getElementById('storyUploadOverlay')
     }
 
+    // ── Story Viewer ──
     if (!document.getElementById('storyViewer')) {
       viewer = document.createElement('div')
       viewer.id = 'storyViewer'
@@ -131,17 +161,66 @@
           <img id="storyImg" alt="">
           <video id="storyVid" playsinline muted></video>
           <div id="storyCapOverlay"></div>
+          <!-- Music sticker -->
+          <div id="storyMusicSticker" style="display:none;">
+            <span id="storyMusicNote">🎵</span>
+            <div id="storyMusicStickerInfo">
+              <span id="storyMusicStickerTitle"></span>
+              <span id="storyMusicStickerArtist"></span>
+            </div>
+          </div>
           <div id="storyTapRight"></div>
         </div>
+        <!-- Hidden YouTube player -->
+        <div id="ytPlayerWrap" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;">
+          <div id="ytPlayer"></div>
+        </div>
+        <!-- Hidden Jamendo audio -->
+        <audio id="jamendoAudioEl" style="display:none;"></audio>
         <button id="storyDeleteBtn">🗑 Delete</button>
       `
       document.body.appendChild(viewer)
     } else {
       viewer = document.getElementById('storyViewer')
     }
+
+    // ── Music Picker Bottom Sheet ──
+    if (!document.getElementById('musicPicker')) {
+      const picker = document.createElement('div')
+      picker.id = 'musicPicker'
+      picker.innerHTML = `
+        <div id="musicPickerBackdrop"></div>
+        <div id="musicPickerSheet">
+          <div id="musicPickerHandle"></div>
+          <div id="musicPickerHeader">
+            <h3>🎵 Add Music</h3>
+            <button id="musicPickerClose">✕</button>
+          </div>
+          <div id="musicSearchWrap">
+            <input id="musicSearchInput" type="text" placeholder="Search songs, artist, mood...">
+            <button id="musicSearchBtn">🔍</button>
+          </div>
+          <div id="musicTabs">
+            <button class="music-tab active" data-tab="foryou">For You</button>
+            <button class="music-tab" data-tab="trending">Trending</button>
+            <button class="music-tab" data-tab="saved">Saved</button>
+          </div>
+          <div id="musicListWrap">
+            <div id="musicList"></div>
+            <div id="musicLoader" style="display:none;">
+              <div class="music-spinner"></div>
+            </div>
+            <div id="musicEmpty" style="display:none;">No songs found</div>
+          </div>
+        </div>
+      `
+      document.body.appendChild(picker)
+    }
   }
 
-  // ── Bind events ───────────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // BIND EVENTS
+  // ══════════════════════════════════════════════════════
   function bindEvents() {
     document.getElementById('storyPickFileBtn')
       .addEventListener('click', () => document.getElementById('storyFileInput').click())
@@ -153,6 +232,38 @@
     document.getElementById('storyTapRight').addEventListener('click', nextStory)
     document.getElementById('storyDeleteBtn').addEventListener('click', deleteCurrentStory)
 
+    // Music button
+    document.getElementById('storyMusicBtn').addEventListener('click', openMusicPicker)
+    document.getElementById('removeMusicBtn').addEventListener('click', clearSelectedMusic)
+    document.getElementById('musicPickerClose').addEventListener('click', closeMusicPicker)
+    document.getElementById('musicPickerBackdrop').addEventListener('click', closeMusicPicker)
+    document.getElementById('musicSearchBtn').addEventListener('click', () => {
+      const q = document.getElementById('musicSearchInput').value.trim()
+      if (q) loadMusicTab('search', q)
+    })
+    document.getElementById('musicSearchInput').addEventListener('input', e => {
+      clearTimeout(musicSearchTimer)
+      const q = e.target.value.trim()
+      if (q.length >= 2) musicSearchTimer = setTimeout(() => loadMusicTab('search', q), 600)
+    })
+    document.getElementById('musicSearchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const q = e.target.value.trim()
+        if (q) loadMusicTab('search', q)
+      }
+    })
+
+    // Music tabs
+    document.querySelectorAll('.music-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.music-tab').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        musicTabActive = btn.dataset.tab
+        loadMusicTab(musicTabActive)
+      })
+    })
+
+    // Story media wrap events
     const wrap = document.getElementById('storyMediaWrap')
     wrap.addEventListener('mousedown', pauseStory)
     wrap.addEventListener('mouseup', resumeStory)
@@ -173,7 +284,149 @@
     }, { passive: true })
   }
 
-  // ── Fetch stories ─────────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // MUSIC PICKER
+  // ══════════════════════════════════════════════════════
+  function openMusicPicker() {
+    const picker = document.getElementById('musicPicker')
+    picker.classList.add('active')
+    musicPickerOpen = true
+    // Reset to For You tab
+    document.querySelectorAll('.music-tab').forEach(b => b.classList.remove('active'))
+    document.querySelector('.music-tab[data-tab="foryou"]').classList.add('active')
+    musicTabActive = 'foryou'
+    loadMusicTab('foryou')
+  }
+
+  function closeMusicPicker() {
+    const picker = document.getElementById('musicPicker')
+    picker.classList.remove('active')
+    musicPickerOpen = false
+  }
+
+  async function loadMusicTab(tab, searchQuery = '') {
+    const list   = document.getElementById('musicList')
+    const loader = document.getElementById('musicLoader')
+    const empty  = document.getElementById('musicEmpty')
+
+    list.innerHTML   = ''
+    loader.style.display = 'flex'
+    empty.style.display  = 'none'
+
+    try {
+      let songs = []
+
+      if (tab === 'search' && searchQuery) {
+        const res  = await fetch(`${BACKEND_URL}/music/search?q=${encodeURIComponent(searchQuery)}`)
+        const data = await res.json()
+        songs = data.songs || []
+
+      } else if (tab === 'trending') {
+        const res  = await fetch(`${BACKEND_URL}/music/trending`)
+        const data = await res.json()
+        songs = data.songs || []
+
+      } else if (tab === 'saved') {
+        const me  = getCurrentUser()
+        const res  = await fetch(`${BACKEND_URL}/music/saved/${me}`)
+        const data = await res.json()
+        songs = data.songs || []
+
+      } else if (tab === 'foryou') {
+        // Get caption + image for Gemini analysis
+        const caption  = document.getElementById('storyCaption')?.value?.trim() || ''
+        const imgEl    = document.getElementById('storyUploadPreview')
+        const imageUrl = (imgEl && imgEl.classList.contains('active')) ? imgEl.src : ''
+
+        const res  = await fetch(`${BACKEND_URL}/music/recommend`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ caption, imageUrl })
+        })
+        const data = await res.json()
+        songs = data.songs || []
+
+        // Show vibe badge if available
+        if (data.mood) {
+          const badge = document.createElement('div')
+          badge.className   = 'music-vibe-badge'
+          badge.textContent = `✨ ${data.mood} · ${data.vibe || ''}`
+          list.appendChild(badge)
+        }
+      }
+
+      loader.style.display = 'none'
+
+      if (!songs.length) {
+        empty.style.display = 'block'
+        return
+      }
+
+      songs.forEach(song => renderSongCard(song, list))
+
+    } catch (e) {
+      console.error('[Music] loadMusicTab error:', e)
+      loader.style.display = 'none'
+      empty.style.display  = 'block'
+      empty.textContent    = 'Failed to load songs'
+    }
+  }
+
+  function renderSongCard(song, container) {
+    const card = document.createElement('div')
+    card.className = 'music-card'
+
+    const isSelected = selectedMusic &&
+      (selectedMusic.videoId === song.videoId || selectedMusic.jamendoId === song.jamendoId)
+
+    card.innerHTML = `
+      <img class="music-card-thumb" src="${song.thumbnail || ''}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%23333%22/><text x=%2224%22 y=%2230%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22%23fff%22>🎵</text></svg>'">
+      <div class="music-card-info">
+        <div class="music-card-title">${escapeHtml(song.title)}</div>
+        <div class="music-card-artist">${escapeHtml(song.artist || '')}</div>
+        <div class="music-card-source">${song.source === 'youtube' ? '▶ YouTube' : '♫ Jamendo'}</div>
+      </div>
+      <button class="music-card-btn ${isSelected ? 'selected' : ''}">${isSelected ? '✓' : '+'}</button>
+    `
+
+    // Save to saved (long press or bookmark icon — simple: on select auto-save)
+    card.addEventListener('click', () => selectSong(song))
+    container.appendChild(card)
+  }
+
+  function selectSong(song) {
+    selectedMusic = song
+
+    // Auto-save to saved list
+    const me = getCurrentUser()
+    fetch(`${BACKEND_URL}/music/saved`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ userId: me, song })
+    }).catch(() => {})
+
+    // Show selected badge in upload overlay
+    const badge   = document.getElementById('selectedMusicBadge')
+    const thumb   = document.getElementById('selectedMusicThumb')
+    const title   = document.getElementById('selectedMusicTitle')
+    const artist  = document.getElementById('selectedMusicArtist')
+
+    thumb.src         = song.thumbnail || ''
+    title.textContent = song.title
+    artist.textContent = song.artist || ''
+    badge.style.display = 'flex'
+
+    closeMusicPicker()
+  }
+
+  function clearSelectedMusic() {
+    selectedMusic = null
+    document.getElementById('selectedMusicBadge').style.display = 'none'
+  }
+
+  // ══════════════════════════════════════════════════════
+  // FETCH STORIES
+  // ══════════════════════════════════════════════════════
   async function fetchStories() {
     try {
       const res  = await fetch(BACKEND_URL + '/stories')
@@ -205,27 +458,20 @@
     return allStories.find(g => g.userId === userId) || null
   }
 
-  // ── Ring CSS class apply ──────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // RING LOGIC (unchanged)
+  // ══════════════════════════════════════════════════════
   function applyRing(el, hasStory, viewed) {
     el.classList.remove('sv2-ring-active', 'sv2-ring-viewed', 'sv2-ring-none')
-    if (hasStory) {
-      el.classList.add(viewed ? 'sv2-ring-viewed' : 'sv2-ring-active')
-    } else {
-      el.classList.add('sv2-ring-none')
-    }
+    if (hasStory) el.classList.add(viewed ? 'sv2-ring-viewed' : 'sv2-ring-active')
+    else el.classList.add('sv2-ring-none')
   }
 
-  // ── Update all rings ──────────────────────────────────
-  function updateAllRings() {
-    updateHeaderRing()
-    updateMenuRing()
-  }
+  function updateAllRings() { updateHeaderRing(); updateMenuRing() }
 
-  // ── Header avatar ring (other user) ──────────────────
   function updateHeaderRing() {
     const headerAv = document.getElementById('headerAvatar')
     if (!headerAv) return
-
     let wrapper = document.getElementById('sv2HeaderWrap')
     if (!wrapper) {
       wrapper = document.createElement('div')
@@ -233,27 +479,14 @@
       wrapper.className = 'sv2-avatar-wrap'
       headerAv.parentNode.insertBefore(wrapper, headerAv)
       wrapper.appendChild(headerAv)
-      headerAv.style.width        = '100%'
-      headerAv.style.height       = '100%'
-      headerAv.style.borderRadius = '50%'
-      headerAv.style.objectFit    = 'cover'
-      headerAv.style.border       = 'none'
-      headerAv.style.display      = 'block'
+      headerAv.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;border:none;display:block;'
     }
-
     const me          = getCurrentUser()
     const otherUserId = me === 'katis1' ? 'kittyis0001' : 'katis1'
     const otherGroup  = getGroupFor(otherUserId)
     const hasStory    = !!otherGroup
-
-    // ── TASK 2 FIX: viewed = সব story এই device এ দেখা হয়েছে কিনা ──
-    // নতুন story upload হলে তার id viewedStoryIds এ নেই → RGB ring দেখাবে
-    const allViewed = hasStory
-      ? otherGroup.stories.every(s => viewedStoryIds.includes(s.id))
-      : false
-
+    const allViewed   = hasStory ? otherGroup.stories.every(s => viewedStoryIds.includes(s.id)) : false
     applyRing(wrapper, hasStory, allViewed)
-
     wrapper.onclick = (e) => {
       e.stopPropagation()
       if (!hasStory) return
@@ -263,37 +496,23 @@
     wrapper.style.cursor = hasStory ? 'pointer' : 'default'
   }
 
-  // ── Menu profile row ring (own story) ─────────────────
   function updateMenuRing() {
     const avWrap = document.getElementById('sv2MenuAvatarWrap')
     if (!avWrap) return
-
     const me       = getCurrentUser()
     const myGroup  = getGroupFor(me)
     const hasStory = !!myGroup
-
-    // নিজের story — viewed হওয়ার প্রশ্ন নেই, সবসময় RGB দেখাও
     applyRing(avWrap, hasStory, false)
-
-    // + badge: story থাকলে hide
     const plus = document.getElementById('sv2PlusBadge')
     if (plus) plus.style.display = hasStory ? 'none' : 'flex'
-
-    // Avatar sync
     const avImg = document.getElementById('menuProfileAvatar')
     if (avImg) {
       const pic = getAvatarSafe(me)
       if (pic) avImg.src = pic
-      avImg.onerror = () => {
-        if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC
-      }
+      avImg.onerror = () => { if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC }
     }
-
-    // Name sync
     const nameTxt = document.getElementById('menuProfileName')
     if (nameTxt) nameTxt.innerText = getDisplayName(me)
-
-    // avWrap click
     avWrap.onclick = (e) => {
       e.stopPropagation()
       const mb = document.getElementById('menuBox')
@@ -305,14 +524,12 @@
     avWrap.style.cursor = 'pointer'
   }
 
-  // ── Inject menu item ──────────────────────────────────
   function injectMenuItem() {
     const menuBox = document.getElementById('menuBox')
     if (!menuBox) { setTimeout(injectMenuItem, 200); return }
     if (document.getElementById('menuProfileRow')) { updateMenuRing(); return }
 
-    const me = getCurrentUser()
-
+    const me  = getCurrentUser()
     const row = document.createElement('div')
     row.id = 'menuProfileRow'
     row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid #f0f0f0;-webkit-tap-highlight-color:transparent;'
@@ -326,18 +543,11 @@
     avImg.id = 'menuProfileAvatar'
     avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;'
     avImg.src = getAvatarSafe(me)
-    avImg.onerror = () => {
-      if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC
-    }
+    avImg.onerror = () => { if (typeof DEFAULT_PIC !== 'undefined') avImg.src = DEFAULT_PIC }
     avWrap.appendChild(avImg)
 
-    // ── TASK 1 FIX: Instagram style plus badge ──
-    // Instagram: ~20px badge, profile pic ~56px
-    // bottom-right, white border 2px, blue bg, small white +
     const plus = document.createElement('div')
     plus.id = 'sv2PlusBadge'
-    // Plus badge — CSS (#sv2PlusBadge) handles all sizing with !important
-    // JS only sets id — no inline style override
     plus.innerText = '+'
     plus.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -355,7 +565,6 @@
     nameTxt.style.cssText = 'font-weight:bold;font-size:14px;color:#111;'
     nameTxt.innerText = getDisplayName(me)
 
-    // "Upload Story" — সবসময় এই text, কখনো change হয় না
     const uploadTxt = document.createElement('div')
     uploadTxt.id = 'sv2UploadStoryTxt'
     uploadTxt.style.cssText = 'font-size:11px;color:#555;cursor:pointer;user-select:none;'
@@ -376,28 +585,32 @@
     const origToggle = window.toggleMenu
     window.toggleMenu = function () {
       origToggle && origToggle()
-      const u = getCurrentUser()
+      const u   = getCurrentUser()
       const pic = getAvatarSafe(u)
       if (pic) avImg.src = pic
       nameTxt.innerText = getDisplayName(u)
       updateMenuRing()
     }
-
     updateMenuRing()
   }
   injectMenuItem()
 
-  // ── Upload flow ───────────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // UPLOAD FLOW
+  // ══════════════════════════════════════════════════════
   let selectedFile = null
 
   function openUploadOverlay() {
-    selectedFile = null
+    selectedFile  = null
+    selectedMusic = null
     document.getElementById('storyUploadPreview').classList.remove('active')
     document.getElementById('storyUploadVideoPreview').classList.remove('active')
     document.getElementById('storyCaption').classList.remove('active')
     document.getElementById('storyCaption').value = ''
     document.getElementById('storySubmitBtn').classList.remove('active')
     document.getElementById('storyFileInput').value = ''
+    document.getElementById('selectedMusicBadge').style.display = 'none'
+    document.getElementById('storyRightToolbar').style.display  = 'none'
     uploadOverlay.classList.add('active')
   }
 
@@ -405,6 +618,8 @@
     uploadOverlay.classList.remove('active')
     const vid = document.getElementById('storyUploadVideoPreview')
     vid.pause(); vid.src = ''
+    selectedMusic = null
+    closeMusicPicker()
   }
 
   function onFileSelected(e) {
@@ -424,6 +639,8 @@
     }
     document.getElementById('storyCaption').classList.add('active')
     document.getElementById('storySubmitBtn').classList.add('active')
+    // Show right toolbar with music button
+    document.getElementById('storyRightToolbar').style.display = 'flex'
   }
 
   async function submitStory() {
@@ -436,15 +653,31 @@
       const upData = await upRes.json()
       if (!upData.url) throw new Error('Upload failed — no URL')
 
-      const me = getCurrentUser()
+      const me      = getCurrentUser()
       if (me === 'unknown') throw new Error('Not logged in')
       const caption = document.getElementById('storyCaption').value.trim()
       const isVid   = selectedFile.type.startsWith('video/')
-      const payload = { userId: me, type: isVid ? 'video' : 'image', media: upData.url, caption }
+
+      const payload = {
+        userId:  me,
+        type:    isVid ? 'video' : 'image',
+        media:   upData.url,
+        caption,
+        // ── MUSIC: save selected music with story ──
+        music: selectedMusic ? {
+          videoId:   selectedMusic.videoId   || null,
+          jamendoId: selectedMusic.jamendoId || null,
+          title:     selectedMusic.title,
+          artist:    selectedMusic.artist    || '',
+          thumbnail: selectedMusic.thumbnail || '',
+          audioUrl:  selectedMusic.audioUrl  || null,
+          source:    selectedMusic.source
+        } : null
+      }
 
       const stRes  = await fetch(BACKEND_URL + '/stories/create', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body:   JSON.stringify(payload)
       })
       const stData = await stRes.json()
       if (!stRes.ok || stData.success === false) throw new Error(stData.message || 'Story create failed')
@@ -458,7 +691,9 @@
     }
   }
 
-  // ── Viewer ────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // STORY VIEWER
+  // ══════════════════════════════════════════════════════
   function openViewer(idx) {
     if (!allStories.length || idx < 0) return
     viewerUserIdx = idx; viewerStoryIdx = 0
@@ -469,6 +704,7 @@
   function closeViewer() {
     viewer.classList.remove('active')
     stopProgress()
+    stopStoryMusic()
     const vid = document.getElementById('storyVid')
     vid.pause(); vid.src = ''
     updateAllRings()
@@ -476,34 +712,30 @@
 
   function loadCurrentStory() {
     stopProgress()
+    stopStoryMusic()
+
     const group = allStories[viewerUserIdx]
     if (!group) { closeViewer(); return }
     const story = group.stories[viewerStoryIdx]
     if (!story) { closeViewer(); return }
 
-    // ── TASK 2 FIX: viewed mark — story খোলার সময়ই mark করো ──
     if (!viewedStoryIds.includes(story.id)) {
       viewedStoryIds.push(story.id)
       localStorage.setItem('viewedStories', JSON.stringify(viewedStoryIds))
     }
 
-    // FIX: viewer avatar — getAvatar() directly (same source as chat header)
+    // Avatar
     const viewerAv = document.getElementById('storyViewerAvatar')
     if (viewerAv) {
-      // getAvatar() same function chat header uses — profilePics[userId]
       const avSrc = (typeof getAvatar === 'function')
         ? getAvatar(group.userId)
         : (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
       viewerAv.src = avSrc || (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
-      viewerAv.onerror = function() {
-        this.onerror = null
-        if (typeof DEFAULT_PIC !== 'undefined') this.src = DEFAULT_PIC
-      }
+      viewerAv.onerror = function () { this.onerror = null; if (typeof DEFAULT_PIC !== 'undefined') this.src = DEFAULT_PIC }
     }
 
     document.getElementById('storyViewerName').innerText = getDisplayName(group.userId)
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
-    // Retry avatar after delay — profilePics may not be loaded yet
     refreshViewerAvatar(group.userId)
 
     const deleteBtn = document.getElementById('storyDeleteBtn')
@@ -514,6 +746,7 @@
       deleteBtn.classList.remove('active')
     }
 
+    // Media
     const img = document.getElementById('storyImg')
     const vid = document.getElementById('storyVid')
     if (story.type === 'video') {
@@ -525,14 +758,130 @@
       img.src = story.media; img.classList.add('active')
     }
 
+    // Caption
     const cap = document.getElementById('storyCapOverlay')
     if (story.caption) { cap.innerText = story.caption; cap.classList.add('active') }
     else cap.classList.remove('active')
+
+    // ── MUSIC: play story music ──
+    if (story.music) {
+      showMusicSticker(story.music)
+      playStoryMusic(story.music)
+    } else {
+      hideMusicSticker()
+    }
 
     buildProgressBars(group.stories.length, viewerStoryIdx)
     startProgress(story.type === 'video' ? null : STORY_DURATION)
   }
 
+  // ══════════════════════════════════════════════════════
+  // MUSIC PLAYBACK IN VIEWER
+  // ══════════════════════════════════════════════════════
+  function playStoryMusic(music) {
+    if (!music) return
+
+    if (music.source === 'youtube' && music.videoId) {
+      playYouTubeMusic(music.videoId)
+    } else if (music.source === 'jamendo' && music.audioUrl) {
+      playJamendoMusic(music.audioUrl)
+    }
+  }
+
+  function stopStoryMusic() {
+    // Stop YouTube
+    try {
+      if (musicPlayer && typeof musicPlayer.stopVideo === 'function') {
+        musicPlayer.stopVideo()
+      }
+    } catch (e) {}
+
+    // Stop Jamendo
+    const audioEl = document.getElementById('jamendoAudioEl')
+    if (audioEl) { audioEl.pause(); audioEl.src = '' }
+  }
+
+  function pauseStoryMusic() {
+    try {
+      if (musicPlayer && typeof musicPlayer.pauseVideo === 'function') musicPlayer.pauseVideo()
+    } catch (e) {}
+    const audioEl = document.getElementById('jamendoAudioEl')
+    if (audioEl && !audioEl.paused) audioEl.pause()
+  }
+
+  function resumeStoryMusic() {
+    try {
+      if (musicPlayer && typeof musicPlayer.playVideo === 'function') musicPlayer.playVideo()
+    } catch (e) {}
+    const audioEl = document.getElementById('jamendoAudioEl')
+    if (audioEl && audioEl.src && audioEl.paused) audioEl.play().catch(() => {})
+  }
+
+  function playYouTubeMusic(videoId) {
+    if (window.YT && window.YT.Player) {
+      // YT API ready
+      if (musicPlayer) {
+        try { musicPlayer.loadVideoById(videoId) }
+        catch (e) { createYTPlayer(videoId) }
+      } else {
+        createYTPlayer(videoId)
+      }
+    } else {
+      // YT API not ready yet — wait
+      window.onYouTubeIframeAPIReady = () => createYTPlayer(videoId)
+    }
+  }
+
+  function createYTPlayer(videoId) {
+    try {
+      musicPlayer = new window.YT.Player('ytPlayer', {
+        width:  '1',
+        height: '1',
+        videoId,
+        playerVars: {
+          autoplay:       1,
+          controls:       0,
+          disablekb:      1,
+          fs:             0,
+          iv_load_policy: 3,
+          modestbranding: 1,
+          playsinline:    1
+        },
+        events: {
+          onReady: (e) => { try { e.target.setVolume(80); e.target.playVideo() } catch (err) {} }
+        }
+      })
+    } catch (e) {
+      console.error('[Music] YT player create error:', e)
+    }
+  }
+
+  function playJamendoMusic(audioUrl) {
+    const audioEl = document.getElementById('jamendoAudioEl')
+    if (!audioEl) return
+    audioEl.src    = audioUrl
+    audioEl.volume = 0.8
+    audioEl.play().catch(e => console.error('[Music] Jamendo play error:', e))
+  }
+
+  function showMusicSticker(music) {
+    const sticker = document.getElementById('storyMusicSticker')
+    const title   = document.getElementById('storyMusicStickerTitle')
+    const artist  = document.getElementById('storyMusicStickerArtist')
+    if (!sticker) return
+    title.textContent  = music.title  || ''
+    artist.textContent = music.artist || ''
+    sticker.style.display = 'flex'
+  }
+
+  function hideMusicSticker() {
+    const sticker = document.getElementById('storyMusicSticker')
+    if (sticker) sticker.style.display = 'none'
+  }
+
+  // ══════════════════════════════════════════════════════
+  // PROGRESS + PAUSE/RESUME (music integrated)
+  // ══════════════════════════════════════════════════════
   function buildProgressBars(count, cur) {
     const wrap = document.getElementById('storyProgressBars')
     wrap.innerHTML = ''
@@ -567,6 +916,7 @@
     isPaused = true
     const vid = document.getElementById('storyVid')
     if (vid.classList.contains('active')) vid.pause()
+    pauseStoryMusic()   // ← pause music
   }
 
   function resumeStory() {
@@ -574,6 +924,7 @@
     isPaused = false
     const vid = document.getElementById('storyVid')
     if (vid.classList.contains('active')) vid.play().catch(() => {})
+    resumeStoryMusic()  // ← resume music
     const fills = document.querySelectorAll('#storyProgressBars .story-prog-fill')
     const fill  = fills[viewerStoryIdx]
     if (fill) {
@@ -584,6 +935,7 @@
 
   function nextStory() {
     stopProgress()
+    stopStoryMusic()    // ← stop before next
     const group = allStories[viewerUserIdx]
     if (!group) { closeViewer(); return }
     if (viewerStoryIdx < group.stories.length - 1) { viewerStoryIdx++; loadCurrentStory() }
@@ -593,6 +945,7 @@
 
   function prevStory() {
     stopProgress()
+    stopStoryMusic()    // ← stop before prev
     if (viewerStoryIdx > 0) { viewerStoryIdx--; loadCurrentStory() }
     else if (viewerUserIdx > 0) {
       viewerUserIdx--
@@ -612,6 +965,9 @@
     } catch (e) { alert('Delete failed ⚠️') }
   }
 
+  // ══════════════════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════════════════
   function timeAgo(ts) {
     if (!ts) return ''
     const diff = Date.now() - ts
@@ -621,6 +977,10 @@
     if (m < 60) return m + 'm ago'
     if (h < 24) return h + 'h ago'
     return Math.floor(h / 24) + 'd ago'
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
   }
 
 })()

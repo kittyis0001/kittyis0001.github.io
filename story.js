@@ -5,7 +5,7 @@
 ;(function () {
   'use strict'
 
-  const STORY_DURATION = 5000
+  const STORY_DURATION = 30000  // UPDATE 2: 30 seconds for image stories
   const BACKEND_URL =
     typeof BACKEND !== 'undefined'
       ? BACKEND
@@ -362,7 +362,7 @@
         return
       }
 
-      songs.forEach(song => renderSongCard(song, list))
+      songs.forEach(song => renderSongCard(song, list, tab))
 
     } catch (e) {
       console.error('[Music] loadMusicTab error:', e)
@@ -372,52 +372,224 @@
     }
   }
 
-  function renderSongCard(song, container) {
+  // UPDATE 5: Preview state — one song at a time
+  let previewingSongId  = null   // videoId or jamendoId of currently previewing song
+  let previewAudioEl    = null   // <audio> for Jamendo preview
+  let previewYTPlayer   = null   // YT player for YouTube preview
+  let previewContainer  = null   // hidden div for YT preview player
+
+  function getSongId(song) {
+    return song.videoId || song.jamendoId || song.title
+  }
+
+  function stopPreview() {
+    // Stop Jamendo preview
+    if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl.src = ''; previewAudioEl = null }
+    // Stop YT preview
+    try { if (previewYTPlayer) { previewYTPlayer.stopVideo(); previewYTPlayer.destroy(); previewYTPlayer = null } } catch(e) {}
+    if (previewContainer && previewContainer.parentNode) { previewContainer.parentNode.removeChild(previewContainer); previewContainer = null }
+    // Remove active highlight from all cards
+    document.querySelectorAll('.music-card.previewing').forEach(el => el.classList.remove('previewing'))
+    previewingSongId = null
+  }
+
+  function previewSong(song, cardEl) {
+    const id = getSongId(song)
+
+    // Tap again = toggle pause/resume
+    if (previewingSongId === id) {
+      if (previewAudioEl && !previewAudioEl.paused) {
+        previewAudioEl.pause()
+        cardEl.classList.remove('previewing')
+        return
+      } else if (previewAudioEl && previewAudioEl.paused) {
+        previewAudioEl.play().catch(() => {})
+        cardEl.classList.add('previewing')
+        return
+      }
+      stopPreview(); return
+    }
+
+    stopPreview()
+    previewingSongId = id
+    cardEl.classList.add('previewing')
+
+    if (song.source === 'jamendo' && song.audioUrl) {
+      // Jamendo: direct MP3 preview
+      previewAudioEl = new Audio(song.audioUrl)
+      previewAudioEl.volume = 0.7
+      previewAudioEl.play().catch(() => {})
+      previewAudioEl.onended = () => {
+        cardEl.classList.remove('previewing')
+        previewingSongId = null
+      }
+    } else if (song.source === 'youtube' && song.videoId) {
+      // YouTube: IFrame silent preview (autoplay muted for preview)
+      if (!document.getElementById('ytPreviewWrap')) {
+        previewContainer = document.createElement('div')
+        previewContainer.id = 'ytPreviewWrap'
+        previewContainer.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-999px;'
+        const inner = document.createElement('div')
+        inner.id = 'ytPreviewPlayer'
+        previewContainer.appendChild(inner)
+        document.body.appendChild(previewContainer)
+      }
+      const createPreviewPlayer = () => {
+        try {
+          previewYTPlayer = new window.YT.Player('ytPreviewPlayer', {
+            width: '1', height: '1',
+            videoId: song.videoId,
+            playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, playsinline: 1 },
+            events: {
+              onReady: (e) => { try { e.target.setVolume(70); e.target.playVideo() } catch(err) {} },
+              onStateChange: (e) => {
+                if (e.data === window.YT.PlayerState.ENDED) {
+                  cardEl.classList.remove('previewing'); previewingSongId = null
+                }
+              }
+            }
+          })
+        } catch(e) {}
+      }
+      if (window.YT && window.YT.Player) createPreviewPlayer()
+      else { window.onYouTubeIframeAPIReady = createPreviewPlayer }
+    }
+  }
+
+  // UPDATE 6+7+8: renderSongCard with separate preview/save/plus/minus actions
+  function renderSongCard(song, container, tabType) {
     const card = document.createElement('div')
     card.className = 'music-card'
 
     const isSelected = selectedMusic &&
       (selectedMusic.videoId === song.videoId || selectedMusic.jamendoId === song.jamendoId)
 
+    const isSaved = tabType === 'saved'
+
+    // Right action buttons depend on tab
+    let actionBtns = ''
+    if (isSaved) {
+      // Saved tab: Plus + Minus
+      actionBtns = `
+        <button class="music-card-plus" title="Add to Story">＋</button>
+        <button class="music-card-minus" title="Remove from Saved">－</button>
+      `
+    } else {
+      // For You / Trending / Search: Save + Plus
+      actionBtns = `
+        <button class="music-card-save" title="Save">🔖</button>
+        <button class="music-card-plus ${isSelected ? 'selected' : ''}" title="Add to Story">${isSelected ? '✓' : '＋'}</button>
+      `
+    }
+
     card.innerHTML = `
-      <img class="music-card-thumb" src="${song.thumbnail || ''}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%23333%22/><text x=%2224%22 y=%2230%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22%23fff%22>🎵</text></svg>'">
+      <img class="music-card-thumb" src="${song.thumbnail || ''}" alt=""
+        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%23333%22/><text x=%2224%22 y=%2230%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22%23fff%22>🎵</text></svg>'">
       <div class="music-card-info">
         <div class="music-card-title">${escapeHtml(song.title)}</div>
         <div class="music-card-artist">${escapeHtml(song.artist || '')}</div>
         <div class="music-card-source">${song.source === 'youtube' ? '▶ YouTube' : '♫ Jamendo'}</div>
       </div>
-      <button class="music-card-btn ${isSelected ? 'selected' : ''}">${isSelected ? '✓' : '+'}</button>
+      <div class="music-card-actions">
+        ${actionBtns}
+      </div>
     `
 
-    // Save to saved (long press or bookmark icon — simple: on select auto-save)
-    card.addEventListener('click', () => selectSong(song))
+    // UPDATE 5: Row click (thumb + info area) = preview
+    const infoArea = card.querySelector('.music-card-info')
+    const thumb    = card.querySelector('.music-card-thumb')
+    const previewClick = (e) => {
+      e.stopPropagation()
+      previewSong(song, card)
+    }
+    infoArea.addEventListener('click', previewClick)
+    thumb.addEventListener('click', previewClick)
+
+    // UPDATE 6: Plus button = add to story only
+    const plusBtn = card.querySelector('.music-card-plus')
+    if (plusBtn) {
+      plusBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        addSongToStory(song)
+        // Update all plus buttons for this song
+        document.querySelectorAll('.music-card-plus').forEach(btn => {
+          const parentCard = btn.closest('.music-card')
+          const cardSongId = parentCard?.dataset?.songId
+          if (cardSongId === getSongId(song)) {
+            btn.textContent = '✓'
+            btn.classList.add('selected')
+          }
+        })
+        card.dataset.songId = getSongId(song)
+      })
+    }
+
+    // UPDATE 7: Save button = save to saved list
+    const saveBtn = card.querySelector('.music-card-save')
+    if (saveBtn) {
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        saveSongToList(song)
+        saveBtn.textContent = '✅'
+        saveBtn.style.pointerEvents = 'none'
+      })
+    }
+
+    // UPDATE 8: Minus button (saved tab) = remove from saved
+    const minusBtn = card.querySelector('.music-card-minus')
+    if (minusBtn) {
+      minusBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        removeSongFromSaved(song)
+        card.style.animation = 'fadeOutCard 0.25s ease forwards'
+        setTimeout(() => card.remove(), 260)
+      })
+    }
+
+    card.dataset.songId = getSongId(song)
     container.appendChild(card)
   }
 
-  function selectSong(song) {
+  // UPDATE 6: Add song to story (no auto-close picker)
+  function addSongToStory(song) {
     selectedMusic = song
+    const badge   = document.getElementById('selectedMusicBadge')
+    const thumb   = document.getElementById('selectedMusicThumb')
+    const title   = document.getElementById('selectedMusicTitle')
+    const artist  = document.getElementById('selectedMusicArtist')
+    if (badge && thumb && title && artist) {
+      thumb.src          = song.thumbnail || ''
+      title.textContent  = song.title
+      artist.textContent = song.artist || ''
+      badge.style.display = 'flex'
+    }
+    // Brief visual feedback
+    const flash = document.createElement('div')
+    flash.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.15);color:white;padding:8px 20px;border-radius:20px;font-size:13px;font-family:Arial;z-index:99999;pointer-events:none;animation:sv2FadeIn 0.2s ease;'
+    flash.textContent = '✓ Added to story'
+    document.body.appendChild(flash)
+    setTimeout(() => flash.remove(), 1500)
+  }
 
-    // Auto-save to saved list
+  // UPDATE 7: Save song to saved list
+  function saveSongToList(song) {
     const me = getCurrentUser()
     fetch(`${BACKEND_URL}/music/saved`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ userId: me, song })
     }).catch(() => {})
-
-    // Show selected badge in upload overlay
-    const badge   = document.getElementById('selectedMusicBadge')
-    const thumb   = document.getElementById('selectedMusicThumb')
-    const title   = document.getElementById('selectedMusicTitle')
-    const artist  = document.getElementById('selectedMusicArtist')
-
-    thumb.src         = song.thumbnail || ''
-    title.textContent = song.title
-    artist.textContent = song.artist || ''
-    badge.style.display = 'flex'
-
-    closeMusicPicker()
   }
+
+  // UPDATE 8: Remove song from saved
+  function removeSongFromSaved(song) {
+    const me  = getCurrentUser()
+    const sid = song.videoId || song.jamendoId
+    if (!sid) return
+    fetch(`${BACKEND_URL}/music/saved/${me}/${sid}`, { method: 'DELETE' }).catch(() => {})
+  }
+
+  function selectSong(song) { addSongToStory(song) }  // backward compat
 
   function clearSelectedMusic() {
     selectedMusic = null
@@ -737,6 +909,14 @@
     document.getElementById('storyViewerName').innerText = getDisplayName(group.userId)
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
     refreshViewerAvatar(group.userId)
+    // UPDATE 4: extra retry for slow connections
+    setTimeout(() => {
+      const av = document.getElementById('storyViewerAvatar')
+      if (av && typeof getAvatar === 'function') {
+        const p = getAvatar(group.userId)
+        if (p && p !== av.src) av.src = p
+      }
+    }, 1500)
 
     const deleteBtn = document.getElementById('storyDeleteBtn')
     if (group.userId === getCurrentUser()) {

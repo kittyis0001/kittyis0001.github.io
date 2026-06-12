@@ -874,6 +874,10 @@ function getAvatar(user){
   return profilePics[user] || DEFAULT_PIC
 }
 
+// ✅ Expose to window so story.js (non-module) can access
+window.getAvatar  = getAvatar
+window.DEFAULT_PIC = DEFAULT_PIC
+
 function updateHeader(){
   headerAvatar.src = getAvatar(otherUser) || DEFAULT_PIC
   headerName.innerText = getNick(otherUser)
@@ -927,6 +931,9 @@ function getNick(user){
   return nicknames[user] || (user==="katis1" ? "Kat" : "Kitty")
 }
 
+// ✅ Expose getNick to window so story.js can access
+window.getNick = getNick
+
 function refreshAllDisplayNames(){
   updateHeader()
   document.querySelectorAll(".msgSenderName").forEach(el=>{
@@ -940,6 +947,12 @@ function listenNickNames(){
     const data = snap.val() || {}
     nicknames = data
     refreshAllDisplayNames()
+    // menu profile name instant update — nicknames load হলে
+    const menuName = document.getElementById('menuProfileName')
+    if(menuName && username) {
+      const nick = getNick(username)
+      if(nick) menuName.innerText = nick
+    }
   })
 }
 

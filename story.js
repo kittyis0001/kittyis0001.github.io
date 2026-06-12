@@ -30,21 +30,32 @@
   }
 
   function getAvatarSafe(userId) {
+    // Try getAvatar() which reads from Firebase profilePics
     if (typeof getAvatar === 'function') {
       const pic = getAvatar(userId)
-      if (pic && pic !== '') return pic
+      if (pic && pic !== '' && !pic.startsWith('data:image/svg')) return pic
     }
+    // Fallback to DEFAULT_PIC (SVG placeholder)
     if (typeof DEFAULT_PIC !== 'undefined') return DEFAULT_PIC
     return ''
   }
 
+  // Retry avatar loading multiple times — Firebase may not be loaded yet
   function refreshViewerAvatar(userId) {
-    setTimeout(() => {
-      const viewerAv = document.getElementById('storyViewerAvatar')
-      if (!viewerAv) return
-      const pic = getAvatarSafe(userId)
-      if (pic && viewerAv.src !== pic) viewerAv.src = pic
-    }, 800)
+    const delays = [300, 800, 1500, 3000]
+    delays.forEach(delay => {
+      setTimeout(() => {
+        const viewerAv = document.getElementById('storyViewerAvatar')
+        if (!viewerAv) return
+        // Only update if we have a real pic (not SVG placeholder)
+        if (typeof getAvatar === 'function') {
+          const pic = getAvatar(userId)
+          if (pic && pic !== '' && !pic.startsWith('data:image/svg')) {
+            viewerAv.src = pic
+          }
+        }
+      }, delay)
+    })
   }
 
   // ── State ──────────────────────────────────────────────
@@ -896,27 +907,29 @@
       localStorage.setItem('viewedStories', JSON.stringify(viewedStoryIds))
     }
 
-    // Avatar
+    // Avatar — set immediately + retry with refreshViewerAvatar
     const viewerAv = document.getElementById('storyViewerAvatar')
     if (viewerAv) {
-      const avSrc = (typeof getAvatar === 'function')
-        ? getAvatar(group.userId)
-        : (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
+      // Try real avatar first
+      let avSrc = ''
+      if (typeof getAvatar === 'function') {
+        const attempt = getAvatar(group.userId)
+        if (attempt && attempt !== '' && !attempt.startsWith('data:image/svg')) {
+          avSrc = attempt
+        }
+      }
+      // Use real pic or DEFAULT_PIC as fallback
       viewerAv.src = avSrc || (typeof DEFAULT_PIC !== 'undefined' ? DEFAULT_PIC : '')
-      viewerAv.onerror = function () { this.onerror = null; if (typeof DEFAULT_PIC !== 'undefined') this.src = DEFAULT_PIC }
+      viewerAv.onerror = function () {
+        this.onerror = null
+        if (typeof DEFAULT_PIC !== 'undefined') this.src = DEFAULT_PIC
+      }
     }
 
     document.getElementById('storyViewerName').innerText = getDisplayName(group.userId)
     document.getElementById('storyViewerTime').innerText = timeAgo(story.createdAt)
+    // Retry avatar at 300/800/1500/3000ms — profilePics loads async from Firebase
     refreshViewerAvatar(group.userId)
-    // UPDATE 4: extra retry for slow connections
-    setTimeout(() => {
-      const av = document.getElementById('storyViewerAvatar')
-      if (av && typeof getAvatar === 'function') {
-        const p = getAvatar(group.userId)
-        if (p && p !== av.src) av.src = p
-      }
-    }, 1500)
 
     const deleteBtn = document.getElementById('storyDeleteBtn')
     if (group.userId === getCurrentUser()) {

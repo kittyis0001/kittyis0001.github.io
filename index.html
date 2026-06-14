@@ -468,14 +468,14 @@ animation:spin 0.8s linear infinite;
 display:none;
 height:100vh;
 flex-direction:column;
-background-image:url("https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/1776940040697.png");
-background-repeat:repeat;
-background-size:280px;
-background-position:top left;
+background: linear-gradient(160deg, #1a0533 0%, #1e1060 30%, #1a2a6c 60%, #2d1b69 100%);
 }
 
 #header{
-background:#075E54;
+background: linear-gradient(90deg, rgba(80,20,120,0.92) 0%, rgba(40,60,160,0.92) 100%);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+border-bottom: 1px solid rgba(160,120,255,0.2);
 color:white;
 padding:10px 15px;
 display:flex;
@@ -535,17 +535,19 @@ transition:transform 0.15s;
 display:none;
 position:absolute;
 right:10px; top:62px;
-background:white;
-box-shadow:0 2px 10px rgba(0,0,0,0.3);
+background: linear-gradient(160deg, rgba(50,20,90,0.97) 0%, rgba(30,50,140,0.97) 100%);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+box-shadow: 0 8px 32px rgba(80,40,200,0.35), 0 0 0 1px rgba(160,120,255,0.15);
 z-index:100;
-border-radius:8px;
+border-radius:16px;
 overflow:hidden;
-min-width:200px;
+min-width:210px;
 }
 
-#menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
-#menuBox div:hover{ background:#f5f5f5; }
-#blockBtn{ color:#e53935; }
+#menuBox div{ padding:13px 20px; cursor:pointer; font-size:14px; color:rgba(220,210,255,0.92); }
+#menuBox div:hover{ background:rgba(160,120,255,0.12); }
+#blockBtn{ color:#ff6b6b !important; }
 
 #messages{ flex:1; overflow:auto; padding:10px; }
 
@@ -553,12 +555,15 @@ min-width:200px;
 text-align:center;
 margin:8px auto;
 font-size:12px;
-color:#555;
-background:rgba(255,255,255,0.75);
+color:rgba(200,190,255,0.85);
+background:rgba(80,60,160,0.35);
+backdrop-filter:blur(8px);
+-webkit-backdrop-filter:blur(8px);
 border-radius:12px;
 padding:6px 14px;
 max-width:85%;
 display:table;
+border:1px solid rgba(160,130,255,0.15);
 }
 
 .msgRow{
@@ -578,25 +583,40 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 cursor:pointer;
-border:2px solid rgba(255,255,255,0.8);
-box-shadow:0 1px 4px rgba(0,0,0,0.2);
+border:2px solid rgba(160,130,255,0.7);
+box-shadow:0 1px 8px rgba(100,60,200,0.35);
 }
 
 .msg{
-padding:10px;
+padding:10px 12px;
 max-width:65%;
-border-radius:8px;
+border-radius:18px;
 word-wrap:break-word;
 position:relative;
 transition:transform 0.2s ease;
+box-shadow:0 2px 12px rgba(0,0,0,0.18);
 }
 
-.me .msg{ background:#dcf8c6; }
-.other .msg{ background:white; }
+/* Outgoing — purple-blue gradient */
+.me .msg{
+background: linear-gradient(135deg, #7b4fcf 0%, #4f6ef2 100%);
+color: white;
+border-bottom-right-radius: 4px;
+}
+
+/* Incoming — soft glass */
+.other .msg{
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+color: rgba(235,230,255,0.95);
+border: 1px solid rgba(160,140,255,0.2);
+border-bottom-left-radius: 4px;
+}
 
 .replyQuote{
 background:rgba(0,0,0,0.07);
-border-left:3px solid #075E54;
+border-left:3px solid rgba(160,130,255,0.7);
 border-radius:4px;
 padding:5px 8px;
 margin-bottom:6px;
@@ -609,17 +629,17 @@ text-overflow:ellipsis;
 }
 
 .replyQuote .replyName{ font-weight:bold; color:#075E54; font-size:11px; margin-bottom:2px; }
-.editedLabel{ font-size:10px; color:#888; margin-left:4px; }
-.time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
+.editedLabel{ font-size:10px; color:rgba(200,190,255,0.55); margin-left:4px; }
+.time{ font-size:11px; color:rgba(200,190,255,0.65); margin-top:3px; text-align:right; }
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
 
 .reactionBadge{
-background:rgba(0,0,0,0.08);
+background:rgba(255,255,255,0.12);
 border-radius:20px;
 padding:2px 7px;
 font-size:14px;
 cursor:pointer;
-border:1px solid rgba(0,0,0,0.1);
+border:1px solid rgba(255,255,255,0.15);
 }
 
 #actionMenu{
@@ -664,39 +684,45 @@ flex-direction:row;
 
 #replyBar{
 display:none;
-background:#e8f5e9;
+background:rgba(60,30,120,0.7);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
 padding:8px 14px;
-border-top:2px solid #075E54;
+border-top:2px solid rgba(130,100,255,0.4);
 align-items:center;
 gap:8px;
 }
 
-#replyBar .replyBarContent{ flex:1; font-size:12px; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-#replyBar .replyBarName{ font-weight:bold; color:#075E54; font-size:11px; }
-#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; }
+#replyBar .replyBarContent{ flex:1; font-size:12px; color:rgba(220,210,255,0.9); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#replyBar .replyBarName{ font-weight:bold; color:rgba(160,140,255,0.95); font-size:11px; }
+#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:rgba(200,190,255,0.7); padding:0; }
 
 #editBar{
 display:none;
-background:#fff9c4;
+background:rgba(70,40,130,0.7);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
 padding:8px 14px;
-border-top:2px solid #f9a825;
+border-top:2px solid rgba(160,130,255,0.35);
 align-items:center;
 gap:8px;
 font-size:12px;
-color:#555;
+color:rgba(220,210,255,0.85);
 }
 
 #editBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; margin-left:auto; }
 
 #blockedBanner{
 display:none;
-background:#ffebee;
+background:rgba(180,30,60,0.25);
+backdrop-filter:blur(8px);
+-webkit-backdrop-filter:blur(8px);
 padding:10px 14px;
 text-align:center;
 font-size:13px;
-color:#c62828;
+color:#ff8a80;
 font-weight:bold;
-border-top:1px solid #ef9a9a;
+border-top:1px solid rgba(255,80,80,0.2);
 }
 
 #nickModal{
@@ -919,19 +945,42 @@ align-items:center;
 
 #inputArea{
 display:flex; padding:8px 10px;
-background:#f0f0f0; align-items:flex-end;
+background: rgba(30,15,70,0.85);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+border-top: 1px solid rgba(130,100,255,0.18);
+align-items:flex-end;
 }
 
 #msg{
-flex:1; padding:10px 14px; border-radius:20px; border:2px solid #000;
+flex:1; padding:10px 14px; border-radius:20px;
+border:1.5px solid rgba(130,100,255,0.35);
+background: rgba(255,255,255,0.07);
+color: rgba(240,235,255,0.95);
 resize:none; overflow:hidden; min-height:40px; max-height:120px;
 font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:border-box;
 }
 
-#msg:disabled{ background:#e0e0e0; color:#aaa; border-color:#ccc; cursor:not-allowed; }
-#sendBtn{ background:#075E54; border:none; margin-left:8px; padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0; }
-#sendBtn:disabled{ background:#aaa; cursor:not-allowed; }
-#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#555; font-style:italic; }
+#msg::placeholder{ color:rgba(180,170,220,0.5); }
+
+#msg:focus{
+border-color: rgba(160,130,255,0.65);
+background: rgba(255,255,255,0.1);
+}
+
+#msg:disabled{ background:rgba(255,255,255,0.04); color:rgba(180,170,220,0.4); border-color:rgba(130,100,255,0.15); cursor:not-allowed; }
+
+#sendBtn{
+background: linear-gradient(135deg, #7b4fcf, #4f6ef2);
+border:none; margin-left:8px; padding:10px 14px; border-radius:50%;
+color:white; font-size:18px; flex-shrink:0;
+box-shadow: 0 4px 15px rgba(100,70,240,0.45);
+transition: transform 0.15s, box-shadow 0.15s;
+}
+#sendBtn:active{ transform:scale(0.92); box-shadow:0 2px 8px rgba(100,70,240,0.3); }
+#sendBtn:disabled{ background:rgba(130,100,200,0.3); box-shadow:none; cursor:not-allowed; }
+
+#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:rgba(180,170,220,0.7); font-style:italic; }
 </style>
 <link rel="stylesheet" href="story.css">
 </head>
@@ -1076,7 +1125,7 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <button id="sendBtn" onclick="send()">➤</button>
 </div>
 
-<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:rgba(30,15,70,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 20px rgba(80,40,200,0.4);border-top:1px solid rgba(130,100,255,0.15);"></div>
 
 <div id="voiceRecordBar">
   <div class="recLeft">
@@ -1898,7 +1947,7 @@ function createVoicePlayer(url){
 function buildTimeHtml(message,isMe){
   const t=new Date(message.time).getHours()+":"+("0"+new Date(message.time).getMinutes()).slice(-2)
   const editedLabel=message.edited?`<span class="editedLabel">(edited)</span>`:""
-  const tick=isMe?(message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"):""
+  const tick=isMe?(message.seen?"<span style='color:rgba(180,220,255,0.9)'>✔✔</span>":"✔"):""
   return `${t} ${editedLabel} ${tick}`
 }
 

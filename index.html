@@ -15,53 +15,356 @@ background-attachment:fixed;
 height:100vh;
 }
 
-#access{
-position:relative;
-z-index:1;
-text-align:center;
-margin-top:120px;
-background:transparent;
-width:300px;
-margin-left:auto;
-margin-right:auto;
-padding:20px;
-border-radius:12px;
+/* ═══════════════════════════════════
+   HUD ACCESS SCREEN
+   ═══════════════════════════════════ */
+#access {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-#access h2{
-color:white;
-text-shadow:0 2px 10px rgba(0,0,0,0.9);
-margin-bottom:16px;
-font-size:24px;
+/* ── HUD overlay dark layer ── */
+#access::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,20,40,0.72) 0%, rgba(0,0,0,0.82) 100%);
+  z-index: 0;
 }
 
-#access input{
-width:100px;
-padding:10px 14px;
-border-radius:10px;
-border:none;
-background:rgba(255,255,255,0.92);
-font-size:16px;
-outline:none;
-box-sizing:border-box;
-margin-bottom:14px;
-text-align:center;
-display:block;
-margin-left:auto;
-margin-right:auto;
+/* ── Animated grid ── */
+#access::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridScroll 8s linear infinite;
+  z-index: 0;
 }
 
-#access button{
-padding:10px 28px;
-background:rgba(255,255,255,0.15);
-color:white;
-border:2px solid rgba(255,255,255,0.6);
-border-radius:20px;
-font-size:15px;
-font-weight:bold;
-cursor:pointer;
-backdrop-filter:blur(4px);
--webkit-backdrop-filter:blur(4px);
+@keyframes gridScroll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* ── HUD panel ── */
+.hud-panel {
+  position: relative;
+  z-index: 2;
+  width: min(88vw, 340px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── Radar scanner ── */
+.hud-radar {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+.hud-radar-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,255,255,0.25);
+}
+.hud-radar-ring:nth-child(1) { inset: 0; }
+.hud-radar-ring:nth-child(2) { inset: 18px; border-color: rgba(0,255,255,0.35); }
+.hud-radar-ring:nth-child(3) { inset: 36px; border-color: rgba(0,255,255,0.5); }
+.hud-radar-ring:nth-child(4) { inset: 54px; border-color: rgba(0,220,255,0.7); }
+
+.hud-radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(0,255,255,0.18) 60deg,
+    rgba(0,255,255,0.5) 90deg,
+    transparent 91deg
+  );
+  animation: radarSweep 3s linear infinite;
+}
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Cross-hairs */
+.hud-radar-cross {
+  position: absolute;
+  inset: 0;
+}
+.hud-radar-cross::before,
+.hud-radar-cross::after {
+  content: '';
+  position: absolute;
+  background: rgba(0,255,255,0.2);
+}
+.hud-radar-cross::before { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
+.hud-radar-cross::after  { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
+
+/* Center dot */
+.hud-radar-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  background: #00ffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 4px rgba(0,255,255,0.6);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 10px 4px rgba(0,255,255,0.6); }
+  50%      { opacity: 0.6; box-shadow: 0 0 18px 8px rgba(0,255,255,0.3); }
+}
+
+/* ── Corner decorations ── */
+.hud-corners {
+  position: relative;
+  width: 100%;
+  padding: 22px 18px;
+  box-sizing: border-box;
+  background: rgba(0,20,35,0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0,255,255,0.18);
+  border-radius: 4px;
+}
+.hud-corners::before,
+.hud-corners::after,
+.hud-corners > .hud-corner-br,
+.hud-corners > .hud-corner-bl {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+}
+.hud-corners::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #00ffff;
+  border-left: 2px solid #00ffff;
+}
+.hud-corners::after {
+  top: -1px; right: -1px;
+  border-top: 2px solid #00ffff;
+  border-right: 2px solid #00ffff;
+}
+.hud-corner-br {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #00ffff;
+  border-right: 2px solid #00ffff;
+}
+.hud-corner-bl {
+  bottom: -1px; left: -1px;
+  border-bottom: 2px solid #00ffff;
+  border-left: 2px solid #00ffff;
+}
+
+/* ── Header text ── */
+.hud-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.hud-system-label {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: rgba(0,255,255,0.5);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.hud-title {
+  font-family: 'Courier New', monospace;
+  font-size: 19px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #00ffff;
+  text-shadow: 0 0 20px rgba(0,255,255,0.8), 0 0 40px rgba(0,255,255,0.4);
+  text-transform: uppercase;
+  animation: titleFlicker 6s ease-in-out infinite;
+}
+@keyframes titleFlicker {
+  0%,95%,100% { opacity: 1; }
+  96%          { opacity: 0.7; }
+  97%          { opacity: 1; }
+  98%          { opacity: 0.8; }
+}
+
+/* ── Data bars ── */
+.hud-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 20px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+.hud-bar {
+  width: 4px;
+  background: rgba(0,255,255,0.4);
+  border-radius: 1px;
+  animation: barAnim 1.4s ease-in-out infinite;
+}
+.hud-bar:nth-child(1)  { height: 8px;  animation-delay: 0s;    }
+.hud-bar:nth-child(2)  { height: 14px; animation-delay: 0.1s;  }
+.hud-bar:nth-child(3)  { height: 20px; animation-delay: 0.2s;  }
+.hud-bar:nth-child(4)  { height: 11px; animation-delay: 0.3s;  }
+.hud-bar:nth-child(5)  { height: 17px; animation-delay: 0.15s; }
+.hud-bar:nth-child(6)  { height: 20px; animation-delay: 0.25s; }
+.hud-bar:nth-child(7)  { height: 9px;  animation-delay: 0.05s; }
+.hud-bar:nth-child(8)  { height: 15px; animation-delay: 0.35s; }
+.hud-bar:nth-child(9)  { height: 12px; animation-delay: 0.18s; }
+.hud-bar:nth-child(10) { height: 18px; animation-delay: 0.28s; }
+.hud-bar:nth-child(11) { height: 7px;  animation-delay: 0.08s; }
+.hud-bar:nth-child(12) { height: 14px; animation-delay: 0.38s; }
+@keyframes barAnim {
+  0%,100% { opacity: 0.4; transform: scaleY(0.6); }
+  50%      { opacity: 1;   transform: scaleY(1); }
+}
+
+/* ── Input ── */
+.hud-input-wrap {
+  position: relative;
+  width: 100%;
+  margin-bottom: 6px;
+}
+.hud-input-label {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(0,255,255,0.55);
+  margin-bottom: 6px;
+  display: block;
+}
+#key {
+  width: 100%;
+  padding: 13px 18px;
+  background: rgba(0,255,255,0.05);
+  border: 1px solid rgba(0,255,255,0.45);
+  border-radius: 3px;
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  letter-spacing: 8px;
+  text-align: center;
+  outline: none;
+  box-sizing: border-box;
+  caret-color: #00ffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#key::placeholder {
+  color: rgba(0,255,255,0.22);
+  letter-spacing: 4px;
+  font-size: 11px;
+}
+#key:focus {
+  border-color: rgba(0,255,255,0.9);
+  box-shadow: 0 0 20px rgba(0,255,255,0.25), inset 0 0 12px rgba(0,255,255,0.06);
+}
+
+/* Scan line under input */
+.hud-scan-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00ffff, transparent);
+  margin-top: 4px;
+  animation: scanSlide 2.5s ease-in-out infinite;
+  opacity: 0.7;
+}
+@keyframes scanSlide {
+  0%   { transform: scaleX(0.1); opacity: 0; }
+  50%  { transform: scaleX(1);   opacity: 0.7; }
+  100% { transform: scaleX(0.1); opacity: 0; }
+}
+
+/* ── Enter button ── */
+#access button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid rgba(0,255,255,0.6);
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+#access button::before {
+  content: '';
+  position: absolute;
+  left: -100%; top: 0; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,255,255,0.12), transparent);
+  animation: btnSweep 3s linear infinite;
+}
+@keyframes btnSweep {
+  0%   { left: -100%; }
+  100% { left: 200%;  }
+}
+#access button:active {
+  background: rgba(0,255,255,0.1);
+  box-shadow: 0 0 24px rgba(0,255,255,0.4);
+  color: white;
+}
+
+/* ── Status ticker ── */
+.hud-status {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(0,255,255,0.35);
+  text-align: center;
+  margin-top: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.hud-status span {
+  display: inline-block;
+  animation: tickerScroll 14s linear infinite;
+}
+@keyframes tickerScroll {
+  0%   { transform: translateX(60%); }
+  100% { transform: translateX(-120%); }
+}
+
+/* ── Floating particles ── */
+.hud-particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: #00ffff;
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes particleFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(1); }
+  20%  { opacity: 0.8; }
+  80%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(-120px) scale(0.3); }
 }
 
 #login{
@@ -636,9 +939,67 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <body>
 
 <div id="access">
-<h2>Enter Access Key</h2>
-<input id="key" placeholder="Key" maxlength="6">
-<button onclick="unlock()">Enter</button>
+  <!-- Floating particles -->
+  <div class="hud-particle" style="left:15%;top:20%;animation-delay:0s;animation-duration:5s;"></div>
+  <div class="hud-particle" style="left:75%;top:60%;animation-delay:1.5s;animation-duration:7s;"></div>
+  <div class="hud-particle" style="left:40%;top:80%;animation-delay:3s;animation-duration:6s;"></div>
+  <div class="hud-particle" style="left:85%;top:30%;animation-delay:0.8s;animation-duration:8s;"></div>
+  <div class="hud-particle" style="left:25%;top:50%;animation-delay:2.2s;animation-duration:5.5s;"></div>
+
+  <!-- HUD panel -->
+  <div class="hud-panel">
+
+    <!-- Radar -->
+    <div class="hud-radar">
+      <div class="hud-radar-ring"></div>
+      <div class="hud-radar-ring"></div>
+      <div class="hud-radar-ring"></div>
+      <div class="hud-radar-ring"></div>
+      <div class="hud-radar-sweep"></div>
+      <div class="hud-radar-cross"></div>
+      <div class="hud-radar-dot"></div>
+    </div>
+
+    <!-- Glassmorphism panel -->
+    <div class="hud-corners">
+      <div class="hud-corner-br"></div>
+      <div class="hud-corner-bl"></div>
+
+      <!-- Header -->
+      <div class="hud-header">
+        <div class="hud-system-label">SECURE CHANNEL</div>
+        <div class="hud-title">ACCESS</div>
+      </div>
+
+      <!-- Data bars -->
+      <div class="hud-bars">
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+        <div class="hud-bar"></div><div class="hud-bar"></div>
+      </div>
+
+      <!-- Input -->
+      <div class="hud-input-wrap">
+        <span class="hud-input-label">▸ ACCESS CODE</span>
+        <input id="key" placeholder="_ _ _ _ _ _" maxlength="6"
+          autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter') unlock()">
+        <div class="hud-scan-line"></div>
+      </div>
+
+      <!-- Enter button -->
+      <button onclick="unlock()">⬡ AUTHORIZE</button>
+
+      <!-- Status ticker -->
+      <div class="hud-status">
+        <span>SYS_READY &nbsp;·&nbsp; ENCRYPTION_ON &nbsp;·&nbsp; AWAITING_INPUT &nbsp;·&nbsp; SECURE_LINK_ESTABLISHED &nbsp;·&nbsp;</span>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <div id="accessLoader">

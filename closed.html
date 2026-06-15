@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — ACCESS DENIED</title>
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #000a12;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* Grid */
+.grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,30,30,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,30,30,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: gridMove 10s linear infinite;
+  z-index: 0;
+}
+@keyframes gridMove {
+  from { background-position: 0 0; }
+  to   { background-position: 32px 32px; }
+}
+
+/* Scan line */
+.scan {
+  position: fixed; left: 0; right: 0; height: 2px; top: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,30,30,0.7), transparent);
+  z-index: 1;
+  animation: scanDown 3.5s linear infinite;
+}
+@keyframes scanDown {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Center panel */
+.panel {
+  position: fixed; inset: 0; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+}
+
+/* Outer rings */
+.ring-wrap {
+  position: relative;
+  width: 180px; height: 180px;
+  margin-bottom: 32px;
+}
+.ring-wrap .r {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(255,30,30,0.25);
+  animation: rPulse 2.5s ease-in-out infinite;
+}
+.ring-wrap .r:nth-child(1) { inset: 0;    animation-delay: 0s; }
+.ring-wrap .r:nth-child(2) { inset: 22px; border-color: rgba(255,30,30,0.38); animation-delay: 0.3s; }
+.ring-wrap .r:nth-child(3) { inset: 44px; border-color: rgba(255,30,30,0.55); animation-delay: 0.6s; }
+.ring-wrap .r:nth-child(4) { inset: 66px; border-color: rgba(255,30,30,0.75); animation-delay: 0.9s; }
+@keyframes rPulse {
+  0%,100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* Warning icon inside rings */
+.warn-icon {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 52px;
+  animation: iconBlink 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255,30,30,0.8));
+}
+@keyframes iconBlink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+/* Corner frame */
+.frame {
+  width: min(90vw, 360px);
+  padding: 24px 20px 20px;
+  border: 1px solid rgba(255,30,30,0.35);
+  background: rgba(20,0,0,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+}
+.frame::before { top: -1px;    left: -1px;  border-top: 2px solid #ff2020;    border-left: 2px solid #ff2020; }
+.frame::after  { top: -1px;    right: -1px; border-top: 2px solid #ff2020;    border-right: 2px solid #ff2020; }
+.fc-br         { bottom: -1px; right: -1px; border-bottom: 2px solid #ff2020; border-right: 2px solid #ff2020; }
+.fc-bl         { bottom: -1px; left: -1px;  border-bottom: 2px solid #ff2020; border-left: 2px solid #ff2020; }
+.frame::before, .frame::after, .fc-br, .fc-bl {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+
+/* Status row */
+.status-row {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 16px;
+}
+.status-row span {
+  font-size: 8px; letter-spacing: 2px;
+  color: rgba(255,30,30,0.45);
+}
+.status-dot-wrap { display: flex; align-items: center; gap: 5px; }
+.status-dot {
+  width: 6px; height: 6px;
+  background: #ff2020; border-radius: 50%;
+  box-shadow: 0 0 8px 3px rgba(255,30,30,0.6);
+  animation: iconBlink 0.8s ease-in-out infinite;
+}
+
+/* 404 big text */
+.err-code {
+  text-align: center;
+  font-size: clamp(52px, 18vw, 80px);
+  font-weight: bold;
+  letter-spacing: 8px;
+  color: #ff2020;
+  text-shadow: 0 0 20px rgba(255,30,30,0.9), 0 0 40px rgba(255,30,30,0.5);
+  animation: titleFlicker 5s ease-in-out infinite;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+@keyframes titleFlicker {
+  0%,90%,100% { opacity: 1; }
+  91%          { opacity: 0.5; }
+  92%          { opacity: 1; }
+  95%          { opacity: 0.6; }
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,30,30,0.6), transparent);
+  margin: 10px 0 14px;
+}
+
+/* Denied text */
+.denied {
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 5px;
+  color: #ff4040;
+  text-shadow: 0 0 12px rgba(255,30,30,0.7);
+  margin-bottom: 6px;
+  animation: titleFlicker 4s ease-in-out infinite;
+}
+.closed-text {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(255,30,30,0.55);
+  margin-bottom: 18px;
+}
+
+/* Error bars */
+.err-bars {
+  display: flex; gap: 3px; align-items: flex-end;
+  height: 18px; justify-content: center; margin-bottom: 18px;
+}
+.err-bar {
+  flex: 1; max-width: 6px;
+  background: rgba(255,30,30,0.45); border-radius: 1px;
+  animation: eBarA 1.1s ease-in-out infinite;
+}
+.err-bar:nth-child(1){height:8px;animation-delay:0s;}
+.err-bar:nth-child(2){height:14px;animation-delay:0.07s;}
+.err-bar:nth-child(3){height:18px;animation-delay:0.14s;}
+.err-bar:nth-child(4){height:10px;animation-delay:0.21s;}
+.err-bar:nth-child(5){height:16px;animation-delay:0.28s;}
+.err-bar:nth-child(6){height:18px;animation-delay:0.35s;}
+.err-bar:nth-child(7){height:9px;animation-delay:0.12s;}
+.err-bar:nth-child(8){height:13px;animation-delay:0.19s;}
+.err-bar:nth-child(9){height:18px;animation-delay:0.26s;}
+.err-bar:nth-child(10){height:11px;animation-delay:0.33s;}
+.err-bar:nth-child(11){height:15px;animation-delay:0.40s;}
+.err-bar:nth-child(12){height:18px;animation-delay:0.47s;}
+@keyframes eBarA {
+  0%,100%{opacity:0.4;transform:scaleY(0.6);}
+  50%{opacity:1;transform:scaleY(1);}
+}
+
+/* Log lines */
+.log-lines {
+  border-top: 1px solid rgba(255,30,30,0.15);
+  padding-top: 12px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.log-line {
+  font-size: 9px; letter-spacing: 1.5px;
+  color: rgba(255,30,30,0.4);
+  overflow: hidden; white-space: nowrap;
+  animation: typeIn 0.5s ease forwards;
+  opacity: 0;
+}
+.log-line:nth-child(1){animation-delay:0.2s;}
+.log-line:nth-child(2){animation-delay:0.5s;}
+.log-line:nth-child(3){animation-delay:0.8s;}
+.log-line:nth-child(4){animation-delay:1.1s;color:rgba(255,60,60,0.6);}
+@keyframes typeIn {
+  from{opacity:0;transform:translateX(-8px);}
+  to{opacity:1;transform:translateX(0);}
+}
+
+/* Ticker */
+.ticker {
+  font-size: 8px; letter-spacing: 1.5px;
+  color: rgba(255,30,30,0.3);
+  text-align: center; margin-top: 12px;
+  overflow: hidden; white-space: nowrap;
+}
+.ticker span {
+  display: inline-block;
+  animation: tickScroll 14s linear infinite;
+}
+@keyframes tickScroll {
+  0%{transform:translateX(50%);}
+  100%{transform:translateX(-120%);}
+}
+
+/* Particles */
+.pt {
+  position: fixed; width: 2px; height: 2px;
+  background: #ff2020; border-radius: 50%;
+  opacity: 0; pointer-events: none; z-index: 1;
+  animation: ptFloat 6s ease-in-out infinite;
+}
+@keyframes ptFloat {
+  0%{opacity:0;transform:translateY(0) scale(1);}
+  15%{opacity:0.8;}
+  85%{opacity:0.3;}
+  100%{opacity:0;transform:translateY(-120px) scale(0.2);}
+}
+</style>
+</head>
+<body>
+
+<div class="grid"></div>
+<div class="scan"></div>
+
+<!-- Particles -->
+<div class="pt" style="left:10%;top:30%;animation-delay:0s;animation-duration:5.5s;"></div>
+<div class="pt" style="left:80%;top:60%;animation-delay:1.5s;animation-duration:7s;"></div>
+<div class="pt" style="left:45%;top:80%;animation-delay:3s;animation-duration:6s;"></div>
+<div class="pt" style="left:90%;top:25%;animation-delay:0.8s;animation-duration:8s;"></div>
+<div class="pt" style="left:25%;top:55%;animation-delay:2.2s;animation-duration:6.5s;"></div>
+
+<div class="panel">
+
+  <!-- Rings with warning icon -->
+  <div class="ring-wrap">
+    <div class="r"></div>
+    <div class="r"></div>
+    <div class="r"></div>
+    <div class="r"></div>
+    <div class="warn-icon">⛔</div>
+  </div>
+
+  <!-- Frame -->
+  <div class="frame">
+    <div class="fc-br"></div>
+    <div class="fc-bl"></div>
+
+    <div class="status-row">
+      <span>SECURITY TERMINAL v2.4</span>
+      <div class="status-dot-wrap">
+        <div class="status-dot"></div>
+        <span>BREACH DETECTED</span>
+      </div>
+    </div>
+
+    <div class="err-bars">
+      <div class="err-bar"></div><div class="err-bar"></div>
+      <div class="err-bar"></div><div class="err-bar"></div>
+      <div class="err-bar"></div><div class="err-bar"></div>
+      <div class="err-bar"></div><div class="err-bar"></div>
+      <div class="err-bar"></div><div class="err-bar"></div>
+      <div class="err-bar"></div><div class="err-bar"></div>
+    </div>
+
+    <div class="err-code">404</div>
+    <div class="divider"></div>
+    <div class="denied">ACCESS DENIED</div>
+    <div class="closed-text">THIS SITE IS CLOSED</div>
+
+    <div class="log-lines">
+      <div class="log-line">▸ INVALID ACCESS CODE DETECTED</div>
+      <div class="log-line">▸ AUTHENTICATION FAILED</div>
+      <div class="log-line">▸ IP ADDRESS LOGGED</div>
+      <div class="log-line">▸ SYSTEM LOCKDOWN INITIATED ⚠</div>
+    </div>
+
+    <div class="ticker">
+      <span>ACCESS DENIED &nbsp;·&nbsp; INVALID CODE &nbsp;·&nbsp; SYSTEM LOCKED &nbsp;·&nbsp; 404 ERROR &nbsp;·&nbsp; UNAUTHORIZED ACCESS &nbsp;·&nbsp;</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

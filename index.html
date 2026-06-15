@@ -15,357 +15,179 @@ background-attachment:fixed;
 height:100vh;
 }
 
-/* ═══════════════════════════════════
-   HUD ACCESS SCREEN
-   ═══════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   FULL-SCREEN HUD ACCESS PAGE
+   ═══════════════════════════════════════════════════════ */
 #access {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* ── HUD overlay dark layer ── */
-#access::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,20,40,0.72) 0%, rgba(0,0,0,0.82) 100%);
-  z-index: 0;
-}
-
-/* ── Animated grid ── */
-#access::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,255,255,0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,0.035) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: gridScroll 8s linear infinite;
-  z-index: 0;
-}
-
-@keyframes gridScroll {
-  0%   { background-position: 0 0; }
-  100% { background-position: 40px 40px; }
-}
-
-/* ── HUD panel ── */
-.hud-panel {
-  position: relative;
-  z-index: 2;
-  width: min(88vw, 340px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-/* ── Radar scanner ── */
-.hud-radar {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  margin-bottom: 24px;
-  flex-shrink: 0;
-}
-.hud-radar-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid rgba(0,255,255,0.25);
-}
-.hud-radar-ring:nth-child(1) { inset: 0; }
-.hud-radar-ring:nth-child(2) { inset: 18px; border-color: rgba(0,255,255,0.35); }
-.hud-radar-ring:nth-child(3) { inset: 36px; border-color: rgba(0,255,255,0.5); }
-.hud-radar-ring:nth-child(4) { inset: 54px; border-color: rgba(0,220,255,0.7); }
-
-.hud-radar-sweep {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(0,255,255,0.18) 60deg,
-    rgba(0,255,255,0.5) 90deg,
-    transparent 91deg
-  );
-  animation: radarSweep 3s linear infinite;
-}
-@keyframes radarSweep {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* Cross-hairs */
-.hud-radar-cross {
-  position: absolute;
-  inset: 0;
-}
-.hud-radar-cross::before,
-.hud-radar-cross::after {
-  content: '';
-  position: absolute;
-  background: rgba(0,255,255,0.2);
-}
-.hud-radar-cross::before { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
-.hud-radar-cross::after  { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
-
-/* Center dot */
-.hud-radar-dot {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px; height: 8px;
-  background: #00ffff;
-  border-radius: 50%;
-  box-shadow: 0 0 10px 4px rgba(0,255,255,0.6);
-  animation: dotPulse 2s ease-in-out infinite;
-}
-@keyframes dotPulse {
-  0%,100% { opacity: 1; box-shadow: 0 0 10px 4px rgba(0,255,255,0.6); }
-  50%      { opacity: 0.6; box-shadow: 0 0 18px 8px rgba(0,255,255,0.3); }
-}
-
-/* ── Corner decorations ── */
-.hud-corners {
-  position: relative;
-  width: 100%;
-  padding: 22px 18px;
-  box-sizing: border-box;
-  background: rgba(0,20,35,0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(0,255,255,0.18);
-  border-radius: 4px;
-}
-.hud-corners::before,
-.hud-corners::after,
-.hud-corners > .hud-corner-br,
-.hud-corners > .hud-corner-bl {
-  content: '';
-  position: absolute;
-  width: 14px; height: 14px;
-}
-.hud-corners::before {
-  top: -1px; left: -1px;
-  border-top: 2px solid #00ffff;
-  border-left: 2px solid #00ffff;
-}
-.hud-corners::after {
-  top: -1px; right: -1px;
-  border-top: 2px solid #00ffff;
-  border-right: 2px solid #00ffff;
-}
-.hud-corner-br {
-  bottom: -1px; right: -1px;
-  border-bottom: 2px solid #00ffff;
-  border-right: 2px solid #00ffff;
-}
-.hud-corner-bl {
-  bottom: -1px; left: -1px;
-  border-bottom: 2px solid #00ffff;
-  border-left: 2px solid #00ffff;
-}
-
-/* ── Header text ── */
-.hud-header {
-  text-align: center;
-  margin-bottom: 18px;
-}
-.hud-system-label {
-  font-family: 'Courier New', monospace;
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: rgba(0,255,255,0.5);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.hud-title {
-  font-family: 'Courier New', monospace;
-  font-size: 19px;
-  font-weight: bold;
-  letter-spacing: 6px;
-  color: #00ffff;
-  text-shadow: 0 0 20px rgba(0,255,255,0.8), 0 0 40px rgba(0,255,255,0.4);
-  text-transform: uppercase;
-  animation: titleFlicker 6s ease-in-out infinite;
-}
-@keyframes titleFlicker {
-  0%,95%,100% { opacity: 1; }
-  96%          { opacity: 0.7; }
-  97%          { opacity: 1; }
-  98%          { opacity: 0.8; }
-}
-
-/* ── Data bars ── */
-.hud-bars {
-  display: flex;
-  gap: 3px;
-  align-items: flex-end;
-  height: 20px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-.hud-bar {
-  width: 4px;
-  background: rgba(0,255,255,0.4);
-  border-radius: 1px;
-  animation: barAnim 1.4s ease-in-out infinite;
-}
-.hud-bar:nth-child(1)  { height: 8px;  animation-delay: 0s;    }
-.hud-bar:nth-child(2)  { height: 14px; animation-delay: 0.1s;  }
-.hud-bar:nth-child(3)  { height: 20px; animation-delay: 0.2s;  }
-.hud-bar:nth-child(4)  { height: 11px; animation-delay: 0.3s;  }
-.hud-bar:nth-child(5)  { height: 17px; animation-delay: 0.15s; }
-.hud-bar:nth-child(6)  { height: 20px; animation-delay: 0.25s; }
-.hud-bar:nth-child(7)  { height: 9px;  animation-delay: 0.05s; }
-.hud-bar:nth-child(8)  { height: 15px; animation-delay: 0.35s; }
-.hud-bar:nth-child(9)  { height: 12px; animation-delay: 0.18s; }
-.hud-bar:nth-child(10) { height: 18px; animation-delay: 0.28s; }
-.hud-bar:nth-child(11) { height: 7px;  animation-delay: 0.08s; }
-.hud-bar:nth-child(12) { height: 14px; animation-delay: 0.38s; }
-@keyframes barAnim {
-  0%,100% { opacity: 0.4; transform: scaleY(0.6); }
-  50%      { opacity: 1;   transform: scaleY(1); }
-}
-
-/* ── Input ── */
-.hud-input-wrap {
-  position: relative;
-  width: 100%;
-  margin-bottom: 6px;
-}
-.hud-input-label {
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: rgba(0,255,255,0.55);
-  margin-bottom: 6px;
-  display: block;
-}
-#key {
-  width: 100%;
-  padding: 13px 18px;
-  background: rgba(0,255,255,0.05);
-  border: 1px solid rgba(0,255,255,0.45);
-  border-radius: 3px;
-  color: #00ffff;
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
-  letter-spacing: 8px;
-  text-align: center;
-  outline: none;
-  box-sizing: border-box;
-  caret-color: #00ffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#key::placeholder {
-  color: rgba(0,255,255,0.22);
-  letter-spacing: 4px;
-  font-size: 11px;
-}
-#key:focus {
-  border-color: rgba(0,255,255,0.9);
-  box-shadow: 0 0 20px rgba(0,255,255,0.25), inset 0 0 12px rgba(0,255,255,0.06);
-}
-
-/* Scan line under input */
-.hud-scan-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-  margin-top: 4px;
-  animation: scanSlide 2.5s ease-in-out infinite;
-  opacity: 0.7;
-}
-@keyframes scanSlide {
-  0%   { transform: scaleX(0.1); opacity: 0; }
-  50%  { transform: scaleX(1);   opacity: 0.7; }
-  100% { transform: scaleX(0.1); opacity: 0; }
-}
-
-/* ── Enter button ── */
-#access button {
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px;
+  position: fixed; inset: 0; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding-bottom: 10vh; overflow: hidden;
   background: transparent;
-  border: 1px solid rgba(0,255,255,0.6);
-  color: #00ffff;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
-  -webkit-tap-highlight-color: transparent;
 }
-#access button::before {
-  content: '';
-  position: absolute;
-  left: -100%; top: 0; bottom: 0;
-  width: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,255,255,0.12), transparent);
-  animation: btnSweep 3s linear infinite;
+#access .hud-overlay {
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%,
+    rgba(0,8,18,0.80) 0%, rgba(0,2,10,0.90) 100%);
+  z-index:0;
 }
-@keyframes btnSweep {
-  0%   { left: -100%; }
-  100% { left: 200%;  }
+#access .hud-grid {
+  position:absolute; inset:0; z-index:1;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,255,0.04) 1px,transparent 1px);
+  background-size:32px 32px;
+  animation:hudGridMove 12s linear infinite;
 }
-#access button:active {
-  background: rgba(0,255,255,0.1);
-  box-shadow: 0 0 24px rgba(0,255,255,0.4);
-  color: white;
+@keyframes hudGridMove{from{background-position:0 0;}to{background-position:32px 32px;}}
+#access .hud-scan {
+  position:absolute; left:0; right:0; height:2px; top:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(0,255,255,0.55) 50%,transparent 100%);
+  z-index:2; animation:scanDown 4s linear infinite;
 }
+@keyframes scanDown{0%{top:0%;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
 
-/* ── Status ticker ── */
-.hud-status {
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: rgba(0,255,255,0.35);
-  text-align: center;
-  margin-top: 14px;
-  overflow: hidden;
-  white-space: nowrap;
+/* Top radar */
+#access .hud-top {
+  position:absolute; top:3vh; left:50%; transform:translateX(-50%);
+  z-index:3; display:flex; flex-direction:column; align-items:center;
 }
-.hud-status span {
-  display: inline-block;
-  animation: tickerScroll 14s linear infinite;
+#access .hud-big-radar {
+  position:relative; width:150px; height:150px;
 }
-@keyframes tickerScroll {
-  0%   { transform: translateX(60%); }
-  100% { transform: translateX(-120%); }
+#access .hud-big-radar .ring {
+  position:absolute; border-radius:50%;
+  border:1px solid rgba(0,255,255,0.18);
+  animation:ringPulse 3s ease-in-out infinite;
 }
+#access .hud-big-radar .ring:nth-child(1){inset:0;animation-delay:0s;}
+#access .hud-big-radar .ring:nth-child(2){inset:18px;border-color:rgba(0,255,255,0.28);animation-delay:0.4s;}
+#access .hud-big-radar .ring:nth-child(3){inset:36px;border-color:rgba(0,255,255,0.42);animation-delay:0.8s;}
+#access .hud-big-radar .ring:nth-child(4){inset:54px;border-color:rgba(0,240,255,0.6);animation-delay:1.2s;}
+#access .hud-big-radar .ring:nth-child(5){inset:68px;border:2px solid rgba(0,255,255,0.85);animation-delay:1.6s;}
+@keyframes ringPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+#access .hud-sweep {
+  position:absolute; inset:0; border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(0,255,255,0.08) 50deg,rgba(0,255,255,0.45) 85deg,transparent 86deg);
+  animation:sweepRot 2.8s linear infinite;
+}
+@keyframes sweepRot{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#access .hud-cross{position:absolute;inset:0;}
+#access .hud-cross::before,#access .hud-cross::after{content:'';position:absolute;background:rgba(0,255,255,0.18);}
+#access .hud-cross::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%);}
+#access .hud-cross::after{top:50%;left:0;right:0;height:1px;transform:translateY(-50%);}
+#access .hud-dot {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:10px; height:10px; background:#00ffff; border-radius:50%;
+  box-shadow:0 0 12px 5px rgba(0,255,255,0.5);
+  animation:dotBlink 1.8s ease-in-out infinite;
+}
+@keyframes dotBlink{0%,100%{box-shadow:0 0 12px 5px rgba(0,255,255,0.5);}50%{box-shadow:0 0 22px 10px rgba(0,255,255,0.25);}}
 
-/* ── Floating particles ── */
-.hud-particle {
-  position: absolute;
-  width: 2px; height: 2px;
-  background: #00ffff;
-  border-radius: 50%;
-  opacity: 0;
-  animation: particleFloat 6s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
+/* Side widgets */
+#access .hud-left-widgets,#access .hud-right-widgets {
+  position:absolute; top:8vh; z-index:3;
+  display:flex; flex-direction:column; gap:10px;
 }
-@keyframes particleFloat {
-  0%   { opacity: 0; transform: translateY(0) scale(1); }
-  20%  { opacity: 0.8; }
-  80%  { opacity: 0.4; }
-  100% { opacity: 0; transform: translateY(-120px) scale(0.3); }
+#access .hud-left-widgets{left:10px;}
+#access .hud-right-widgets{right:10px;align-items:flex-end;}
+#access .hud-small-circle{position:relative;width:48px;height:48px;}
+#access .hud-small-circle .sr{position:absolute;border-radius:50%;border:1px solid rgba(0,255,255,0.3);}
+#access .hud-small-circle .sr:nth-child(1){inset:0;}
+#access .hud-small-circle .sr:nth-child(2){inset:8px;border-color:rgba(0,255,255,0.5);}
+#access .hud-small-circle .sr:nth-child(3){inset:16px;border-color:rgba(0,255,255,0.8);}
+#access .hud-small-circle .sw{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(0,255,255,0.4) 70deg,transparent 71deg);
+  animation:sweepRot 1.8s linear infinite;
 }
+#access .hud-mini-bars{display:flex;align-items:flex-end;gap:2px;height:28px;}
+#access .hud-mini-bar{width:4px;background:rgba(0,255,255,0.5);border-radius:1px;animation:mBarA 1.2s ease-in-out infinite;}
+#access .hud-mini-bar:nth-child(1){height:10px;animation-delay:0s;}
+#access .hud-mini-bar:nth-child(2){height:20px;animation-delay:0.1s;}
+#access .hud-mini-bar:nth-child(3){height:14px;animation-delay:0.2s;}
+#access .hud-mini-bar:nth-child(4){height:24px;animation-delay:0.3s;}
+#access .hud-mini-bar:nth-child(5){height:16px;animation-delay:0.15s;}
+#access .hud-mini-bar:nth-child(6){height:20px;animation-delay:0.25s;}
+@keyframes mBarA{0%,100%{opacity:0.4;transform:scaleY(0.7);}50%{opacity:1;transform:scaleY(1);}}
+#access .hud-data-line{font-family:'Courier New',monospace;font-size:9px;color:rgba(0,255,255,0.5);letter-spacing:1.5px;line-height:1.9;}
+#access .hud-prog-wrap{width:68px;}
+#access .hud-prog-label{font-family:'Courier New',monospace;font-size:8px;color:rgba(0,255,255,0.4);letter-spacing:1px;margin-bottom:3px;}
+#access .hud-prog-track{width:100%;height:3px;background:rgba(0,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+#access .hud-prog-fill{height:100%;background:rgba(0,255,255,0.65);border-radius:2px;animation:progA 3s ease-in-out infinite;}
+@keyframes progA{0%{width:20%;}50%{width:88%;}100%{width:20%;}}
+
+/* Bottom input frame */
+#access .hud-bottom{position:relative;z-index:4;width:min(92vw,380px);}
+#access .hud-frame{
+  width:100%;padding:18px 16px 14px;box-sizing:border-box;
+  position:relative;border:1px solid rgba(0,255,255,0.22);
+  background:rgba(0,8,18,0.68);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+#access .hud-frame::before,#access .hud-frame::after,
+#access .hud-frame .fc-br,#access .hud-frame .fc-bl{
+  content:'';position:absolute;width:16px;height:16px;
+}
+#access .hud-frame::before{top:-1px;left:-1px;border-top:2px solid #00ffff;border-left:2px solid #00ffff;}
+#access .hud-frame::after{top:-1px;right:-1px;border-top:2px solid #00ffff;border-right:2px solid #00ffff;}
+#access .hud-frame .fc-br{bottom:-1px;right:-1px;border-bottom:2px solid #00ffff;border-right:2px solid #00ffff;}
+#access .hud-frame .fc-bl{bottom:-1px;left:-1px;border-bottom:2px solid #00ffff;border-left:2px solid #00ffff;}
+#access .hud-sys-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+#access .hud-sys-row span{font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;color:rgba(0,255,255,0.4);}
+#access .hud-sys-status{display:flex;align-items:center;gap:5px;}
+#access .hud-status-dot{width:6px;height:6px;background:#00ffff;border-radius:50%;box-shadow:0 0 6px 2px rgba(0,255,255,0.6);animation:dotBlink 1.4s ease-in-out infinite;}
+#access .hud-eq{display:flex;gap:3px;align-items:flex-end;height:20px;margin-bottom:12px;width:100%;justify-content:center;}
+#access .hud-eq-bar{flex:1;max-width:6px;background:rgba(0,255,255,0.4);border-radius:1px;animation:mBarA 1.4s ease-in-out infinite;}
+#access .hud-eq-bar:nth-child(1){height:8px;animation-delay:0s;}
+#access .hud-eq-bar:nth-child(2){height:15px;animation-delay:0.07s;}
+#access .hud-eq-bar:nth-child(3){height:20px;animation-delay:0.14s;}
+#access .hud-eq-bar:nth-child(4){height:11px;animation-delay:0.21s;}
+#access .hud-eq-bar:nth-child(5){height:18px;animation-delay:0.28s;}
+#access .hud-eq-bar:nth-child(6){height:20px;animation-delay:0.35s;}
+#access .hud-eq-bar:nth-child(7){height:9px;animation-delay:0.12s;}
+#access .hud-eq-bar:nth-child(8){height:16px;animation-delay:0.19s;}
+#access .hud-eq-bar:nth-child(9){height:13px;animation-delay:0.26s;}
+#access .hud-eq-bar:nth-child(10){height:19px;animation-delay:0.33s;}
+#access .hud-eq-bar:nth-child(11){height:8px;animation-delay:0.40s;}
+#access .hud-eq-bar:nth-child(12){height:14px;animation-delay:0.47s;}
+#access .hud-eq-bar:nth-child(13){height:20px;animation-delay:0.54s;}
+#access .hud-eq-bar:nth-child(14){height:11px;animation-delay:0.08s;}
+#access .hud-eq-bar:nth-child(15){height:17px;animation-delay:0.16s;}
+#access .hud-title-row{text-align:center;margin-bottom:14px;}
+#access .hud-subtitle{font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:rgba(0,255,255,0.4);margin-bottom:4px;}
+#access .hud-main-title{font-family:'Courier New',monospace;font-size:22px;font-weight:bold;letter-spacing:7px;color:#00ffff;text-shadow:0 0 16px rgba(0,255,255,0.8),0 0 32px rgba(0,255,255,0.4);animation:titleFlicker 7s ease-in-out infinite;}
+@keyframes titleFlicker{0%,93%,100%{opacity:1;}94%{opacity:0.6;}95%{opacity:1;}97%{opacity:0.7;}}
+#access .hud-input-label{font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,255,255,0.5);margin-bottom:6px;display:block;}
+#key{
+  width:100%;padding:12px 16px;
+  background:rgba(0,255,255,0.04);
+  border:1px solid rgba(0,255,255,0.5);border-radius:2px;
+  color:#00ffff;font-family:'Courier New',monospace;
+  font-size:18px;letter-spacing:10px;text-align:center;
+  outline:none;box-sizing:border-box;caret-color:#00ffff;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+#key::placeholder{color:rgba(0,255,255,0.2);letter-spacing:3px;font-size:10px;}
+#key:focus{border-color:rgba(0,255,255,0.9);box-shadow:0 0 18px rgba(0,255,255,0.2),inset 0 0 10px rgba(0,255,255,0.05);}
+#access .hud-scanline{height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,255,0.7),transparent);margin:4px 0 14px;animation:scanSlide 2.5s ease-in-out infinite;}
+@keyframes scanSlide{0%{transform:scaleX(0.05);opacity:0;}50%{transform:scaleX(1);opacity:1;}100%{transform:scaleX(0.05);opacity:0;}}
+#access button{
+  width:100%;padding:13px;background:transparent;
+  border:1px solid rgba(0,255,255,0.6);color:#00ffff;
+  font-family:'Courier New',monospace;font-size:12px;font-weight:bold;
+  letter-spacing:6px;text-transform:uppercase;cursor:pointer;
+  border-radius:2px;position:relative;overflow:hidden;
+  transition:color 0.2s,background 0.2s,box-shadow 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+#access button::before{content:'';position:absolute;left:-100%;top:0;bottom:0;width:60%;background:linear-gradient(90deg,transparent,rgba(0,255,255,0.15),transparent);animation:btnSweep 2.8s linear infinite;}
+@keyframes btnSweep{0%{left:-100%;}100%{left:200%;}}
+#access button:active{background:rgba(0,255,255,0.08);box-shadow:0 0 20px rgba(0,255,255,0.35);}
+#access .hud-ticker{font-family:'Courier New',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(0,255,255,0.3);text-align:center;margin-top:10px;overflow:hidden;white-space:nowrap;}
+#access .hud-ticker span{display:inline-block;animation:tickScroll 16s linear infinite;}
+@keyframes tickScroll{0%{transform:translateX(50%);}100%{transform:translateX(-120%);}}
+#access .hud-pt{position:absolute;width:2px;height:2px;background:#00ffff;border-radius:50%;opacity:0;pointer-events:none;z-index:2;animation:ptFloat 7s ease-in-out infinite;}
+@keyframes ptFloat{0%{opacity:0;transform:translateY(0) scale(1);}15%{opacity:0.9;}85%{opacity:0.4;}100%{opacity:0;transform:translateY(-140px) scale(0.3);}}
 
 #login{
 display:none;
@@ -1001,67 +823,121 @@ transition: transform 0.15s, box-shadow 0.15s;
 <body>
 
 <div id="access">
+  <!-- Overlay + grid -->
+  <div class="hud-overlay"></div>
+  <div class="hud-grid"></div>
+  <div class="hud-scan"></div>
+
   <!-- Floating particles -->
-  <div class="hud-particle" style="left:15%;top:20%;animation-delay:0s;animation-duration:5s;"></div>
-  <div class="hud-particle" style="left:75%;top:60%;animation-delay:1.5s;animation-duration:7s;"></div>
-  <div class="hud-particle" style="left:40%;top:80%;animation-delay:3s;animation-duration:6s;"></div>
-  <div class="hud-particle" style="left:85%;top:30%;animation-delay:0.8s;animation-duration:8s;"></div>
-  <div class="hud-particle" style="left:25%;top:50%;animation-delay:2.2s;animation-duration:5.5s;"></div>
+  <div class="hud-pt" style="left:8%;top:25%;animation-delay:0s;animation-duration:6s;"></div>
+  <div class="hud-pt" style="left:70%;top:55%;animation-delay:1.5s;animation-duration:8s;"></div>
+  <div class="hud-pt" style="left:35%;top:75%;animation-delay:3s;animation-duration:5.5s;"></div>
+  <div class="hud-pt" style="left:88%;top:20%;animation-delay:0.8s;animation-duration:7.5s;"></div>
+  <div class="hud-pt" style="left:20%;top:60%;animation-delay:2.2s;animation-duration:6.5s;"></div>
+  <div class="hud-pt" style="left:55%;top:40%;animation-delay:4s;animation-duration:7s;"></div>
 
-  <!-- HUD panel -->
-  <div class="hud-panel">
-
-    <!-- Radar -->
-    <div class="hud-radar">
-      <div class="hud-radar-ring"></div>
-      <div class="hud-radar-ring"></div>
-      <div class="hud-radar-ring"></div>
-      <div class="hud-radar-ring"></div>
-      <div class="hud-radar-sweep"></div>
-      <div class="hud-radar-cross"></div>
-      <div class="hud-radar-dot"></div>
+  <!-- Top section — big radar -->
+  <div class="hud-top">
+    <div class="hud-big-radar">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="hud-sweep"></div>
+      <div class="hud-cross"></div>
+      <div class="hud-dot"></div>
     </div>
+  </div>
 
-    <!-- Glassmorphism panel -->
-    <div class="hud-corners">
-      <div class="hud-corner-br"></div>
-      <div class="hud-corner-bl"></div>
+  <!-- Left widgets -->
+  <div class="hud-left-widgets">
+    <div class="hud-small-circle">
+      <div class="sr"></div><div class="sr"></div><div class="sr"></div>
+      <div class="sw"></div>
+    </div>
+    <div class="hud-mini-bars">
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+    </div>
+    <div class="hud-data-line">
+      SYS:ONLINE<br>ENC:AES256<br>NET:SECURE
+    </div>
+    <div class="hud-progress-wrap">
+      <div class="hud-progress-label">SIGNAL</div>
+      <div class="hud-progress-track"><div class="hud-progress-fill"></div></div>
+      <div class="hud-progress-label">ENCRYPT</div>
+      <div class="hud-progress-track"><div class="hud-progress-fill" style="animation-delay:1s;"></div></div>
+    </div>
+  </div>
 
-      <!-- Header -->
-      <div class="hud-header">
-        <div class="hud-system-label">SECURE CHANNEL</div>
-        <div class="hud-title">ACCESS</div>
+  <!-- Right widgets -->
+  <div class="hud-right-widgets">
+    <div class="hud-small-circle">
+      <div class="sr"></div><div class="sr"></div><div class="sr"></div>
+      <div class="sw" style="animation-direction:reverse;animation-duration:2.2s;"></div>
+    </div>
+    <div class="hud-mini-bars">
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+      <div class="hud-mini-bar"></div><div class="hud-mini-bar"></div>
+    </div>
+    <div class="hud-data-line" style="text-align:right;">
+      ID:7729<br>LVL:MAX<br>AUTH:REQ
+    </div>
+    <div class="hud-progress-wrap">
+      <div class="hud-progress-label">FIREWALL</div>
+      <div class="hud-progress-track"><div class="hud-progress-fill" style="animation-delay:0.5s;"></div></div>
+      <div class="hud-progress-label">SCAN</div>
+      <div class="hud-progress-track"><div class="hud-progress-fill" style="animation-delay:1.5s;"></div></div>
+    </div>
+  </div>
+
+  <!-- Bottom input panel -->
+  <div class="hud-bottom">
+    <div class="hud-frame">
+      <div class="fc-br"></div>
+      <div class="fc-bl"></div>
+
+      <div class="hud-sys-row">
+        <span>SECURE TERMINAL v2.4</span>
+        <div class="hud-sys-status">
+          <div class="hud-status-dot"></div>
+          <span>ONLINE</span>
+        </div>
       </div>
 
-      <!-- Data bars -->
-      <div class="hud-bars">
-        <div class="hud-bar"></div><div class="hud-bar"></div>
-        <div class="hud-bar"></div><div class="hud-bar"></div>
-        <div class="hud-bar"></div><div class="hud-bar"></div>
-        <div class="hud-bar"></div><div class="hud-bar"></div>
-        <div class="hud-bar"></div><div class="hud-bar"></div>
-        <div class="hud-bar"></div><div class="hud-bar"></div>
+      <div class="hud-eq">
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div><div class="hud-eq-bar"></div>
+        <div class="hud-eq-bar"></div>
       </div>
 
-      <!-- Input -->
-      <div class="hud-input-wrap">
-        <span class="hud-input-label">▸ ACCESS CODE</span>
-        <input id="key" placeholder="_ _ _ _ _ _" maxlength="6"
-          autocomplete="off" spellcheck="false"
-          onkeydown="if(event.key==='Enter') unlock()">
-        <div class="hud-scan-line"></div>
+      <div class="hud-title-row">
+        <div class="hud-subtitle">AUTHENTICATION REQUIRED</div>
+        <div class="hud-main-title">ACCESS</div>
       </div>
 
-      <!-- Enter button -->
+      <span class="hud-input-label">▸ ACCESS CODE</span>
+      <input id="key" placeholder="_ _ _ _ _ _" maxlength="6"
+        autocomplete="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter') unlock()">
+      <div class="hud-scanline"></div>
+
       <button onclick="unlock()">⬡ AUTHORIZE</button>
 
-      <!-- Status ticker -->
-      <div class="hud-status">
-        <span>SYS_READY &nbsp;·&nbsp; ENCRYPTION_ON &nbsp;·&nbsp; AWAITING_INPUT &nbsp;·&nbsp; SECURE_LINK_ESTABLISHED &nbsp;·&nbsp;</span>
+      <div class="hud-ticker">
+        <span>INITIALIZING SECURITY PROTOCOLS &nbsp;·&nbsp; ENCRYPTION ACTIVE &nbsp;·&nbsp; AWAITING ACCESS CODE &nbsp;·&nbsp; SECURE LINK ESTABLISHED &nbsp;·&nbsp;</span>
       </div>
     </div>
-
   </div>
+
 </div>
 
 <div id="accessLoader">
@@ -1822,8 +1698,8 @@ window.unlock=async function(){
     const res=await fetch(BACKEND+"/check-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key})})
     const data=await res.json()
     accessLoader.style.display="none"
-    if(!data.ok){document.body.innerHTML="";return}
-  } catch(e){accessLoader.style.display="none";document.body.innerHTML="";return}
+    if(!data.ok){ window.location.href="closed.html"; return }
+  } catch(e){ accessLoader.style.display="none"; window.location.href="closed.html"; return }
   document.getElementById("access").style.display="none"
   document.getElementById("login").style.display="block"
 }

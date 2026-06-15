@@ -70,17 +70,36 @@ body {
   50%      { opacity: 1; }
 }
 
-/* Warning icon inside rings */
+/* Skull — blue, large, no blink, only red eyes blink */
 .warn-icon {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 52px;
-  animation: iconBlink 1.2s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgba(255,30,30,0.8));
+  filter:
+    drop-shadow(0 0 12px rgba(30,80,255,0.7))
+    drop-shadow(0 0 28px rgba(20,60,220,0.4));
 }
-@keyframes iconBlink {
-  0%,100% { opacity: 1; }
-  50%      { opacity: 0.3; }
+.skull-svg {
+  width: 130px;
+  height: 130px;
+  display: block;
+}
+/* Red eyes blink — NOT the skull */
+.eye-l {
+  animation: eyeBlink 2.4s ease-in-out infinite;
+}
+.eye-r {
+  animation: eyeBlink 2.4s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+@keyframes eyeBlink {
+  0%,40%,100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px #ff0000);
+  }
+  45% { opacity: 0.05; }
+  50% { opacity: 1; }
+  55% { opacity: 0.05; }
+  60% { opacity: 1; }
 }
 
 /* Corner frame */
@@ -262,7 +281,58 @@ body {
     <div class="r"></div>
     <div class="r"></div>
     <div class="r"></div>
-    <div class="warn-icon">⛔</div>
+    <div class="warn-icon">
+      <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" class="skull-svg">
+
+        <!-- ══ CROSSBONES BEHIND SKULL ══ -->
+        <!-- Bone 1: top-left to bottom-right (behind) -->
+        <line x1="15" y1="18" x2="85" y2="88" stroke="#1a3a7a" stroke-width="7" stroke-linecap="round"/>
+        <!-- Bone 1 knobs -->
+        <circle cx="15" cy="18" r="7" fill="#1a4acc" stroke="#3366ff" stroke-width="1.5"/>
+        <circle cx="10" cy="13" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="20" cy="23" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="85" cy="88" r="7" fill="#1a4acc" stroke="#3366ff" stroke-width="1.5"/>
+        <circle cx="80" cy="83" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="90" cy="93" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+
+        <!-- Bone 2: top-right to bottom-left (behind) -->
+        <line x1="85" y1="18" x2="15" y2="88" stroke="#1a3a7a" stroke-width="7" stroke-linecap="round"/>
+        <!-- Bone 2 knobs -->
+        <circle cx="85" cy="18" r="7" fill="#1a4acc" stroke="#3366ff" stroke-width="1.5"/>
+        <circle cx="90" cy="13" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="80" cy="23" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="15" cy="88" r="7" fill="#1a4acc" stroke="#3366ff" stroke-width="1.5"/>
+        <circle cx="10" cy="83" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+        <circle cx="20" cy="93" r="4.5" fill="#1a4acc" stroke="#3366ff" stroke-width="1.2"/>
+
+        <!-- ══ SKULL ON TOP ══ -->
+        <!-- Head -->
+        <ellipse cx="50" cy="46" rx="30" ry="28" fill="#1a3a7a" stroke="#3366ff" stroke-width="1.5"/>
+        <!-- Forehead shine -->
+        <ellipse cx="42" cy="30" rx="9" ry="5" fill="rgba(80,140,255,0.2)" transform="rotate(-20,42,30)"/>
+        <!-- Left eye socket -->
+        <ellipse cx="37" cy="48" rx="8.5" ry="9.5" fill="#081428"/>
+        <!-- Right eye socket -->
+        <ellipse cx="63" cy="48" rx="8.5" ry="9.5" fill="#081428"/>
+        <!-- Left eye RED -->
+        <ellipse cx="37" cy="48" rx="5" ry="5.5" fill="#ff1a1a" class="eye-l"/>
+        <ellipse cx="37" cy="48" rx="2.2" ry="2.4" fill="#ff9090" class="eye-l"/>
+        <!-- Right eye RED -->
+        <ellipse cx="63" cy="48" rx="5" ry="5.5" fill="#ff1a1a" class="eye-r"/>
+        <ellipse cx="63" cy="48" rx="2.2" ry="2.4" fill="#ff9090" class="eye-r"/>
+        <!-- Nose cavity -->
+        <path d="M46,60 L50,66 L54,60 Z" fill="#081428" opacity="0.9"/>
+        <!-- Jaw -->
+        <rect x="28" y="68" width="44" height="9" rx="4" fill="#1a3a7a" stroke="#3366ff" stroke-width="1.2"/>
+        <!-- Teeth -->
+        <rect x="32" y="68" width="6.5" height="8" rx="1.5" fill="#ccdeff"/>
+        <rect x="41" y="68" width="6.5" height="8" rx="1.5" fill="#ccdeff"/>
+        <rect x="50" y="68" width="6.5" height="8" rx="1.5" fill="#ccdeff"/>
+        <rect x="59" y="68" width="6.5" height="8" rx="1.5" fill="#ccdeff"/>
+        <!-- Skull glow outline -->
+        <ellipse cx="50" cy="46" rx="30" ry="28" fill="none" stroke="rgba(60,130,255,0.4)" stroke-width="3"/>
+      </svg>
+    </div>
   </div>
 
   <!-- Frame -->
@@ -307,4 +377,5 @@ body {
 </div>
 
 </body>
-</html>
+          </html>
+  

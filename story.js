@@ -170,7 +170,7 @@
         <div id="storyMediaWrap">
           <div id="storyTapLeft"></div>
           <img id="storyImg" alt="">
-          <video id="storyVid" playsinline muted></video>
+          <video id="storyVid" playsinline></video>
           <div id="storyCapOverlay"></div>
           <!-- Music sticker -->
           <div id="storyMusicSticker" style="display:none;">
@@ -945,7 +945,14 @@
     if (story.type === 'video') {
       img.classList.remove('active'); img.src = ''
       vid.src = story.media; vid.classList.add('active')
-      vid.play().catch(() => {}); vid.onended = nextStory
+      vid.muted = false          // ✅ unmute — original video sound
+      vid.volume = 1.0
+      vid.play().catch(() => {
+        // autoplay blocked — try muted first then unmute
+        vid.muted = true
+        vid.play().then(() => { vid.muted = false }).catch(() => {})
+      })
+      vid.onended = nextStory
     } else {
       vid.classList.remove('active'); vid.pause(); vid.src = ''
       img.src = story.media; img.classList.add('active')

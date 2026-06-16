@@ -10,15 +10,15 @@
   // ── Editor state ─────────────────────────────────────────
   let editorCanvas   = null   // main canvas (draws filters + overlays)
   let editorCtx      = null
-  let drawCanvas     = null   // separate draw layerCq
+  let drawCanvas     = null   // separate draw layer
   let drawCtx        = null
   let isDrawing      = false
-  let drawLastX      = 0, drawLastY = 0C
+  let drawLastX      = 0, drawLastY = 0
   let currentFilter  = 'none'
   let currentAdj     = { brightness: 100, contrast: 100, blur: 0 }
   let textItems      = []     // [{text, x, y, font, size, color, bg, anim, id}]
-  let stickerItems   = []     // [{emoji, x, y, size, id}]A
-  let draggingItem   = null   // {type:'text'|'sticker', id, offX, offY}A
+  let stickerItems   = []     // [{emoji, x, y, size, id}]
+  let draggingItem   = null   // {type:'text'|'sticker', id, offX, offY}
   let drawColor      = '#ff3b30'
   let drawSize       = 4
   let editorMode     = null   // 'filter'|'text'|'sticker'|'draw'|'adjust'|null

@@ -221,15 +221,45 @@
 /* ── Editor panel container ── */
 #storyEditorPanel {
   display: none;
-  position: fixed;
+  position: relative;
   bottom: 0; left: 0; right: 0;
-  z-index: 21000;
+  z-index: 5;
   background: rgba(0,0,0,0.92);
   border-top: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px 16px 0 0;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 #storyEditorPanel.active { display: flex; }
+
+/* ── Editor toolbar button (right toolbar এ সংযুক্ত হবে) ── */
+.se-toolbar-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto 12px;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.18s, transform 0.12s, border-color 0.18s, box-shadow 0.18s;
+  position: relative;
+  flex-shrink: 0;
+}
+.se-toolbar-btn:active { transform: scale(0.9); }
+.se-toolbar-btn.active {
+  background: linear-gradient(135deg, #ff8a3d, #ff3b6b);
+  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 4px 14px rgba(255,59,107,0.35);
+}
+.se-toolbar-btn svg { display: block; pointer-events: none; }
+
+/* editor open হলে preview এর উপর panel চলে আসবে */
+#storyUploadOverlay { padding-bottom: 0 !important; }
 
 /* ── Tool buttons row ── */
 #sePanelTools {
@@ -520,22 +550,25 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   // HOOK INTO STORY UPLOAD
   // ══════════════════════════════════════════════════════════
   function hookIntoStoryUpload() {
-    // Watch for file selected — show editor
+    // Toolbar দেখা মাত্র — button inject করো (panel আর auto-open হবে না)
     const observer = new MutationObserver(() => {
       const toolbar = document.getElementById('storyRightToolbar')
       if (toolbar && toolbar.style.display === 'flex') {
-        showEditor()
         addEditorBtnToToolbar()
       }
+
+      // upload overlay বন্ধ হলে editor ও button reset
       const overlay = document.getElementById('storyUploadOverlay')
       if (overlay && !overlay.classList.contains('active')) {
         hideEditor()
         resetEditor()
+        const btn = document.getElementById('seToolbarBtn')
+        if (btn) btn.classList.remove('active')
       }
     })
     observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['style', 'class'] })
 
-    // Override storyFileInput change to also init draw canvas
+    // File select হলে — শুধু draw canvas init, panel আর auto-show নয়
     document.addEventListener('change', e => {
       if (e.target.id !== 'storyFileInput') return
       setTimeout(() => {
@@ -548,8 +581,9 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
         } else {
           isVideoMode = true
         }
-        showEditor()
-      }, 200)
+        // button inject নিশ্চিত করো
+        addEditorBtnToToolbar()
+      }, 250)
     })
   }
 
@@ -557,8 +591,38 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     if (document.getElementById('seToolbarBtn')) return
     const toolbar = document.getElementById('storyRightToolbar')
     if (!toolbar) return
-    // Editor opens via panel at bottom — toolbar music btn stays
-    // We simply show editor panel when file selected
+
+    const btn = document.createElement('button')
+    btn.id = 'seToolbarBtn'
+    btn.className = 'se-toolbar-btn'
+    btn.type = 'button'
+    btn.title = 'Edit story'
+    btn.setAttribute('aria-label', 'Edit story')
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="white" aria-hidden="true">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+      </svg>
+    `
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation()
+      e.preventDefault()
+
+      const panel = document.getElementById('storyEditorPanel')
+      if (!panel) return
+
+      const willOpen = !panel.classList.contains('active')
+      if (willOpen) {
+        showEditor()
+        btn.classList.add('active')
+      } else {
+        hideEditor()
+        btn.classList.remove('active')
+      }
+    })
+
+    // music icon এর নিচে বসবে → lastChild এর পরে append
+    toolbar.appendChild(btn)
   }
 
   // ══════════════════════════════════════════════════════════
@@ -589,23 +653,26 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
 
   function showEditor() {
     const panel = document.getElementById('storyEditorPanel')
-    if (panel) {
-      panel.classList.add('active')
-      activateMode('filter')  // default tab
+    if (!panel) return
+
+    // panel যদি এখনও body তে থাকে → overlay এর ভিতরে সরাও
+    const overlay = document.getElementById('storyUploadOverlay')
+    if (overlay && panel.parentElement !== overlay) {
+      // overlay এর সবচেয়ে নিচে বসাও, share/cancel button এর উপরে
+      const buttons = overlay.querySelector('.story-upload-actions') ||
+                      overlay.querySelector('#storyUploadActions')
+      if (buttons && buttons.parentElement === overlay) {
+        overlay.insertBefore(panel, buttons)
+      } else {
+        overlay.appendChild(panel)
+      }
     }
-    // Position editor above upload overlay bottom buttons
-    positionEditor()
+
+    panel.classList.add('active')
+    activateMode('filter')
   }
 
-  function positionEditor() {
-    const panel = document.getElementById('storyEditorPanel')
-    if (!panel) return
-    // Reorder upload overlay: editor sits between preview and action buttons
-    const overlay = document.getElementById('storyUploadOverlay')
-    if (!overlay) return
-    // Move editor panel into overlay flow — as last visual element before buttons
-    overlay.style.paddingBottom = '0'
-  }
+  function positionEditor() { /* no-op — showEditor() handles placement */ }
 
   function hideEditor() {
     const panel = document.getElementById('storyEditorPanel')

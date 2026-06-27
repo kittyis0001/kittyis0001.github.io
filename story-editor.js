@@ -530,9 +530,16 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     // 1) storyFileInput change  → show editor button + init canvas
     // 2) storyUploadCancelBtn / storySubmitBtn click → hide + reset editor
 
-    // 1) File selected → init editor
+    // 1) File selected → completely reset old editor state, THEN init fresh
     document.addEventListener('change', e => {
       if (e.target.id !== 'storyFileInput') return
+
+      // ✅ BUG 1 FIX: a brand-new file (new story) must never inherit
+      // text/stickers/drawings/filters/adjustments from a previous
+      // editing session. Destroy everything from the old session
+      // first, THEN set up the new one.
+      destroyEditorInstance()
+
       setTimeout(() => {
         initDrawCanvas()
         const img = document.getElementById('storyUploadPreview')
@@ -610,12 +617,57 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     const panel = document.getElementById('storyEditorPanel')
     if (!panel) return
     if (panel.classList.contains('active')) {
-      panel.classList.remove('active')
+      closeEditorPanel()
     } else {
-      panel.classList.add('active')
-      activateMode(editorMode || 'filter')
+      openEditorPanel()
     }
   }
+
+  // ── BUG 2 FIX: Android back button should close the editor panel
+  // instead of exiting the chat/website. We push a history entry
+  // whenever the panel opens, so the next Back press triggers
+  // popstate (handled below) instead of leaving the page. ──
+  let editorHistoryPushed = false
+
+  function openEditorPanel() {
+    const panel = document.getElementById('storyEditorPanel')
+    if (!panel) return
+    panel.classList.add('active')
+    activateMode(editorMode || 'filter')
+
+    if (!editorHistoryPushed) {
+      history.pushState({ seEditorOpen: true }, '')
+      editorHistoryPushed = true
+    }
+  }
+
+  function closeEditorPanel() {
+    const panel = document.getElementById('storyEditorPanel')
+    if (panel) panel.classList.remove('active')
+
+    // If we're the ones who pushed the history entry, consume it by
+    // going back WITHOUT letting that back-navigation leave the page
+    // (the popstate listener below checks editorHistoryPushed first).
+    if (editorHistoryPushed) {
+      editorHistoryPushed = false
+      history.back()
+    }
+  }
+
+  // Android/browser Back button → popstate fires. If the editor panel
+  // is open, just close it and stay on the page. Only if the panel is
+  // already closed do we let normal back-navigation continue.
+  window.addEventListener('popstate', () => {
+    const panel = document.getElementById('storyEditorPanel')
+    if (panel && panel.classList.contains('active')) {
+      panel.classList.remove('active')
+      editorHistoryPushed = false
+      // Re-push so the page itself doesn't navigate away — this keeps
+      // the user on the same chat/story screen after the back press
+      // only closed the editor.
+      history.pushState({ seEditorClosedByBack: true }, '')
+    }
+  })
 
   // ══════════════════════════════════════════════════════════
   // MODE MANAGEMENT
@@ -664,6 +716,92 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   function hideEditor() {
     const panel = document.getElementById('storyEditorPanel')
     if (panel) panel.classList.remove('active')
+
+    // If a history entry was pushed for the editor (Bug 2 fix) and the
+    // overlay is being closed via Cancel/Publish rather than the Back
+    // button, consume that entry too so the back-stack doesn't grow
+    // with stale "editor open" states the user never asked for.
+    if (editorHistoryPushed) {
+      editorHistoryPushed = false
+      history.back()
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // BUG 1 FIX — FULL EDITOR DESTRUCTION
+  // ══════════════════════════════════════════════════════════
+  // resetEditor() (below) clears state/UI for the cancel/publish path,
+  // but it does NOT tear down the draw canvas or its listeners, and it
+  // does NOT remove the window-level drag listeners created for every
+  // text/sticker item. That's fine for "close this session" but NOT
+  // fine for "a brand new story file was just selected" — in that case
+  // we need a completely fresh instance with zero leftover listeners,
+  // zero leftover canvas, zero leftover state.
+  function destroyEditorInstance() {
+    // 1) All in-memory state
+    currentFilter   = 'none'
+    currentAdj      = { brightness: 100, contrast: 100, blur: 0 }
+    textItems       = []
+    stickerItems    = []
+    draggingItem    = null
+    drawStrokes     = []
+    currentStroke   = null
+    isDrawing       = false
+    sourceImage     = null
+    editorMode      = null
+
+    // 2) Remove every text/sticker overlay DOM node
+    document.querySelectorAll('.se-overlay-item').forEach(el => el.remove())
+
+    // 3) Remove every window-level drag listener created by makeDraggable()
+    activeDragListeners.forEach(({ onMove, onEnd }) => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup',   onEnd)
+    })
+    activeDragListeners = []
+
+    // 4) Destroy the draw canvas completely (with its resize listener)
+    if (drawCanvasResizeHandler) {
+      window.removeEventListener('resize', drawCanvasResizeHandler)
+      drawCanvasResizeHandler = null
+    }
+    if (drawCanvas && drawCanvas.parentNode) {
+      drawCanvas.parentNode.removeChild(drawCanvas)
+    }
+    drawCanvas = null
+    drawCtx    = null
+
+    // 5) Reset every editor UI control back to defaults
+    const textInput = document.getElementById('seTextInput')
+    if (textInput) textInput.value = ''
+
+    document.querySelectorAll('.se-color-dot.active').forEach(d => d.classList.remove('active'))
+    document.querySelectorAll('#seTextBgColors .se-color-dot[data-bg="none"]').forEach(d => d.classList.add('active'))
+
+    const b  = document.getElementById('seAdjBrightness')
+    const c  = document.getElementById('seAdjContrast')
+    const bl = document.getElementById('seAdjBlur')
+    if (b)  { b.value = 100;  document.getElementById('seAdjBrightnessVal').textContent = '100' }
+    if (c)  { c.value = 100;  document.getElementById('seAdjContrastVal').textContent   = '100' }
+    if (bl) { bl.value = 0;   document.getElementById('seAdjBlurVal').textContent       = '0'   }
+
+    document.querySelectorAll('.se-filter-item').forEach(el => el.classList.remove('active'))
+    const firstFilter = document.querySelector('.se-filter-item[data-filter="none"]')
+    if (firstFilter) firstFilter.classList.add('active')
+
+    // 6) Close the editor panel — the next session starts fresh & closed
+    const panel = document.getElementById('storyEditorPanel')
+    if (panel) panel.classList.remove('active')
+
+    // Also consume any pending "editor open" history entry (Bug 2),
+    // so a brand-new story session never inherits a stale back-stack
+    // state from the previous one.
+    if (editorHistoryPushed) {
+      editorHistoryPushed = false
+      history.back()
+    }
+
+    applyPreviewFilter()
   }
 
   function resetEditor() {
@@ -719,6 +857,16 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   let drawStrokes = []   // [{points:[{x,y}], color, size}]
   let currentStroke = null
 
+  // Tracks the active draw-canvas resize listener so destroyEditorInstance()
+  // can remove it before the next session creates a new one.
+  let drawCanvasResizeHandler = null
+
+  // Tracks every window-level mousemove/mouseup pair created by
+  // makeDraggable() for text/sticker items, so they can all be torn
+  // down in one go when the editor is destroyed (otherwise dragging
+  // 5 stories' worth of text/stickers leaves 10 stale window listeners).
+  let activeDragListeners = []
+
   function initDrawCanvas() {
     const wrap = document.getElementById('storyEditorWrap')
     if (!wrap) return
@@ -749,7 +897,8 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     }
 
     setTimeout(resizeDrawCanvas, 100)
-    window.addEventListener('resize', resizeDrawCanvas)
+    drawCanvasResizeHandler = resizeDrawCanvas
+    window.addEventListener('resize', drawCanvasResizeHandler)
 
     // Touch events
     drawCanvas.addEventListener('touchstart', onDrawStart, { passive: false })
@@ -981,6 +1130,11 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     el.addEventListener('mousedown',  onStart)
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup',   onEnd)
+
+    // ✅ track so destroyEditorInstance() can remove these window
+    // listeners — otherwise every text/sticker ever added across every
+    // editing session leaves two permanent listeners on window.
+    activeDragListeners.push({ onMove, onEnd })
   }
 
   // ══════════════════════════════════════════════════════════

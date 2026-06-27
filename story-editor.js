@@ -520,22 +520,17 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   // HOOK INTO STORY UPLOAD
   // ══════════════════════════════════════════════════════════
   function hookIntoStoryUpload() {
-    // Watch for file selected — show editor
-    const observer = new MutationObserver(() => {
-      const toolbar = document.getElementById('storyRightToolbar')
-      if (toolbar && toolbar.style.display === 'flex') {
-        showEditor()
-        addEditorBtnToToolbar()
-      }
-      const overlay = document.getElementById('storyUploadOverlay')
-      if (overlay && !overlay.classList.contains('active')) {
-        hideEditor()
-        resetEditor()
-      }
-    })
-    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['style', 'class'] })
+    // ✅ FIX: removed the document.body-wide MutationObserver.
+    // It fired on every class/style change across the whole chat app
+    // (typing indicator, story rings, message updates, etc.) and each
+    // fire mutated the DOM again (appendChild), causing a runaway
+    // observer→mutation→observer loop that crashed the page.
+    //
+    // We only need to react to two specific, well-defined events:
+    // 1) storyFileInput change  → show editor button + init canvas
+    // 2) storyUploadCancelBtn / storySubmitBtn click → hide + reset editor
 
-    // Override storyFileInput change to also init draw canvas
+    // 1) File selected → init editor
     document.addEventListener('change', e => {
       if (e.target.id !== 'storyFileInput') return
       setTimeout(() => {
@@ -549,6 +544,35 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
           isVideoMode = true
         }
         showEditor()
+      }, 200)
+    })
+
+    // 2) Upload overlay closed (Cancel or after successful Share) → reset
+    document.addEventListener('click', e => {
+      if (e.target.id === 'storyUploadCancelBtn') {
+        hideEditor()
+        resetEditor()
+      }
+    })
+
+    // storySubmitBtn success path closes the overlay via story.js's own
+    // closeUploadOverlay(); we piggyback by watching the overlay's
+    // "active" class removal with a lightweight one-off check instead
+    // of a persistent whole-document observer.
+    document.addEventListener('click', e => {
+      if (e.target.id !== 'storySubmitBtn') return
+      const overlay = document.getElementById('storyUploadOverlay')
+      if (!overlay) return
+      // Poll briefly only while the overlay is in the process of closing
+      let tries = 0
+      const check = setInterval(() => {
+        tries++
+        if (!overlay.classList.contains('active')) {
+          hideEditor()
+          resetEditor()
+          clearInterval(check)
+        }
+        if (tries > 40) clearInterval(check)  // ~8s safety cutoff
       }, 200)
     })
   }

@@ -574,3 +574,24 @@
 
 /* Remove old music-card-btn (replaced by music-card-plus/save/minus) */
 .music-card-btn { display: none !important; }
+
+/* ══════════════════════════════════════════════
+   VIDEO STORY EDIT OVERLAY — text animations
+   (used when a video story has saved editor text;
+   image edits are baked into the image itself so
+   they don't need any of this)
+   ══════════════════════════════════════════════ */
+@keyframes sv2VidTextFade  { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+@keyframes sv2VidTextSlide { 0% { transform: translate(-50%,-50%) translateX(-8px); opacity: 0.5; } 100% { transform: translate(-50%,-50%) translateX(0); opacity: 1; } }
+@keyframes sv2VidTextZoom  { 0%,100% { transform: translate(-50%,-50%) scale(0.88); } 50% { transform: translate(-50%,-50%) scale(1); } }
+
+.sv2-vidtext-anim-fade  { animation: sv2VidTextFade 2s ease-in-out infinite; }
+.sv2-vidtext-anim-slide { animation: sv2VidTextSlide 0.6s ease forwards; }
+.sv2-vidtext-anim-zoom  { animation: sv2VidTextZoom 1.8s ease-in-out infinite; }
+
+#storyEditOverlayLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}

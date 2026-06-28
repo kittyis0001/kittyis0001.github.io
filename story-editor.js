@@ -515,11 +515,13 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   margin-top: 4px;
 }
 
-/* ── Image transform host — wraps the actual <img>/<video> so
-   zoom/pan/rotation can be applied without disturbing overlays ── */
+/* ── Image transform host — wraps the actual <img> so zoom/pan/
+   rotation can be applied without disturbing overlays. Sizing
+   (width/height/position/overflow) is set inline by
+   setupImageTransformHost() to exactly match the original
+   .story-upload-preview box — only the transform-related
+   properties live here. ── */
 #seImageTransformHost {
-  position: absolute;
-  inset: 0;
   transform-origin: center center;
   will-change: transform;
   touch-action: none;
@@ -778,6 +780,17 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     // 2) storyUploadCancelBtn / storySubmitBtn click → hide + reset editor
 
     // 1) File selected → completely reset old editor state, THEN init fresh
+    //
+    // ✅ CRITICAL FIX: this must run in the CAPTURE phase (the `true`
+    // below). story.js attaches its own 'change' listener on
+    // storyFileInput too (onFileSelected), and the two listeners had no
+    // guaranteed order — destroyEditorInstance() could fire AFTER
+    // story.js had already set img.src / classList, while the <img>
+    // was still sitting inside a leftover #seImageTransformHost from
+    // the previous session. That race condition is exactly what broke
+    // image preview/upload after the first edited story. Running in
+    // the capture phase guarantees we always clean up FIRST, before
+    // story.js's own bubble-phase listener ever runs.
     document.addEventListener('change', e => {
       if (e.target.id !== 'storyFileInput') return
 
@@ -799,7 +812,7 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
         }
         showEditor()
       }, 200)
-    })
+    }, true)  // capture phase — see comment above for why this matters
 
     // 2) Upload overlay closed (Cancel or after successful Share) → reset
     document.addEventListener('click', e => {
@@ -1131,6 +1144,18 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   // so pinch-zoom/pan/rotation can be applied as a single CSS transform
   // without disturbing the filter (which lives on the element itself)
   // or the text/sticker overlays (which live in storyEditorWrap, on top).
+  // Wraps the active preview element (<img> or <video>) in a host div
+  // so pinch-zoom/pan/rotation can be applied as a single CSS transform
+  // without disturbing the filter (which lives on the element itself)
+  // or the text/sticker overlays (which live in storyEditorWrap, on top).
+  //
+  // IMPORTANT: #storyEditorWrap is `display:inline-block`, sized by its
+  // content. The <img> normally provides that size via its fixed
+  // 180×280 box (.story-upload-preview). If the host were
+  // position:absolute, it would take itself out of layout flow and
+  // storyEditorWrap would collapse to 0×0 — which is exactly what was
+  // breaking image preview/upload. So the host must be a normal block
+  // element that explicitly takes over the same fixed size instead.
   function setupImageTransformHost() {
     const wrap = document.getElementById('storyEditorWrap')
     if (!wrap) return
@@ -1145,13 +1170,22 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     if (!host) {
       host = document.createElement('div')
       host.id = 'seImageTransformHost'
+      host.style.cssText = `
+        position: relative;
+        width: 180px; height: 280px;
+        border-radius: 16px;
+        overflow: hidden;
+        display: block;
+      `
       // Move the <img> inside the host so the transform applies to it
       img.parentNode.insertBefore(host, img)
       host.appendChild(img)
-      img.style.width  = '100%'
-      img.style.height = '100%'
+      img.style.width    = '100%'
+      img.style.height   = '100%'
       img.style.objectFit = 'cover'
-      img.style.display = 'block'
+      img.style.display  = 'block'
+      img.style.borderRadius = '0'   // host already rounds the corners
+      img.style.border   = 'none'    // host keeps the original border instead
     }
 
     bindImagePinchPan(host)
@@ -1442,6 +1476,8 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
         img.style.width = ''; img.style.height = ''; img.style.objectFit = ''
         img.style.display = ''
         img.style.transform = ''
+        img.style.borderRadius = ''
+        img.style.border = ''
       }
       host.parentNode && host.parentNode.removeChild(host)
     }

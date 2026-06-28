@@ -21,9 +21,34 @@
   let draggingItem   = null   // {type:'text'|'sticker', id, offX, offY}
   let drawColor      = '#ff3b30'
   let drawSize       = 4
-  let editorMode     = null   // 'filter'|'text'|'sticker'|'draw'|'adjust'|null
+  let editorMode     = null   // 'filter'|'text'|'sticker'|'draw'|'adjust'|'crop'|null
   let sourceImage    = null   // original Image object (for re-render)
   let isVideoMode    = false
+
+  // ── Phase 3: Crop / Zoom / Rotation state (image-only) ────
+  let cropState = {
+    zoom: 1,            // pinch-zoom scale applied to the preview image
+    panX: 0, panY: 0,   // pan offset in px (translate), within preview box
+    rotation: 0,        // 0 / 90 / 180 / 270 — quick-rotate steps
+    fineRotation: 0,    // -45..45 fine rotation slider (degrees)
+    aspect: 'free',     // 'free' | '1:1' | '9:16' | '4:5'
+    cropRectPct: { x: 5, y: 5, w: 90, h: 90 }  // crop rectangle as % of preview box
+  }
+  let cropOverlayEl   = null   // the draggable crop-rectangle DOM element
+  let cropHandlesBound = false
+
+  // Pinch/pan gesture tracking for the image preview itself
+  let pinchState = {
+    active: false,
+    startDist: 0,
+    startZoom: 1,
+    startPanX: 0, startPanY: 0,
+    startMidX: 0, startMidY: 0
+  }
+
+  // Pinch/rotate gesture tracking for individual text/sticker overlay items
+  // (separate from the whole-image pinch above)
+  let itemGestureState = new Map()  // el -> { startDist, startAngle, startScale, startRotate }
 
   const FILTERS = [
     { id:'none',      label:'Normal',   css:'' },
@@ -88,6 +113,9 @@
     panel.innerHTML = `
       <!-- Bottom tool bar -->
       <div id="sePanelTools">
+        <button class="se-tool-btn" data-mode="crop">
+          <span>⛶</span><span>Crop</span>
+        </button>
         <button class="se-tool-btn active" data-mode="filter">
           <span>🎨</span><span>Filter</span>
         </button>
@@ -103,6 +131,27 @@
         <button class="se-tool-btn" data-mode="adjust">
           <span>⚡</span><span>Adjust</span>
         </button>
+      </div>
+
+      <!-- CROP panel (Phase 3 — image only) -->
+      <div class="se-panel" id="sePanelCrop">
+        <div class="se-row" id="seCropAspectRow">
+          <button class="se-aspect-btn active" data-aspect="free">Free</button>
+          <button class="se-aspect-btn" data-aspect="1:1">1:1</button>
+          <button class="se-aspect-btn" data-aspect="9:16">9:16</button>
+          <button class="se-aspect-btn" data-aspect="4:5">4:5</button>
+        </div>
+        <div class="se-row">
+          <button class="se-rotate-btn" id="seRotateLeft" title="Rotate left">↺ 90°</button>
+          <button class="se-rotate-btn" id="seRotateRight" title="Rotate right">↻ 90°</button>
+          <button class="se-rotate-btn" id="seCropReset" title="Reset">Reset</button>
+        </div>
+        <div class="se-adjust-row">
+          <label>↔ Fine Rotate</label>
+          <input type="range" id="seFineRotate" min="-45" max="45" value="0">
+          <span id="seFineRotateVal">0°</span>
+        </div>
+        <div class="se-crop-hint">Pinch to zoom · Drag to pan · Drag corners to crop</div>
       </div>
 
       <!-- FILTER panel -->
@@ -405,7 +454,179 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
 /* ── Editor wrap position fix ── */
 #storyEditorWrap {
   position: relative;
+  overflow: hidden;
+  border-radius: 16px;
 }
+
+/* ══════════════════════════════════════════════
+   PHASE 3 — CROP / ZOOM / ROTATE (premium styling)
+   ══════════════════════════════════════════════ */
+
+/* Disabled state for the Crop tool when in video mode */
+.se-tool-btn.se-tool-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Aspect ratio chips */
+#seCropAspectRow { gap: 8px; }
+.se-aspect-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.7);
+  border-radius: 18px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.se-aspect-btn.active {
+  background: linear-gradient(135deg, #ffffff, #e8e8f0);
+  color: #111;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(255,255,255,0.25);
+}
+.se-aspect-btn:active { transform: scale(0.94); }
+
+/* Rotate buttons */
+.se-rotate-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: white;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  transition: background 0.18s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.se-rotate-btn:active { transform: scale(0.94); background: rgba(255,255,255,0.16); }
+
+.se-crop-hint {
+  text-align: center;
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.38);
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}
+
+/* ── Image transform host — wraps the actual <img>/<video> so
+   zoom/pan/rotation can be applied without disturbing overlays ── */
+#seImageTransformHost {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
+  will-change: transform;
+  touch-action: none;
+}
+
+/* ── Crop rectangle overlay — premium look, like Instagram/native
+   gallery crop tools: dimmed outside area, bright grid inside,
+   glowing corner + edge handles ── */
+#seCropOverlay {
+  position: absolute;
+  z-index: 30;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);   /* dim everything outside the rect */
+  border: 1.5px solid rgba(255,255,255,0.95);
+  touch-action: none;
+  cursor: move;
+}
+
+/* Rule-of-thirds grid inside the crop rect */
+#seCropOverlay::before,
+#seCropOverlay::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.32);
+}
+#seCropOverlay::before {
+  left: 33.333%; right: 33.333%; top: 0; bottom: 0;
+  border-left: 1px solid rgba(255,255,255,0.32);
+  border-right: 1px solid rgba(255,255,255,0.32);
+  background: transparent;
+}
+#seCropOverlay::after {
+  top: 33.333%; bottom: 33.333%; left: 0; right: 0;
+  border-top: 1px solid rgba(255,255,255,0.32);
+  border-bottom: 1px solid rgba(255,255,255,0.32);
+  background: transparent;
+}
+
+.se-crop-handle {
+  position: absolute;
+  width: 22px; height: 22px;
+  z-index: 31;
+  touch-action: none;
+}
+.se-crop-handle::before {
+  content: '';
+  position: absolute;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+  border-radius: 1.5px;
+}
+/* Corner handles — small L-shaped marks, like Instagram's crop tool */
+.se-crop-handle.se-handle-tl,
+.se-crop-handle.se-handle-tr,
+.se-crop-handle.se-handle-bl,
+.se-crop-handle.se-handle-br {
+  width: 26px; height: 26px;
+}
+.se-crop-handle.se-handle-tl { top: -3px;  left: -3px;  cursor: nwse-resize; }
+.se-crop-handle.se-handle-tr { top: -3px;  right: -3px; cursor: nesw-resize; }
+.se-crop-handle.se-handle-bl { bottom: -3px; left: -3px;  cursor: nesw-resize; }
+.se-crop-handle.se-handle-br { bottom: -3px; right: -3px; cursor: nwse-resize; }
+
+.se-crop-handle.se-handle-tl::before { top: 3px; left: 3px; width: 18px; height: 3px; }
+.se-crop-handle.se-handle-tr::before { top: 3px; right: 3px; width: 18px; height: 3px; }
+.se-crop-handle.se-handle-bl::before { bottom: 3px; left: 3px; width: 18px; height: 3px; }
+.se-crop-handle.se-handle-br::before { bottom: 3px; right: 3px; width: 18px; height: 3px; }
+
+/* Edge midpoint handles for free-form resize on all 4 sides */
+.se-crop-handle.se-handle-t,
+.se-crop-handle.se-handle-b {
+  left: 50%; width: 30px; height: 14px;
+  margin-left: -15px; cursor: ns-resize;
+}
+.se-crop-handle.se-handle-l,
+.se-crop-handle.se-handle-r {
+  top: 50%; width: 14px; height: 30px;
+  margin-top: -15px; cursor: ew-resize;
+}
+.se-crop-handle.se-handle-t { top: -7px; }
+.se-crop-handle.se-handle-b { bottom: -7px; }
+.se-crop-handle.se-handle-l { left: -7px; }
+.se-crop-handle.se-handle-r { right: -7px; }
+
+.se-crop-handle.se-handle-t::before,
+.se-crop-handle.se-handle-b::before { left: 50%; top: 50%; width: 22px; height: 3px; transform: translate(-50%,-50%); }
+.se-crop-handle.se-handle-l::before,
+.se-crop-handle.se-handle-r::before { left: 50%; top: 50%; width: 3px; height: 22px; transform: translate(-50%,-50%); }
+
+/* Pinch/rotate handle that appears on a selected text/sticker item —
+   drag this corner handle to resize+rotate with one finger, or use
+   two-finger pinch directly on the item itself */
+.se-item-resize-handle {
+  position: absolute;
+  bottom: -14px; right: -14px;
+  width: 22px; height: 22px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #111;
+  cursor: grab;
+  touch-action: none;
+}
+.se-overlay-item.selected .se-item-resize-handle { display: flex; }
     `
     document.head.appendChild(style)
   }
@@ -513,6 +734,32 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       if (e.target.id === 'storyEditorWrap' || e.target.id === 'storyUploadPreview') {
         document.querySelectorAll('.se-overlay-item').forEach(el => el.classList.remove('selected'))
       }
+    })
+
+    // ── PHASE 3: Crop tool events ──────────────────────────
+    // Aspect ratio chips
+    document.addEventListener('click', e => {
+      const chip = e.target.closest('.se-aspect-btn')
+      if (!chip) return
+      document.querySelectorAll('.se-aspect-btn').forEach(b => b.classList.remove('active'))
+      chip.classList.add('active')
+      cropState.aspect = chip.dataset.aspect
+      applyAspectToCropRect()
+    })
+
+    // Quick 90° rotate buttons
+    document.addEventListener('click', e => {
+      if (e.target.id === 'seRotateLeft')  quickRotate(-90)
+      if (e.target.id === 'seRotateRight') quickRotate(90)
+      if (e.target.id === 'seCropReset')   resetCropState()
+    })
+
+    // Fine rotation slider
+    document.addEventListener('input', e => {
+      if (e.target.id !== 'seFineRotate') return
+      cropState.fineRotation = parseInt(e.target.value)
+      document.getElementById('seFineRotateVal').textContent = cropState.fineRotation + '°'
+      applyImageTransform()
     })
   }
 
@@ -673,6 +920,10 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   // MODE MANAGEMENT
   // ══════════════════════════════════════════════════════════
   function activateMode(mode) {
+    // Video stories can't crop (no FFmpeg bake), so silently fall back
+    // to filter mode if something tries to force crop while in video mode.
+    if (mode === 'crop' && isVideoMode) mode = 'filter'
+
     editorMode = mode
 
     // Update tool buttons
@@ -681,7 +932,7 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     })
 
     // Show/hide sub-panels
-    const panels = { filter:'sePanelFilter', text:'sePanelText', sticker:'sePanelSticker', draw:'sePanelDraw', adjust:'sePanelAdjust' }
+    const panels = { crop:'sePanelCrop', filter:'sePanelFilter', text:'sePanelText', sticker:'sePanelSticker', draw:'sePanelDraw', adjust:'sePanelAdjust' }
     Object.entries(panels).forEach(([key, id]) => {
       const el = document.getElementById(id)
       if (el) el.classList.toggle('active', key === mode)
@@ -693,6 +944,13 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       drawCv.style.pointerEvents = mode === 'draw' ? 'auto' : 'none'
       drawCv.style.cursor = mode === 'draw' ? 'crosshair' : 'default'
     }
+
+    // Crop mode setup — show/hide the crop rectangle + enable pinch/pan
+    if (mode === 'crop') {
+      showCropOverlay()
+    } else {
+      hideCropOverlay()
+    }
   }
 
   function showEditor() {
@@ -701,6 +959,15 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     // This function now just makes sure the toolbar/edit button exists.
     addEditorBtnToToolbar()
     positionEditor()
+
+    // Phase 3: Crop/zoom/rotate is image-only (no FFmpeg to bake a real
+    // crop into a video file). Visually disable the Crop tool for videos
+    // rather than hiding it, so the UI stays consistent either way.
+    const cropBtn = document.querySelector('.se-tool-btn[data-mode="crop"]')
+    if (cropBtn) cropBtn.classList.toggle('se-tool-disabled', isVideoMode)
+
+    // Set up the pinch/pan transform host around the active preview element
+    setupImageTransformHost()
   }
 
   function positionEditor() {
@@ -789,6 +1056,11 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     const firstFilter = document.querySelector('.se-filter-item[data-filter="none"]')
     if (firstFilter) firstFilter.classList.add('active')
 
+    // 6b) Phase 3: tear down crop overlay, transform host, and reset
+    // zoom/pan/rotation/aspect — otherwise the next story would open
+    // with the previous story's crop rectangle and zoom level intact.
+    destroyCropInstance()
+
     // 6) Close the editor panel — the next session starts fresh & closed
     const panel = document.getElementById('storyEditorPanel')
     if (panel) panel.classList.remove('active')
@@ -849,6 +1121,332 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
 
     if (img) img.style.filter = cssFilter
     if (vid) vid.style.filter = cssFilter
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // PHASE 3 — CROP / ZOOM / ROTATION (image-only)
+  // ══════════════════════════════════════════════════════════
+
+  // Wraps the active preview element (<img> or <video>) in a host div
+  // so pinch-zoom/pan/rotation can be applied as a single CSS transform
+  // without disturbing the filter (which lives on the element itself)
+  // or the text/sticker overlays (which live in storyEditorWrap, on top).
+  function setupImageTransformHost() {
+    const wrap = document.getElementById('storyEditorWrap')
+    if (!wrap) return
+
+    // Video stories don't get pinch/crop — only images do.
+    if (isVideoMode) return
+
+    const img = document.getElementById('storyUploadPreview')
+    if (!img) return
+
+    let host = document.getElementById('seImageTransformHost')
+    if (!host) {
+      host = document.createElement('div')
+      host.id = 'seImageTransformHost'
+      // Move the <img> inside the host so the transform applies to it
+      img.parentNode.insertBefore(host, img)
+      host.appendChild(img)
+      img.style.width  = '100%'
+      img.style.height = '100%'
+      img.style.objectFit = 'cover'
+      img.style.display = 'block'
+    }
+
+    bindImagePinchPan(host)
+  }
+
+  // Builds the combined CSS transform string from zoom/pan/rotation
+  // and applies it to the transform host.
+  function applyImageTransform() {
+    const host = document.getElementById('seImageTransformHost')
+    if (!host) return
+    const totalRotation = cropState.rotation + cropState.fineRotation
+    host.style.transform =
+      `translate(${cropState.panX}px, ${cropState.panY}px) ` +
+      `rotate(${totalRotation}deg) ` +
+      `scale(${cropState.zoom})`
+  }
+
+  // ── Pinch-to-zoom + drag-to-pan on the image itself ──────
+  function bindImagePinchPan(host) {
+    if (host.dataset.pinchBound) return
+    host.dataset.pinchBound = 'true'
+
+    function dist(t0, t1) {
+      return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY)
+    }
+    function mid(t0, t1) {
+      return { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 }
+    }
+
+    let singleTouchStart = null  // for one-finger pan when zoomed in
+
+    host.addEventListener('touchstart', e => {
+      // Only the Crop tool (or zoomed-in state) should consume pan/zoom
+      // gestures here — otherwise it would fight with text/sticker drag.
+      if (editorMode !== 'crop') return
+
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        const [t0, t1] = e.touches
+        pinchState.active   = true
+        pinchState.startDist = dist(t0, t1)
+        pinchState.startZoom = cropState.zoom
+        pinchState.startPanX = cropState.panX
+        pinchState.startPanY = cropState.panY
+        const m = mid(t0, t1)
+        pinchState.startMidX = m.x
+        pinchState.startMidY = m.y
+        singleTouchStart = null
+      } else if (e.touches.length === 1) {
+        singleTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, panX: cropState.panX, panY: cropState.panY }
+      }
+    }, { passive: false })
+
+    host.addEventListener('touchmove', e => {
+      if (editorMode !== 'crop') return
+
+      if (e.touches.length === 2 && pinchState.active) {
+        e.preventDefault()
+        const [t0, t1] = e.touches
+        const newDist = dist(t0, t1)
+        const scaleDelta = newDist / (pinchState.startDist || 1)
+        cropState.zoom = Math.max(1, Math.min(4, pinchState.startZoom * scaleDelta))
+
+        const m = mid(t0, t1)
+        cropState.panX = pinchState.startPanX + (m.x - pinchState.startMidX)
+        cropState.panY = pinchState.startPanY + (m.y - pinchState.startMidY)
+
+        applyImageTransform()
+      } else if (e.touches.length === 1 && singleTouchStart && cropState.zoom > 1) {
+        e.preventDefault()
+        const dx = e.touches[0].clientX - singleTouchStart.x
+        const dy = e.touches[0].clientY - singleTouchStart.y
+        cropState.panX = singleTouchStart.panX + dx
+        cropState.panY = singleTouchStart.panY + dy
+        applyImageTransform()
+      }
+    }, { passive: false })
+
+    host.addEventListener('touchend', () => {
+      pinchState.active = false
+      singleTouchStart = null
+    }, { passive: true })
+
+    // Mouse wheel as a desktop-testing convenience (pinch substitute)
+    host.addEventListener('wheel', e => {
+      if (editorMode !== 'crop') return
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? -0.08 : 0.08
+      cropState.zoom = Math.max(1, Math.min(4, cropState.zoom + delta))
+      applyImageTransform()
+    }, { passive: false })
+  }
+
+  // ── Crop rectangle overlay (draggable corners + edges) ──
+  function showCropOverlay() {
+    if (isVideoMode) return
+    const wrap = document.getElementById('storyEditorWrap')
+    if (!wrap) return
+
+    if (!cropOverlayEl) {
+      cropOverlayEl = document.createElement('div')
+      cropOverlayEl.id = 'seCropOverlay'
+      cropOverlayEl.innerHTML = `
+        <div class="se-crop-handle se-handle-tl"></div>
+        <div class="se-crop-handle se-handle-t"></div>
+        <div class="se-crop-handle se-handle-tr"></div>
+        <div class="se-crop-handle se-handle-l"></div>
+        <div class="se-crop-handle se-handle-r"></div>
+        <div class="se-crop-handle se-handle-bl"></div>
+        <div class="se-crop-handle se-handle-b"></div>
+        <div class="se-crop-handle se-handle-br"></div>
+      `
+      wrap.appendChild(cropOverlayEl)
+      bindCropHandles()
+    }
+
+    cropOverlayEl.style.display = 'block'
+    renderCropRectFromState()
+  }
+
+  function hideCropOverlay() {
+    if (cropOverlayEl) cropOverlayEl.style.display = 'none'
+  }
+
+  function renderCropRectFromState() {
+    if (!cropOverlayEl) return
+    const r = cropState.cropRectPct
+    cropOverlayEl.style.left   = r.x + '%'
+    cropOverlayEl.style.top    = r.y + '%'
+    cropOverlayEl.style.width  = r.w + '%'
+    cropOverlayEl.style.height = r.h + '%'
+  }
+
+  function bindCropHandles() {
+    if (cropHandlesBound || !cropOverlayEl) return
+    cropHandlesBound = true
+
+    const wrap = document.getElementById('storyEditorWrap')
+
+    // Dragging the whole rect around (move, not resize)
+    let moveStart = null
+    cropOverlayEl.addEventListener('touchstart', e => {
+      if (e.target.classList.contains('se-crop-handle')) return  // handles do their own thing
+      const t = e.touches[0]
+      moveStart = { x: t.clientX, y: t.clientY, rect: { ...cropState.cropRectPct } }
+    }, { passive: true })
+    cropOverlayEl.addEventListener('touchmove', e => {
+      if (!moveStart) return
+      e.preventDefault()
+      const wrapRect = wrap.getBoundingClientRect()
+      const t = e.touches[0]
+      const dxPct = ((t.clientX - moveStart.x) / wrapRect.width)  * 100
+      const dyPct = ((t.clientY - moveStart.y) / wrapRect.height) * 100
+      let { x, y, w, h } = moveStart.rect
+      x = Math.max(0, Math.min(100 - w, x + dxPct))
+      y = Math.max(0, Math.min(100 - h, y + dyPct))
+      cropState.cropRectPct = { x, y, w, h }
+      renderCropRectFromState()
+    }, { passive: false })
+    cropOverlayEl.addEventListener('touchend', () => { moveStart = null }, { passive: true })
+
+    // Each handle resizes the rect from its corresponding edge/corner
+    const handleConfigs = {
+      'se-handle-tl': { x: true,  y: true,  w: -1, h: -1 },
+      'se-handle-tr': { x: false, y: true,  w:  1, h: -1 },
+      'se-handle-bl': { x: true,  y: false, w: -1, h:  1 },
+      'se-handle-br': { x: false, y: false, w:  1, h:  1 },
+      'se-handle-t':  { x: false, y: true,  w:  0, h: -1 },
+      'se-handle-b':  { x: false, y: false, w:  0, h:  1 },
+      'se-handle-l':  { x: true,  y: false, w: -1, h:  0 },
+      'se-handle-r':  { x: false, y: false, w:  1, h:  0 }
+    }
+
+    cropOverlayEl.querySelectorAll('.se-crop-handle').forEach(handle => {
+      const cls = [...handle.classList].find(c => handleConfigs[c])
+      const cfg = handleConfigs[cls]
+      if (!cfg) return
+
+      let start = null
+
+      handle.addEventListener('touchstart', e => {
+        e.stopPropagation()
+        const t = e.touches[0]
+        start = { x: t.clientX, y: t.clientY, rect: { ...cropState.cropRectPct } }
+      }, { passive: true })
+
+      handle.addEventListener('touchmove', e => {
+        if (!start) return
+        e.preventDefault()
+        e.stopPropagation()
+        const wrapRect = wrap.getBoundingClientRect()
+        const t = e.touches[0]
+        const dxPct = ((t.clientX - start.x) / wrapRect.width)  * 100
+        const dyPct = ((t.clientY - start.y) / wrapRect.height) * 100
+
+        let { x, y, w, h } = start.rect
+
+        if (cfg.w === -1) { // dragging left edge
+          const newX = Math.max(0, Math.min(x + w - 10, x + dxPct))
+          w = w + (x - newX)
+          x = newX
+        } else if (cfg.w === 1) { // dragging right edge
+          w = Math.max(10, Math.min(100 - x, w + dxPct))
+        }
+
+        if (cfg.h === -1) { // dragging top edge
+          const newY = Math.max(0, Math.min(y + h - 10, y + dyPct))
+          h = h + (y - newY)
+          y = newY
+        } else if (cfg.h === 1) { // dragging bottom edge
+          h = Math.max(10, Math.min(100 - y, h + dyPct))
+        }
+
+        // Respect a locked aspect ratio if one is selected
+        if (cropState.aspect !== 'free') {
+          const ratio = aspectRatioValue(cropState.aspect)
+          // Keep width as the driver, derive height (works well enough
+          // for a touch-friendly crop tool without extra complexity)
+          h = w / ratio
+          if (y + h > 100) h = 100 - y
+        }
+
+        cropState.cropRectPct = { x, y, w, h }
+        renderCropRectFromState()
+      }, { passive: false })
+
+      handle.addEventListener('touchend', () => { start = null }, { passive: true })
+    })
+  }
+
+  function aspectRatioValue(aspect) {
+    if (aspect === '1:1')  return 1
+    if (aspect === '9:16') return 9 / 16
+    if (aspect === '4:5')  return 4 / 5
+    return null
+  }
+
+  function applyAspectToCropRect() {
+    const ratio = aspectRatioValue(cropState.aspect)
+    if (!ratio) { renderCropRectFromState(); return }  // 'free' — leave as-is
+
+    // Re-center a rect of the right ratio within the current bounds
+    let { x, y, w, h } = cropState.cropRectPct
+    h = w / ratio
+    if (h > 100) { h = 100; w = h * ratio }
+    x = Math.max(0, Math.min(100 - w, x))
+    y = Math.max(0, Math.min(100 - h, y))
+    cropState.cropRectPct = { x, y, w, h }
+    renderCropRectFromState()
+  }
+
+  function quickRotate(deg) {
+    cropState.rotation = (cropState.rotation + deg + 360) % 360
+    applyImageTransform()
+  }
+
+  function resetCropState() {
+    cropState = {
+      zoom: 1, panX: 0, panY: 0,
+      rotation: 0, fineRotation: 0,
+      aspect: 'free',
+      cropRectPct: { x: 5, y: 5, w: 90, h: 90 }
+    }
+    const fine = document.getElementById('seFineRotate')
+    if (fine) { fine.value = 0; document.getElementById('seFineRotateVal').textContent = '0°' }
+    document.querySelectorAll('.se-aspect-btn').forEach(b => b.classList.remove('active'))
+    const freeBtn = document.querySelector('.se-aspect-btn[data-aspect="free"]')
+    if (freeBtn) freeBtn.classList.add('active')
+    applyImageTransform()
+    renderCropRectFromState()
+  }
+
+  // Tears down everything Phase 3 added — called from destroyEditorInstance()
+  function destroyCropInstance() {
+    if (cropOverlayEl && cropOverlayEl.parentNode) {
+      cropOverlayEl.parentNode.removeChild(cropOverlayEl)
+    }
+    cropOverlayEl = null
+    cropHandlesBound = false
+
+    const host = document.getElementById('seImageTransformHost')
+    if (host) {
+      // Move the <img> back out before removing the host, so story.js's
+      // own references to #storyUploadPreview keep working untouched.
+      const img = document.getElementById('storyUploadPreview')
+      if (img && host.parentNode) {
+        host.parentNode.insertBefore(img, host)
+        img.style.width = ''; img.style.height = ''; img.style.objectFit = ''
+        img.style.display = ''
+        img.style.transform = ''
+      }
+      host.parentNode && host.parentNode.removeChild(host)
+    }
+
+    resetCropState()
   }
 
   // ══════════════════════════════════════════════════════════
@@ -1014,6 +1612,7 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       white-space: nowrap;
       z-index: 10;
       text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      position: absolute;
     `
     if (anim !== 'none') item.classList.add(`se-anim-${anim}`)
 
@@ -1025,8 +1624,14 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     delBtn.textContent = '✕'
     delBtn.addEventListener('click', e => { e.stopPropagation(); item.remove() })
 
+    // Phase 3: one-finger resize+rotate handle (only visible when selected)
+    const resizeHandle = document.createElement('div')
+    resizeHandle.className = 'se-item-resize-handle'
+    resizeHandle.textContent = '↻'
+
     item.appendChild(textNode)
     item.appendChild(delBtn)
+    item.appendChild(resizeHandle)
 
     // Make draggable
     makeDraggable(item, wrap)
@@ -1062,6 +1667,7 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       font-size: 48px;
       line-height: 1;
       z-index: 11;
+      position: absolute;
     `
 
     const emojiSpan = document.createElement('span')
@@ -1072,8 +1678,14 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     delBtn.textContent = '✕'
     delBtn.addEventListener('click', e => { e.stopPropagation(); item.remove() })
 
+    // Phase 3: one-finger resize+rotate handle (only visible when selected)
+    const resizeHandle = document.createElement('div')
+    resizeHandle.className = 'se-item-resize-handle'
+    resizeHandle.textContent = '↻'
+
     item.appendChild(emojiSpan)
     item.appendChild(delBtn)
+    item.appendChild(resizeHandle)
 
     makeDraggable(item, wrap)
     item.addEventListener('click', e => {
@@ -1092,6 +1704,16 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   function makeDraggable(el, container) {
     let startX, startY, origLeft, origTop, isDragging = false
 
+    // ── Phase 3: per-item scale + rotation, applied on top of the
+    // existing translate(-50%,-50%) positioning. These persist across
+    // drags so pinch-resize/rotate "sticks" between gestures. ──
+    let itemScale    = 1
+    let itemRotation = 0
+
+    function applyItemTransform() {
+      el.style.transform = `translate(-50%, -50%) rotate(${itemRotation}deg) scale(${itemScale})`
+    }
+
     function getPos(e) {
       const src = e.touches ? e.touches[0] : e
       return { x: src.clientX, y: src.clientY }
@@ -1099,6 +1721,14 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
 
     function onStart(e) {
       if (e.target.classList.contains('se-delete-btn')) return
+      if (e.target.classList.contains('se-item-resize-handle')) return  // handled separately below
+
+      // Two fingers on the item itself → pinch-resize + rotate, not drag
+      if (e.touches && e.touches.length === 2) {
+        beginItemPinch(e)
+        return
+      }
+
       e.stopPropagation()
       isDragging = true
       const pos  = getPos(e)
@@ -1106,10 +1736,13 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       // Parse current position
       origLeft = parseFloat(el.style.left)  || 50
       origTop  = parseFloat(el.style.top)   || 50
-      el.style.transform = 'translate(-50%, -50%)'
     }
 
     function onMove(e) {
+      if (e.touches && e.touches.length === 2) {
+        continueItemPinch(e)
+        return
+      }
       if (!isDragging) return
       e.preventDefault()
       const pos    = getPos(e)
@@ -1122,7 +1755,82 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       el.style.top  = Math.max(5, Math.min(95, newTop))  + '%'
     }
 
-    function onEnd() { isDragging = false }
+    function onEnd(e) {
+      isDragging = false
+      if (!e.touches || e.touches.length < 2) endItemPinch()
+    }
+
+    // ── Two-finger pinch directly on a selected text/sticker:
+    // pinch apart = bigger, twist = rotate. Premium, Instagram-like. ──
+    function beginItemPinch(e) {
+      const [t0, t1] = e.touches
+      const dist  = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY)
+      const angle = Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * (180 / Math.PI)
+      itemGestureState.set(el, { startDist: dist, startAngle: angle, startScale: itemScale, startRotate: itemRotation })
+    }
+    function continueItemPinch(e) {
+      const state = itemGestureState.get(el)
+      if (!state) return
+      e.preventDefault()
+      const [t0, t1] = e.touches
+      const dist  = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY)
+      const angle = Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * (180 / Math.PI)
+
+      itemScale    = Math.max(0.4, Math.min(3.5, state.startScale * (dist / (state.startDist || 1))))
+      itemRotation = state.startRotate + (angle - state.startAngle)
+      applyItemTransform()
+    }
+    function endItemPinch() { itemGestureState.delete(el) }
+
+    // ── One-finger drag on the corner resize handle: drag away from
+    // the item's center to scale it up, drag toward center to shrink,
+    // and the angle from center sets rotation — a single-finger
+    // alternative to the two-finger pinch above, handy for one-hand use. ──
+    function bindResizeHandle() {
+      const handle = el.querySelector('.se-item-resize-handle')
+      if (!handle) return
+      let dragging = false
+      let startState = null
+
+      function getCenter() {
+        const r = el.getBoundingClientRect()
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+      }
+
+      function onHandleStart(e) {
+        e.stopPropagation()
+        dragging = true
+        const pos = getPos(e)
+        const c   = getCenter()
+        startState = {
+          startDist:  Math.hypot(pos.x - c.x, pos.y - c.y),
+          startAngle: Math.atan2(pos.y - c.y, pos.x - c.x) * (180 / Math.PI),
+          startScale: itemScale,
+          startRotate: itemRotation
+        }
+      }
+      function onHandleMove(e) {
+        if (!dragging || !startState) return
+        e.preventDefault()
+        const pos = getPos(e)
+        const c   = getCenter()
+        const dist  = Math.hypot(pos.x - c.x, pos.y - c.y)
+        const angle = Math.atan2(pos.y - c.y, pos.x - c.x) * (180 / Math.PI)
+        itemScale    = Math.max(0.4, Math.min(3.5, startState.startScale * (dist / (startState.startDist || 1))))
+        itemRotation = startState.startRotate + (angle - startState.startAngle)
+        applyItemTransform()
+      }
+      function onHandleEnd() { dragging = false; startState = null }
+
+      handle.addEventListener('touchstart', onHandleStart, { passive: true })
+      handle.addEventListener('touchmove',  onHandleMove,  { passive: false })
+      handle.addEventListener('touchend',   onHandleEnd,   { passive: true })
+      handle.addEventListener('mousedown',  onHandleStart)
+      window.addEventListener('mousemove', onHandleMove)
+      window.addEventListener('mouseup',   onHandleEnd)
+      activeDragListeners.push({ onMove: onHandleMove, onEnd: onHandleEnd })
+    }
+    bindResizeHandle()
 
     el.addEventListener('touchstart', onStart, { passive: true })
     el.addEventListener('touchmove',  onMove,  { passive: false })
@@ -1135,6 +1843,9 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     // listeners — otherwise every text/sticker ever added across every
     // editing session leaves two permanent listeners on window.
     activeDragListeners.push({ onMove, onEnd })
+
+    // Expose final scale/rotation for export (image baking) to read.
+    el.getItemTransform = () => ({ scale: itemScale, rotation: itemRotation })
   }
 
   // ══════════════════════════════════════════════════════════
@@ -1193,7 +1904,16 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     const hasDraw     = drawStrokes.length > 0
     const hasFilter   = currentFilter !== 'none'
     const hasAdjust   = currentAdj.brightness !== 100 || currentAdj.contrast !== 100 || currentAdj.blur !== 0
-    return hasOverlay || hasDraw || hasFilter || hasAdjust
+    // Phase 3: a non-default crop rect, zoom, pan, or rotation also
+    // counts as an edit that needs to be baked into the exported image.
+    const r = cropState.cropRectPct
+    const hasCrop = (
+      cropState.zoom !== 1 || cropState.panX !== 0 || cropState.panY !== 0 ||
+      cropState.rotation !== 0 || cropState.fineRotation !== 0 ||
+      Math.abs(r.x - 5) > 0.5 || Math.abs(r.y - 5) > 0.5 ||
+      Math.abs(r.w - 90) > 0.5 || Math.abs(r.h - 90) > 0.5
+    )
+    return hasOverlay || hasDraw || hasFilter || hasAdjust || hasCrop
   }
 
   // For IMAGE stories: bake filter + adjustments + draw + text + sticker
@@ -1207,12 +1927,53 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       img.crossOrigin = 'anonymous'
       img.onload = () => {
         try {
+          const srcW = img.naturalWidth  || img.width
+          const srcH = img.naturalHeight || img.height
+
+          // ── PHASE 3: figure out exactly what the user sees on-screen
+          // (after pan/zoom/rotation), then bake the SAME framing into
+          // a full-resolution output canvas. The preview box and the
+          // crop rectangle are both expressed in % of the preview's
+          // displayed size, so this works at any output resolution. ──
+          const previewBox = previewImg.parentNode  // #seImageTransformHost or the img's old parent
+          const boxRect = (previewBox && previewBox.getBoundingClientRect)
+            ? previewBox.getBoundingClientRect()
+            : previewImg.getBoundingClientRect()
+          const boxW = boxRect.width  || srcW
+          const boxH = boxRect.height || srcH
+
+          const totalRotation = (cropState.rotation + cropState.fineRotation) * Math.PI / 180
+          const zoom = cropState.zoom || 1
+          const panX = cropState.panX || 0
+          const panY = cropState.panY || 0
+
+          // object-fit:cover scale — how the source image fills the box
+          // before any user zoom/pan is applied (matches the CSS we set
+          // on the preview <img> in setupImageTransformHost()).
+          const coverScale = Math.max(boxW / srcW, boxH / srcH)
+          const fittedW = srcW * coverScale
+          const fittedH = srcH * coverScale
+
+          // The crop rectangle, in px relative to the preview box
+          const cropPx = {
+            x: (cropState.cropRectPct.x / 100) * boxW,
+            y: (cropState.cropRectPct.y / 100) * boxH,
+            w: (cropState.cropRectPct.w / 100) * boxW,
+            h: (cropState.cropRectPct.h / 100) * boxH
+          }
+
+          // Output canvas matches the crop rectangle's aspect ratio at
+          // full resolution (scaled up from the on-screen crop size to
+          // the image's native resolution for a sharp result).
+          const outputScale = Math.max(srcW / boxW, srcH / boxH, 1)
           const canvas = document.createElement('canvas')
-          canvas.width  = img.naturalWidth  || img.width
-          canvas.height = img.naturalHeight || img.height
+          canvas.width  = Math.max(1, Math.round(cropPx.w * outputScale))
+          canvas.height = Math.max(1, Math.round(cropPx.h * outputScale))
           const ctx = canvas.getContext('2d')
 
-          // 1) Draw base image with CSS-equivalent filter baked in
+          // 1) Draw the base image with filter baked in, positioned/scaled/
+          // rotated exactly as it appears in the live preview, then offset
+          // so the crop rectangle's top-left lands at canvas (0,0).
           const filterObj = FILTERS.find(f => f.id === currentFilter) || FILTERS[0]
           const cssFilter = [
             filterObj.css,
@@ -1221,45 +1982,100 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
             currentAdj.blur > 0 ? `blur(${currentAdj.blur}px)` : ''
           ].filter(Boolean).join(' ')
           ctx.filter = cssFilter || 'none'
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+          ctx.save()
+          // Move origin so that (cropPx.x, cropPx.y) in box-space becomes (0,0)
+          ctx.translate(-cropPx.x * outputScale, -cropPx.y * outputScale)
+          // Re-create the same transform order CSS uses: translate → rotate → scale,
+          // pivoting around the box center (since transform-origin is center center)
+          const centerX = (boxW / 2) * outputScale
+          const centerY = (boxH / 2) * outputScale
+          ctx.translate(centerX, centerY)
+          ctx.translate(panX * outputScale, panY * outputScale)
+          ctx.rotate(totalRotation)
+          ctx.scale(zoom, zoom)
+          ctx.drawImage(
+            img,
+            -(fittedW / 2) * outputScale,
+            -(fittedH / 2) * outputScale,
+            fittedW * outputScale,
+            fittedH * outputScale
+          )
+          ctx.restore()
           ctx.filter = 'none'
 
-          // 2) Draw strokes (scaled from preview canvas size to full image size)
+          // 2) Draw strokes — they were drawn on a canvas sized to match
+          // the (unrotated, unzoomed) preview box, so map them the same
+          // way: box-space → minus crop offset → × outputScale.
           if (drawCanvas && drawStrokes.length) {
-            const scaleX = canvas.width  / drawCanvas.width
-            const scaleY = canvas.height / drawCanvas.height
+            const dcScaleX = boxW / drawCanvas.width
+            const dcScaleY = boxH / drawCanvas.height
             drawStrokes.forEach(stroke => {
               if (!stroke.points.length) return
               ctx.beginPath()
               ctx.strokeStyle = stroke.color
-              ctx.lineWidth   = stroke.size * Math.max(scaleX, scaleY)
+              ctx.lineWidth   = stroke.size * Math.max(dcScaleX, dcScaleY) * outputScale
               ctx.lineCap     = 'round'
               ctx.lineJoin    = 'round'
-              ctx.moveTo(stroke.points[0].x * scaleX, stroke.points[0].y * scaleY)
-              stroke.points.slice(1).forEach(p => ctx.lineTo(p.x * scaleX, p.y * scaleY))
+              const toCanvasPx = p => ({
+                x: (p.x * dcScaleX - cropPx.x) * outputScale,
+                y: (p.y * dcScaleY - cropPx.y) * outputScale
+              })
+              const p0 = toCanvasPx(stroke.points[0])
+              ctx.moveTo(p0.x, p0.y)
+              stroke.points.slice(1).forEach(p => {
+                const pt = toCanvasPx(p)
+                ctx.lineTo(pt.x, pt.y)
+              })
               ctx.stroke()
             })
           }
 
-          // 3) Draw text + sticker overlays (positions are % of preview box)
+          // 3) Draw text + sticker overlays. Positions are stored as %
+          // of the preview box; each item also carries its own
+          // Phase-3 scale + rotation (read live from the DOM element).
+          const wrap = document.getElementById('storyEditorWrap')
+          const overlayEls = wrap ? [...wrap.querySelectorAll('.se-overlay-item')] : []
+
+          function findOverlayElFor(xPct, yPct, isTextItem) {
+            // Match back to the DOM element that produced this state
+            // entry, so we can read its live scale/rotation.
+            return overlayEls.find(el => {
+              const left = parseFloat(el.style.left) || 0
+              const top  = parseFloat(el.style.top)  || 0
+              const hasFontFamily = !!el.style.fontFamily
+              return Math.abs(left - xPct) < 0.01 && Math.abs(top - yPct) < 0.01 && hasFontFamily === isTextItem
+            })
+          }
+
           const { texts, stickers } = collectOverlayState()
 
           texts.forEach(t => {
-            const x = (t.xPct / 100) * canvas.width
-            const y = (t.yPct / 100) * canvas.height
-            const fontSizePx = t.size * (canvas.width / (previewImg.clientWidth || canvas.width))
+            const xBox = (t.xPct / 100) * boxW
+            const yBox = (t.yPct / 100) * boxH
+            const x = (xBox - cropPx.x) * outputScale
+            const y = (yBox - cropPx.y) * outputScale
+
+            const matchedEl = findOverlayElFor(t.xPct, t.yPct, true)
+            const itemT = (matchedEl && matchedEl.getItemTransform) ? matchedEl.getItemTransform() : { scale: 1, rotation: 0 }
+
+            const fontSizePx = t.size * (boxW / (previewImg.clientWidth || boxW)) * outputScale * itemT.scale
+
+            ctx.save()
+            ctx.translate(x, y)
+            ctx.rotate(itemT.rotation * Math.PI / 180)
             ctx.font = `${fontSizePx}px ${t.font}`
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
 
             if (t.bg && t.bg !== 'transparent' && t.bg !== 'none') {
               const metrics = ctx.measureText(t.text)
-              const padX = 10 * (canvas.width / (previewImg.clientWidth || canvas.width))
-              const padY = 6  * (canvas.width / (previewImg.clientWidth || canvas.width))
+              const padX = 10 * (boxW / (previewImg.clientWidth || boxW)) * outputScale * itemT.scale
+              const padY = 6  * (boxW / (previewImg.clientWidth || boxW)) * outputScale * itemT.scale
               ctx.fillStyle = t.bg
               ctx.fillRect(
-                x - metrics.width / 2 - padX,
-                y - fontSizePx / 2 - padY,
+                -metrics.width / 2 - padX,
+                -fontSizePx / 2 - padY,
                 metrics.width + padX * 2,
                 fontSizePx + padY * 2
               )
@@ -1269,18 +2085,30 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
             ctx.shadowBlur   = 4
             ctx.shadowOffsetY = 1
             ctx.fillStyle = t.color
-            ctx.fillText(t.text, x, y)
+            ctx.fillText(t.text, 0, 0)
             ctx.shadowColor = 'transparent'
+            ctx.restore()
           })
 
           stickers.forEach(s => {
-            const x = (s.xPct / 100) * canvas.width
-            const y = (s.yPct / 100) * canvas.height
-            const fontSizePx = s.size * (canvas.width / (previewImg.clientWidth || canvas.width))
+            const xBox = (s.xPct / 100) * boxW
+            const yBox = (s.yPct / 100) * boxH
+            const x = (xBox - cropPx.x) * outputScale
+            const y = (yBox - cropPx.y) * outputScale
+
+            const matchedEl = findOverlayElFor(s.xPct, s.yPct, false)
+            const itemT = (matchedEl && matchedEl.getItemTransform) ? matchedEl.getItemTransform() : { scale: 1, rotation: 0 }
+
+            const fontSizePx = s.size * (boxW / (previewImg.clientWidth || boxW)) * outputScale * itemT.scale
+
+            ctx.save()
+            ctx.translate(x, y)
+            ctx.rotate(itemT.rotation * Math.PI / 180)
             ctx.font = `${fontSizePx}px Arial`
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
-            ctx.fillText(s.emoji, x, y)
+            ctx.fillText(s.emoji, 0, 0)
+            ctx.restore()
           })
 
           // 4) Export as JPEG blob

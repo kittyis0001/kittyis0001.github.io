@@ -831,7 +831,33 @@
     const btn = document.getElementById('storySubmitBtn')
     btn.disabled = true; btn.innerText = 'Uploading...'
     try {
-      const fd = new FormData(); fd.append('file', selectedFile)
+      const isVid = selectedFile.type.startsWith('video/')
+
+      // ── EDITOR INTEGRATION ──────────────────────────────────
+      // If the user used the editor (filter/text/sticker/draw):
+      //   • IMAGE → bake everything into a new image file before upload
+      //   • VIDEO → keep the original video file, but capture the edit
+      //             description as JSON so the viewer can replay the
+      //             same overlays on top of the video
+      let fileToUpload  = selectedFile
+      let videoEditData = null
+
+      const hasEdits = typeof window.storyEditorHasEdits === 'function'
+        ? window.storyEditorHasEdits()
+        : false
+
+      if (hasEdits && !isVid && typeof window.storyEditorExportImage === 'function') {
+        try {
+          const blob = await window.storyEditorExportImage()
+          fileToUpload = new File([blob], 'edited-story.jpg', { type: 'image/jpeg' })
+        } catch (editErr) {
+          console.error('[Story] image edit export failed, uploading original:', editErr)
+        }
+      } else if (hasEdits && isVid && typeof window.storyEditorExportEditData === 'function') {
+        videoEditData = window.storyEditorExportEditData()
+      }
+
+      const fd = new FormData(); fd.append('file', fileToUpload)
       const upRes  = await fetch(BACKEND_URL + '/upload', { method: 'POST', body: fd })
       const upData = await upRes.json()
       if (!upData.url) throw new Error('Upload failed — no URL')
@@ -839,7 +865,6 @@
       const me      = getCurrentUser()
       if (me === 'unknown') throw new Error('Not logged in')
       const caption = document.getElementById('storyCaption').value.trim()
-      const isVid   = selectedFile.type.startsWith('video/')
 
       const payload = {
         userId:  me,
@@ -855,7 +880,9 @@
           thumbnail: selectedMusic.thumbnail || '',
           audioUrl:  selectedMusic.audioUrl  || null,
           source:    selectedMusic.source
-        } : null
+        } : null,
+        // ── EDIT: video overlay data (null for images — already baked in) ──
+        edit: videoEditData
       }
 
       const stRes  = await fetch(BACKEND_URL + '/stories/create', {
@@ -890,6 +917,8 @@
     stopStoryMusic()
     const vid = document.getElementById('storyVid')
     vid.pause(); vid.src = ''
+    vid.style.filter = ''
+    clearStoryEditOverlay()   // ✅ remove any rendered text/sticker/draw overlay
     updateAllRings()
   }
 
@@ -947,6 +976,8 @@
       vid.src = story.media; vid.classList.add('active')
       vid.muted = false          // ✅ unmute — original video sound
       vid.volume = 1.0
+      // ✅ apply saved filter (Phase 1 editor) as CSS on the video element
+      vid.style.filter = buildVideoFilterCss(story.edit)
       vid.play().catch(() => {
         // autoplay blocked — try muted first then unmute
         vid.muted = true
@@ -955,8 +986,12 @@
       vid.onended = nextStory
     } else {
       vid.classList.remove('active'); vid.pause(); vid.src = ''
+      vid.style.filter = ''
       img.src = story.media; img.classList.add('active')
     }
+
+    // ✅ Render text/sticker/draw overlays saved with the story (video edits)
+    renderStoryEditOverlay(story)
 
     // Caption
     const cap = document.getElementById('storyCapOverlay')
@@ -1163,6 +1198,143 @@
       closeViewer()
       await fetchStories()
     } catch (e) { alert('Delete failed ⚠️') }
+  }
+
+  // ══════════════════════════════════════════════════════
+  // VIDEO EDIT OVERLAY (Phase 1 editor data — text/sticker/draw/filter)
+  // Only used for video stories, since image edits are already
+  // baked into the uploaded image itself.
+  // ══════════════════════════════════════════════════════
+  const STORY_FILTER_CSS_MAP = {
+    none:      '',
+    clarendon: 'brightness(1.1) contrast(1.2) saturate(1.35)',
+    gingham:   'brightness(1.05) hue-rotate(-10deg) sepia(0.08)',
+    moon:      'grayscale(1) brightness(1.1) contrast(1.1)',
+    lark:      'brightness(1.08) contrast(0.92) saturate(1.1) sepia(0.05)',
+    reyes:     'brightness(1.1) contrast(0.9) saturate(0.8) sepia(0.22)',
+    juno:      'brightness(1.08) contrast(1.1) saturate(1.3) hue-rotate(5deg)',
+    slumber:   'brightness(0.95) saturate(0.85) sepia(0.2)',
+    crema:     'brightness(1.05) contrast(0.95) saturate(0.9) sepia(0.15)',
+    ludwig:    'brightness(1.05) contrast(1.08) saturate(1.1)',
+    aden:      'brightness(1.05) hue-rotate(-20deg) saturate(0.9) sepia(0.15)',
+    perpetua:  'brightness(1.05) contrast(1.1) saturate(0.8) sepia(0.1)'
+  }
+
+  function buildVideoFilterCss(edit) {
+    if (!edit) return ''
+    const base = STORY_FILTER_CSS_MAP[edit.filter] || ''
+    const adj  = edit.adjust || {}
+    const parts = [
+      base,
+      `brightness(${adj.brightness ?? 100}%)`,
+      `contrast(${adj.contrast ?? 100}%)`,
+      (adj.blur && adj.blur > 0) ? `blur(${adj.blur}px)` : ''
+    ].filter(Boolean)
+    return parts.join(' ')
+  }
+
+  // Tracks the active resize listener for the draw-overlay canvas so we
+  // can remove it before attaching a new one — otherwise every video
+  // story with drawings leaves a stale listener behind permanently.
+  let storyEditResizeHandler = null
+
+  function clearStoryEditOverlay() {
+    const layer = document.getElementById('storyEditOverlayLayer')
+    if (layer) layer.innerHTML = ''
+    if (storyEditResizeHandler) {
+      window.removeEventListener('resize', storyEditResizeHandler)
+      storyEditResizeHandler = null
+    }
+  }
+
+  function renderStoryEditOverlay(story) {
+    // Always clear the previous overlay + its resize listener first
+    clearStoryEditOverlay()
+
+    // Ensure overlay layer exists, sitting on top of img/video, below caption/music sticker
+    let layer = document.getElementById('storyEditOverlayLayer')
+    if (!layer) {
+      layer = document.createElement('div')
+      layer.id = 'storyEditOverlayLayer'
+      layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:6;'
+      const wrap = document.getElementById('storyMediaWrap')
+      if (wrap) wrap.insertBefore(layer, document.getElementById('storyCapOverlay'))
+    }
+    layer.innerHTML = ''
+
+    const edit = story.edit
+    if (!edit || story.type !== 'video') return  // image edits are baked in already
+
+    // ── Draw strokes ──
+    if (edit.drawStrokes && edit.drawStrokes.length) {
+      const canvas = document.createElement('canvas')
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;'
+      layer.appendChild(canvas)
+
+      const resize = () => {
+        const rect = layer.getBoundingClientRect()
+        canvas.width  = rect.width
+        canvas.height = rect.height
+        const ctx = canvas.getContext('2d')
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        edit.drawStrokes.forEach(stroke => {
+          if (!stroke.points || !stroke.points.length) return
+          ctx.beginPath()
+          ctx.strokeStyle = stroke.color
+          ctx.lineWidth   = stroke.size
+          ctx.lineCap     = 'round'
+          ctx.lineJoin    = 'round'
+          const pts = stroke.points.map(p => ({
+            x: (p.xPct / 100) * canvas.width,
+            y: (p.yPct / 100) * canvas.height
+          }))
+          ctx.moveTo(pts[0].x, pts[0].y)
+          pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y))
+          ctx.stroke()
+        })
+      }
+      // Resize once layout settles, and again on viewport changes.
+      // Store the reference so clearStoryEditOverlay() can remove it
+      // the next time a story is loaded (prevents listener buildup).
+      setTimeout(resize, 50)
+      storyEditResizeHandler = resize
+      window.addEventListener('resize', storyEditResizeHandler)
+    }
+
+    // ── Text overlays ──
+    (edit.texts || []).forEach(t => {
+      const el = document.createElement('div')
+      el.style.cssText = `
+        position:absolute;
+        left:${t.xPct}%; top:${t.yPct}%;
+        transform:translate(-50%,-50%);
+        font-family:${t.font || 'Arial'};
+        font-size:${t.size || 24}px;
+        color:${t.color || '#fff'};
+        background:${t.bg && t.bg !== 'none' ? t.bg : 'transparent'};
+        padding:${t.bg && t.bg !== 'none' ? '4px 10px' : '0'};
+        border-radius:6px;
+        white-space:nowrap;
+        text-shadow:0 1px 4px rgba(0,0,0,0.5);
+      `
+      if (t.anim && t.anim !== 'none') el.classList.add(`sv2-vidtext-anim-${t.anim}`)
+      el.textContent = t.text
+      layer.appendChild(el)
+    })
+
+    // ── Sticker overlays ──
+    ;(edit.stickers || []).forEach(s => {
+      const el = document.createElement('div')
+      el.style.cssText = `
+        position:absolute;
+        left:${s.xPct}%; top:${s.yPct}%;
+        transform:translate(-50%,-50%);
+        font-size:${s.size || 48}px;
+        line-height:1;
+      `
+      el.textContent = s.emoji
+      layer.appendChild(el)
+    })
   }
 
   // ══════════════════════════════════════════════════════

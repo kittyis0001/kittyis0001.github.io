@@ -847,7 +847,15 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
   function addEditorBtnToToolbar() {
     if (document.getElementById('seToolbarBtn')) return
     const toolbar = document.getElementById('storyRightToolbar')
-    if (!toolbar) return
+
+    // ✅ Defensive retry: if the toolbar isn't in the DOM yet for any
+    // timing reason, don't silently give up forever — try again shortly.
+    // This guarantees the ✏️ button always eventually appears instead
+    // of occasionally vanishing due to a one-off race condition.
+    if (!toolbar) {
+      setTimeout(addEditorBtnToToolbar, 150)
+      return
+    }
 
     const btn = document.createElement('button')
     btn.id = 'seToolbarBtn'
@@ -863,6 +871,8 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       align-items: center; justify-content: center;
       backdrop-filter: blur(8px);
       -webkit-tap-highlight-color: transparent;
+      position: relative;
+      z-index: 51;
     `
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -973,14 +983,30 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     addEditorBtnToToolbar()
     positionEditor()
 
+    // ✅ Defensive: force the right toolbar visible ourselves too.
+    // story.js's onFileSelected() already sets display:flex on file
+    // select, but we don't want the ✏️ edit button's visibility to
+    // depend on that other file's timing — if anything ever shifts
+    // there, this guarantees the toolbar (and therefore both the 🎵
+    // and ✏️ buttons) is always shown whenever the editor sets up.
+    const toolbar = document.getElementById('storyRightToolbar')
+    if (toolbar) toolbar.style.display = 'flex'
+
     // Phase 3: Crop/zoom/rotate is image-only (no FFmpeg to bake a real
     // crop into a video file). Visually disable the Crop tool for videos
     // rather than hiding it, so the UI stays consistent either way.
     const cropBtn = document.querySelector('.se-tool-btn[data-mode="crop"]')
     if (cropBtn) cropBtn.classList.toggle('se-tool-disabled', isVideoMode)
 
-    // Set up the pinch/pan transform host around the active preview element
-    setupImageTransformHost()
+    // Set up the pinch/pan transform host around the active preview element.
+    // Defensive try/catch: this Phase 3 addition must NEVER be able to
+    // break the toolbar/edit button that addEditorBtnToToolbar() already
+    // added successfully above it.
+    try {
+      setupImageTransformHost()
+    } catch (err) {
+      console.error('[StoryEditor] setupImageTransformHost failed:', err)
+    }
   }
 
   function positionEditor() {

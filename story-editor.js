@@ -464,6 +464,75 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
     })
   }
 
+  // ══════════════════════════════════════════════════════════
+  // ANDROID BACK BUTTON — two-level history handling
+  //
+  // Level 1: storyEditorPanel open (Filter/Text/Sticker/Draw/Adjust
+  //          bottom sheet) → Back closes just that panel.
+  // Level 2: storyUploadOverlay open ("Add to Your Story" screen),
+  //          panel already closed → Back closes the overlay (same
+  //          as tapping Cancel).
+  // Level 3: neither open → Back behaves normally (leaves the page).
+  //
+  // We push ONE history entry per level as it opens, and consume it
+  // on the way back down so the back-stack never grows unbounded.
+  // ══════════════════════════════════════════════════════════
+  let panelHistoryPushed   = false
+  let overlayHistoryPushed = false
+
+  function pushPanelHistory() {
+    if (!panelHistoryPushed) {
+      history.pushState({ seLevel: 'panel' }, '')
+      panelHistoryPushed = true
+    }
+  }
+  function consumePanelHistory() {
+    if (panelHistoryPushed) {
+      panelHistoryPushed = false
+      history.back()
+    }
+  }
+  function pushOverlayHistory() {
+    if (!overlayHistoryPushed) {
+      history.pushState({ seLevel: 'overlay' }, '')
+      overlayHistoryPushed = true
+    }
+  }
+  function consumeOverlayHistory() {
+    if (overlayHistoryPushed) {
+      overlayHistoryPushed = false
+      history.back()
+    }
+  }
+
+  window.addEventListener('popstate', () => {
+    const panel   = document.getElementById('storyEditorPanel')
+    const overlay = document.getElementById('storyUploadOverlay')
+
+    // Level 1 first: panel open → just close it, stay in the editor.
+    if (panel && panel.classList.contains('active')) {
+      panel.classList.remove('active')
+      panelHistoryPushed = false
+      // Re-push so this Back press only closed the panel, not the page.
+      history.pushState({ seLevel: 'panelClosed' }, '')
+      return
+    }
+
+    // Level 2: panel already closed, overlay still open → close overlay
+    // (identical effect to tapping Cancel), stay on the chat screen.
+    if (overlay && overlay.classList.contains('active')) {
+      overlayHistoryPushed = false
+      const cancelBtn = document.getElementById('storyUploadCancelBtn')
+      if (cancelBtn) cancelBtn.click()
+      history.pushState({ seLevel: 'overlayClosed' }, '')
+      return
+    }
+
+    // Level 3: nothing open → let the browser's normal Back behavior
+    // continue (we don't pushState again, so the next Back actually
+    // navigates away as expected).
+  })
+
   function hookIntoStoryUpload() {
     document.addEventListener('change', e => {
       if (e.target.id !== 'storyFileInput') return
@@ -475,6 +544,9 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
         const img = document.getElementById('storyUploadPreview')
         isVideoMode = !(img && img.classList.contains('active'))
         showEditor()
+        // Overlay is confirmed open at this point — register the
+        // Level-2 history entry so Back can close it later.
+        pushOverlayHistory()
       }, 200)
     })
 
@@ -482,6 +554,10 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       if (e.target.id === 'storyUploadCancelBtn') {
         hideEditor()
         resetEditor()
+        // User closed the overlay directly (not via Back) — consume
+        // any pending history entries so the back-stack stays clean.
+        consumePanelHistory()
+        consumeOverlayHistory()
       }
     })
 
@@ -495,6 +571,11 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
         if (!overlay.classList.contains('active')) {
           hideEditor()
           resetEditor()
+          // Story was published — overlay closed on its own, not via
+          // Back. Consume any pending history entries the same way
+          // Cancel does, so the back-stack stays clean.
+          consumePanelHistory()
+          consumeOverlayHistory()
           clearInterval(check)
         }
         if (tries > 40) clearInterval(check)
@@ -856,7 +937,14 @@ select#seTextFont option, select#seTextAnim option { background: #111; }
       const panel = document.getElementById('storyEditorPanel')
       if (!panel) return
       panel.classList.toggle('active')
-      if (panel.classList.contains('active')) activateMode(editorMode || 'filter')
+      if (panel.classList.contains('active')) {
+        activateMode(editorMode || 'filter')
+        pushPanelHistory()
+      } else {
+        // Closed via the ✏️ button itself, not Back — consume the
+        // pending history entry so it doesn't linger on the back-stack.
+        consumePanelHistory()
+      }
     })
 
     toolbar.appendChild(btn)

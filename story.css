@@ -76,7 +76,7 @@
 
 #storyEditorWrap { position: relative; display: inline-block; }
 
-/* ── Right toolbar (Music button) ── */
+/* ── Right toolbar (Music + Edit buttons) ── */
 #storyRightToolbar {
   position: absolute;
   top: 50%; right: -52px;
@@ -84,10 +84,7 @@
   display: none;
   flex-direction: column;
   gap: 12px;
-  z-index: 50;  /* ✅ stay above #seImageTransformHost (Phase 3) which is
-                    also position:relative inside the same wrap — without
-                    an explicit z-index, DOM/paint order could otherwise
-                    bury this toolbar under the image host. */
+  z-index: 50;
 }
 #storyMusicBtn {
   width: 42px; height: 42px;

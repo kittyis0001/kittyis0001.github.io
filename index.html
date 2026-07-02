@@ -397,6 +397,18 @@ z-index:100;
 border-radius:20px;
 overflow:hidden;
 min-width:210px;
+/* ── WhatsApp-style open/close animation ──
+   Starts scaled-down + shifted up near the top-right corner
+   (where the 3-dot icon is) and slides/fades into place. */
+transform-origin: top right;
+transform: scale(0.85) translateY(-12px);
+opacity: 0;
+transition: transform 0.18s cubic-bezier(0.2,0.9,0.3,1.2),
+            opacity 0.16s ease;
+}
+#menuBox.menu-open{
+transform: scale(1) translateY(0);
+opacity: 1;
 }
 
 #menuBox div{ padding:13px 20px; cursor:pointer; font-size:14px; color:#4a3280; }
@@ -1108,7 +1120,7 @@ body.dark-theme #blockedBanner {
   <div onclick="openNickModal()">✏️ Change Nick Name</div>
   <div onclick="changeProfilePic()">🖼️ Change Profile Pic</div>
   <div id="gifToggleItem" onclick="toggleGifSuggestions()">☑️ GIF Suggestions</div>
-  <div id="darkThemeItem" onclick="toggleDarkTheme()">☐ Dark Theme</div>
+  <div id="darkThemeItem" onclick="toggleDarkTheme(event)"><span id="darkThemeLabel">☐ Dark Theme</span></div>
   <div onclick="deleteAll()">Delete All Chat</div>
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
@@ -1296,7 +1308,7 @@ function updateGifToggleLabel(){
 }
 
 window.toggleGifSuggestions = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   gifEnabled = !gifEnabled
   localStorage.setItem("gifSuggestions", gifEnabled ? "on" : "off")
   if(!gifEnabled){ hideGifPanel() }
@@ -1342,7 +1354,7 @@ function listenProfilePics(){
 }
 
 window.changeProfilePic = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   document.getElementById("profilePicInput").click()
 }
 
@@ -1396,9 +1408,12 @@ function listenTheme() {
   onValue(_themeRef, snap => {
     const isDark = snap.val() === "dark"
     applyTheme(isDark)
-    // Sync menu checkbox label
-    const item = document.getElementById("darkThemeItem")
-    if (item) item.textContent = (isDark ? "☑" : "☐") + " Dark Theme"
+    // Sync menu checkbox label — update only the inner <span>, never
+    // the parent <div>, so the div's onclick binding and event target
+    // are never disturbed by this Firebase-driven re-render (this was
+    // the root cause of the click sometimes not registering).
+    const label = document.getElementById("darkThemeLabel")
+    if (label) label.textContent = (isDark ? "☑" : "☐") + " Dark Theme"
   })
 }
 
@@ -1410,13 +1425,30 @@ function applyTheme(isDark) {
   }
 }
 
-window.toggleDarkTheme = function() {
+window.toggleDarkTheme = function(e) {
+  // ✅ FIX: stop this click from bubbling anywhere else, and make sure
+  // it is fully processed before we do anything that could interrupt
+  // it (like closing the menu or letting a Firebase update re-render
+  // the label mid-click).
+  if (e) e.stopPropagation()
+
   const isDark = document.body.classList.contains("dark-theme")
   const newTheme = isDark ? "light" : "dark"
-  // Save to Firebase — both users will get the update via listenTheme()
+
+  // Apply locally immediately — instant feedback, doesn't wait on
+  // the Firebase round-trip so the toggle always feels responsive.
+  applyTheme(!isDark)
+  const label = document.getElementById("darkThemeLabel")
+  if (label) label.textContent = (!isDark ? "☑" : "☐") + " Dark Theme"
+
+  // Save to Firebase — both users will get the confirmed update via
+  // listenTheme(); this also self-corrects if the write ever fails.
   set(ref(db, "theme"), newTheme)
-  // Close the menu
-  document.getElementById("menuBox").style.display = "none"
+
+  // Close the menu AFTER this click has been fully handled — using
+  // the shared animated helper so this behaves identically to every
+  // other menu item (Delete Chat, Upload Image, etc.).
+  setTimeout(() => { closeMenuBox() }, 120)
 }
 
 function listenNickNames(){
@@ -1434,7 +1466,7 @@ function listenNickNames(){
 }
 
 window.openNickModal = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   document.getElementById("myNickLabel").innerText = "Your Nick Name"
   document.getElementById("otherNickLabel").innerText = "Other's Nick Name"
   document.getElementById("myNickInput").value = getNick(username)
@@ -1499,7 +1531,7 @@ function listenBlockStatus(){
 }
 
 window.toggleBlock = async function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   const t = Date.now()
   if(iBlockedOther){
     await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: false, time: t })
@@ -1530,7 +1562,7 @@ const previewDuration = document.getElementById("previewDuration")
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 window.triggerVoiceRecord = async function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
   await startRecording()
 }
@@ -2208,13 +2240,39 @@ onValue(ref(db,"status"),snap=>{
   }
 })
 
+// ✅ Global helper — opens the menu with the slide+fade animation.
+window.openMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  m.style.display="block"
+  // Force a reflow so the browser registers the "closed" starting
+  // state before we add "menu-open" — otherwise it would jump
+  // straight to the open state with no animation.
+  void m.offsetWidth
+  m.classList.add("menu-open")
+}
+
+// ✅ Global helper — plays the reverse animation, THEN hides the menu.
+// Every existing "menuBox...display = 'none'" call site now routes
+// through this so all of them get the same closing animation without
+// having to touch each call site's surrounding logic individually.
+window.closeMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  if(!m.classList.contains("menu-open")){ m.style.display="none"; return }
+  m.classList.remove("menu-open")
+  setTimeout(()=>{ if(m) m.style.display="none" }, 180)
+}
+
 window.toggleMenu=function(){
   const m=document.getElementById("menuBox")
-  m.style.display=m.style.display=="block"?"none":"block"
+  const isOpen = m.classList.contains("menu-open") || m.style.display==="block"
+  if(isOpen) closeMenuBox()
+  else openMenuBox()
 }
 
 window.triggerImageUpload = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
   document.getElementById("imgInput").click()
 }
@@ -2223,7 +2281,7 @@ window.deleteAll=function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
     messagesEl.innerHTML=""
-    document.getElementById("menuBox").style.display="none"
+    closeMenuBox()
   }
 }
 

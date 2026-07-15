@@ -1057,8 +1057,11 @@ let seenListener = null
 
 // ─────────────────────────────────────────────
 // GIF ON/OFF TOGGLE
+// (Firebase-backed, same persistence pattern as Dark Theme —
+// survives logout, refresh, and re-login on any device.)
 // ─────────────────────────────────────────────
-let gifEnabled = localStorage.getItem("gifSuggestions") !== "off"
+let gifEnabled = true   // sensible default; corrected instantly once Firebase value loads
+let _gifRef = null
 
 function updateGifToggleLabel(){
   const item = document.getElementById("gifToggleItem")
@@ -1066,12 +1069,43 @@ function updateGifToggleLabel(){
   item.innerText = gifEnabled ? "☑️ GIF Suggestions" : "☐ GIF Suggestions"
 }
 
+function listenGifSuggestions(){
+  _gifRef = ref(db, "gifSuggestions")
+  onValue(_gifRef, snap => {
+    const val = snap.val()
+
+    if (val === null) {
+      // Firebase has never been written for this path yet — this is
+      // the very first login since switching from localStorage to
+      // Firebase. If the user had previously set a preference in
+      // localStorage (from before this change), migrate it into
+      // Firebase now instead of silently discarding it and resetting
+      // to "on". This onValue callback will fire again once the
+      // migration write completes, so no further action is needed
+      // here beyond kicking that write off.
+      const legacyVal = localStorage.getItem("gifSuggestions")
+      const migratedVal = legacyVal === "off" ? "off" : "on"
+      set(ref(db, "gifSuggestions"), migratedVal).catch(()=>{})
+      gifEnabled = migratedVal === "on"
+    } else {
+      gifEnabled = val === "on"
+    }
+
+    updateGifToggleLabel()
+    if(!gifEnabled) hideGifPanel()
+  })
+}
+
 window.toggleGifSuggestions = function(){
   closeMenuBox()
-  gifEnabled = !gifEnabled
-  localStorage.setItem("gifSuggestions", gifEnabled ? "on" : "off")
-  if(!gifEnabled){ hideGifPanel() }
+  const newVal = !gifEnabled
+  // Apply locally immediately — instant feedback, doesn't wait on the
+  // Firebase round-trip.
+  gifEnabled = newVal
   updateGifToggleLabel()
+  if(!gifEnabled) hideGifPanel()
+  // Persist to Firebase — listenGifSuggestions() confirms/re-syncs it.
+  set(ref(db, "gifSuggestions"), newVal ? "on" : "off").catch(()=>{})
 }
 
 updateGifToggleLabel()
@@ -1729,6 +1763,7 @@ window.start=async function(){
   markSeenMessages()
   listenIncomingCalls()
   listenTheme()
+  listenGifSuggestions()
 
   // ✅ LOGIN SUCCESS — story bar দেখাও
   if(typeof showStoryBar === "function") {

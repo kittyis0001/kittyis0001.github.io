@@ -836,6 +836,7 @@ body.dark-theme #blockedBanner {
 
 </style>
 <link rel="stylesheet" href="story.css">
+<link rel="stylesheet" href="shorts.css">
 </head>
 
 <body>
@@ -1014,6 +1015,7 @@ body.dark-theme #blockedBanner {
 <!-- ✅ story.js আগে load করো — module script এর আগে -->
 <script src="story.js"></script>
 <script src="story-editor.js"></script>
+<script src="shorts.js"></script>
 
 <script type="module">
 
@@ -1060,7 +1062,7 @@ let seenListener = null
 // (Firebase-backed, same persistence pattern as Dark Theme —
 // survives logout, refresh, and re-login on any device.)
 // ─────────────────────────────────────────────
-let gifEnabled = true   // sensible default; corrected instantly once Firebase value loads
+let gifEnabled = false   // default OFF; corrected instantly once Firebase value loads
 let _gifRef = null
 
 function updateGifToggleLabel(){
@@ -1084,7 +1086,7 @@ function listenGifSuggestions(){
       // migration write completes, so no further action is needed
       // here beyond kicking that write off.
       const legacyVal = localStorage.getItem("gifSuggestions")
-      const migratedVal = legacyVal === "off" ? "off" : "on"
+      const migratedVal = legacyVal === "on" ? "on" : "off"
       set(ref(db, "gifSuggestions"), migratedVal).catch(()=>{})
       gifEnabled = migratedVal === "on"
     } else {
@@ -1216,6 +1218,34 @@ function applyTheme(isDark) {
   } else {
     document.body.classList.remove("dark-theme")
   }
+}
+
+// ✅ Narrow, read-only exposures for shorts.js (Phase 2) — matches the
+// same safe pattern already used for getAvatar/getNick/DEFAULT_PIC.
+// shorts.js runs as a separate, non-module script and cannot import
+// db/ref/onValue itself, so these two purpose-built listeners are
+// exposed instead of the raw Firebase primitives. Both are read-only
+// and change nothing about existing messaging/status behavior.
+window.listenOtherUserOnlineStatus = function(callback) {
+  if (!otherUser) { callback(false); return }
+  onValue(ref(db, "status/" + otherUser), snap => {
+    const data = snap.val()
+    if (!data) { callback(false); return }
+    callback((Date.now() - data.last) < 12000)   // same 12s threshold the header's own status text uses
+  })
+}
+
+window.listenUnseenMessageCount = function(callback) {
+  if (!otherUser) { callback(0); return }
+  onValue(ref(db, "messages"), snap => {
+    const data = snap.val()
+    if (!data) { callback(0); return }
+    let count = 0
+    Object.values(data).forEach(msg => {
+      if (msg.name === otherUser && !msg.seen && !msg.deleted && !msg.type) count++
+    })
+    callback(count)
+  })
 }
 
 window.toggleDarkTheme = function(e) {
@@ -1768,6 +1798,14 @@ window.start=async function(){
   // ✅ LOGIN SUCCESS — story bar দেখাও
   if(typeof showStoryBar === "function") {
     showStoryBar()
+  }
+
+  // ✅ LOGIN SUCCESS — Shorts Feed default landing screen
+  // (chat above is already fully initialized as before — this just
+  // shows Shorts on top of it; tapping Message/Profile in Shorts
+  // hides it to reveal the already-running chat underneath)
+  if(typeof showShortsFeed === "function") {
+    showShortsFeed()
   }
 }
 

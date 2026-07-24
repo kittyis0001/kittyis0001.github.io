@@ -179,18 +179,31 @@
   -webkit-tap-highlight-color: transparent;
   padding: 0;
 }
+/* Save / Share / Repost — Instagram-Reels-style frosted glass circles:
+   transparent glassmorphic background, white icon, unchanged size/position. */
 .shorts-action-icon {
   width: 46px; height: 46px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.32);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   display: flex; align-items: center; justify-content: center;
   color: white; font-size: 22px;
   transition: transform 0.15s, background 0.15s;
 }
 .shorts-action-btn:active .shorts-action-icon { transform: scale(0.88); }
-.shorts-action-icon.saved { background: rgba(255,204,0,0.85); color: #1a1a1a; }
-.shorts-action-icon.reposted { background: rgba(126,200,247,0.9); color: #1a1a1a; }
+.shorts-action-icon.saved {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+}
+.shorts-action-icon.reposted {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+}
 .shorts-action-label {
   color: white; font-size: 11px; font-weight: 600;
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
@@ -442,5 +455,5 @@
 @media (max-height: 560px) {
   .shorts-actions { gap: 12px; bottom: 14px; }
   .shorts-info { bottom: 12px; }
-}
-
+   }
+   

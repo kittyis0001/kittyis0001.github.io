@@ -1,598 +1,459 @@
-/* ═══════════════════════════════════════════════
-   STORY SYSTEM v2 + MUSIC FEATURE CSS
-   ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   SHORTS FEED — Instagram Reels / TikTok style
+   Full-screen vertical video feed, always dark (video content
+   needs a dark canvas for contrast regardless of the chat's own
+   light/dark theme setting — this matches how Reels/TikTok/Shorts
+   always render dark by design, independent of OS/app theme).
+   ═══════════════════════════════════════════════════════════ */
 
-/* ── Ring wrapper ── */
-.sv2-avatar-wrap {
-  position: relative;
-  border-radius: 50%;
-  flex-shrink: 0;
-  padding: 3px;
-  background: transparent;
-  box-sizing: border-box;
-}
-
-#sv2HeaderWrap {
-  width: 46px; height: 46px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-
-#sv2MenuAvatarWrap {
-  width: 48px; height: 48px;
-  display: block;
-  flex-shrink: 0; flex-grow: 0;
-  min-width: 48px; min-height: 48px;
-  max-width: 48px; max-height: 48px;
-}
-
-/* ── Rings ── */
-.sv2-ring-active {
-  background: conic-gradient(#f09433 0%,#e6683c 12%,#dc2743 25%,#cc2366 37%,#bc1888 50%,#8a3ab9 62%,#4c68d7 75%,#cd486b 87%,#f09433 100%) !important;
-  padding: 3px !important;
-}
-.sv2-ring-active img, .sv2-ring-viewed img { box-shadow: 0 0 0 2px white inset; }
-.sv2-ring-viewed {
-  background: conic-gradient(#a0a0a0,#c8c8c8,#a0a0a0) !important;
-  padding: 3px !important;
-}
-.sv2-ring-none { background: transparent !important; padding: 0 !important; }
-.sv2-avatar-wrap img {
-  width: 100%; height: 100%; border-radius: 50%;
-  object-fit: cover; display: block;
-  outline: 2px solid white; outline-offset: -2px;
-}
-.sv2-ring-none img { outline: none; }
-
-/* ── Plus badge ── */
-#sv2PlusBadge {
-  position: absolute !important;
-  bottom: -2px !important; right: -2px !important;
-  width: 20px !important; height: 20px !important;
-  min-width: 20px !important; min-height: 20px !important;
-  max-width: 20px !important; max-height: 20px !important;
-  background: #000 !important;
-  border-radius: 50% !important;
-  border: 2px solid #fff !important;
-  display: flex !important;
-  align-items: center !important; justify-content: center !important;
-  font-size: 14px !important; color: white !important;
-  font-weight: 300 !important; line-height: 1 !important;
-  z-index: 10 !important; cursor: pointer !important;
-  padding: 0 !important; margin: 0 !important;
-  transform: none !important; box-sizing: border-box !important;
-}
-
-/* ── Upload Overlay ── */
-#storyUploadOverlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.95); z-index: 20000;
-  align-items: center; justify-content: center;
-  flex-direction: column; gap: 14px;
-  animation: sv2FadeIn 0.22s ease;
-}
-#storyUploadOverlay.active { display: flex; }
-#storyUploadOverlay h2 { color: white; font-size: 18px; font-family: Arial; margin: 0; }
-
-#storyEditorWrap { position: relative; display: inline-block; }
-
-/* ── Right toolbar (Music + Edit buttons) ── */
-#storyRightToolbar {
-  position: absolute;
-  top: 50%; right: -52px;
-  transform: translateY(-50%);
+#shortsFeed {
   display: none;
-  flex-direction: column;
-  gap: 12px;
-  z-index: 50;
-}
-#storyMusicBtn {
-  width: 42px; height: 42px;
-  background: rgba(255,255,255,0.15);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  border-radius: 50%;
-  color: white; font-size: 20px;
-  cursor: pointer; display: flex;
-  align-items: center; justify-content: center;
-  backdrop-filter: blur(8px);
-  transition: background 0.2s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-#storyMusicBtn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
-
-/* ── Selected music badge ── */
-#selectedMusicBadge {
-  display: none;
-  align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 12px; padding: 8px 12px;
-  width: 220px; box-sizing: border-box;
-  backdrop-filter: blur(8px);
-}
-#selectedMusicThumb {
-  width: 36px; height: 36px; border-radius: 6px;
-  object-fit: cover; flex-shrink: 0;
-}
-#selectedMusicInfo {
-  flex: 1; display: flex; flex-direction: column;
-  gap: 2px; min-width: 0; overflow: hidden;
-}
-#selectedMusicTitle {
-  color: white; font-size: 12px; font-family: Arial;
-  font-weight: bold; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-#selectedMusicArtist {
-  color: rgba(255,255,255,0.65); font-size: 10px;
-  font-family: Arial; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-#removeMusicBtn {
-  background: rgba(255,255,255,0.15); border: none;
-  color: white; font-size: 14px; cursor: pointer;
-  width: 24px; height: 24px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-
-.story-upload-preview {
-  width: 180px; height: 280px; border-radius: 16px;
-  object-fit: cover; display: none;
-  border: 2px solid rgba(255,255,255,0.15);
-}
-.story-upload-preview.active { display: block; }
-
-#storyCaption {
-  width: 220px; background: rgba(255,255,255,0.1);
-  border: 1.5px solid rgba(255,255,255,0.2);
-  border-radius: 12px; padding: 10px 14px;
-  color: white; font-size: 14px; font-family: Arial;
-  outline: none; resize: none; display: none;
-  box-sizing: border-box;
-}
-#storyCaption::placeholder { color: rgba(255,255,255,0.45); }
-#storyCaption.active { display: block; }
-.story-action-row { display: flex; gap: 12px; }
-
-.story-upload-btn {
-  display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.2);
-  color: white; border-radius: 16px; padding: 14px 28px;
-  font-size: 15px; font-family: Arial; cursor: pointer;
-  width: 220px; justify-content: center;
-  transition: background 0.18s, transform 0.15s; box-sizing: border-box;
-}
-.story-upload-btn:active { transform: scale(0.96); }
-
-#storySubmitBtn {
-  background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
-  border: none; border-radius: 20px; padding: 12px 32px;
-  color: white; font-size: 15px; font-family: Arial; font-weight: bold;
-  cursor: pointer; display: none; transition: opacity 0.2s, transform 0.15s;
-}
-#storySubmitBtn.active { display: block; }
-#storySubmitBtn:active { transform: scale(0.96); opacity: 0.85; }
-#storySubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-#storyUploadCancelBtn {
-  background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.2);
-  border-radius: 20px; padding: 12px 24px;
-  color: white; font-size: 15px; font-family: Arial;
-  cursor: pointer; transition: background 0.18s, transform 0.15s;
-}
-#storyUploadCancelBtn:active { transform: scale(0.96); }
-
-/* ── Story Viewer ── */
-#storyViewer {
-  display: none; position: fixed; inset: 0;
-  background: #000; z-index: 30000;
-  flex-direction: column; overflow: hidden;
-}
-#storyViewer.active { display: flex; }
-
-#storyProgressBars {
-  display: flex; gap: 4px; padding: 12px 12px 0;
-  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-}
-.story-prog-track {
-  flex: 1; height: 2.5px;
-  background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;
-}
-.story-prog-fill {
-  height: 100%; background: white; width: 0%;
-  border-radius: 2px; transition: width 0.08s linear;
-}
-.story-prog-fill.done  { width: 100%; transition: none; }
-.story-prog-fill.empty { width: 0%;   transition: none; }
-
-#storyViewerHeader {
-  position: absolute; top: 26px; left: 0; right: 0;
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; z-index: 10;
-}
-#storyViewerAvatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  object-fit: cover; border: 2px solid white; flex-shrink: 0;
-}
-#storyViewerName {
-  color: white; font-size: 14px; font-family: Arial;
-  font-weight: bold; flex: 1;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
-}
-#storyViewerTime { color: rgba(255,255,255,0.7); font-size: 12px; font-family: Arial; }
-#storyCloseBtn {
-  background: none; border: none; color: white;
-  font-size: 26px; cursor: pointer; padding: 0 4px; line-height: 1;
-}
-
-#storyMediaWrap {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  position: relative; overflow: hidden;
-}
-#storyImg {
-  max-width: 100%; max-height: 100vh; object-fit: contain;
-  display: none; user-select: none; pointer-events: none;
-}
-#storyImg.active { display: block; }
-#storyVid {
-  max-width: 100%; max-height: 100vh; object-fit: contain;
-  display: none; user-select: none;
-}
-#storyVid.active { display: block; }
-
-#storyCapOverlay {
-  position: absolute; bottom: 80px; left: 0; right: 0;
-  text-align: center; padding: 0 20px;
-  color: white; font-size: 15px; font-family: Arial;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-  pointer-events: none; display: none;
-}
-#storyCapOverlay.active { display: block; }
-
-/* ── Music Sticker (in viewer) ── */
-#storyMusicSticker {
-  position: absolute;
-  bottom: 100px; left: 16px;
-  display: none;
-  align-items: center; gap: 8px;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(12px);
-  border-radius: 20px; padding: 8px 14px;
-  max-width: 220px;
-  animation: sv2FadeIn 0.3s ease;
-}
-#storyMusicNote {
-  font-size: 16px;
-  animation: musicPulse 1.2s ease-in-out infinite;
-}
-#storyMusicStickerInfo {
-  display: flex; flex-direction: column; gap: 1px;
-  min-width: 0; overflow: hidden;
-}
-#storyMusicStickerTitle {
-  color: white; font-size: 11px; font-family: Arial;
-  font-weight: bold; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-#storyMusicStickerArtist {
-  color: rgba(255,255,255,0.7); font-size: 10px;
-  font-family: Arial; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-
-@keyframes musicPulse {
-  0%,100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
-}
-
-#storyTapLeft  { position: absolute; left: 0; top: 0; width: 35%; height: 100%; z-index: 5; cursor: pointer; }
-#storyTapRight { position: absolute; right: 0; top: 0; width: 35%; height: 100%; z-index: 5; cursor: pointer; }
-
-#storyDeleteBtn {
-  position: absolute; bottom: 24px; right: 16px;
-  background: rgba(255,59,48,0.88); border: none;
-  border-radius: 20px; padding: 10px 20px;
-  color: white; font-size: 13px; font-family: Arial;
-  cursor: pointer; z-index: 10; display: none;
-  backdrop-filter: blur(6px);
-}
-#storyDeleteBtn.active { display: block; }
-
-/* ── Music Picker Bottom Sheet ── */
-#musicPicker {
-  display: none; position: fixed; inset: 0; z-index: 25000;
-}
-#musicPicker.active { display: block; }
-
-#musicPickerBackdrop {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.6);
-  animation: sv2FadeIn 0.2s ease;
-}
-
-#musicPickerSheet {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: #1a1a1a;
-  border-radius: 20px 20px 0 0;
-  max-height: 85vh;
-  display: flex; flex-direction: column;
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  background: #000;
   overflow: hidden;
-  animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
 }
+#shortsFeed.active { display: block; }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-
-#musicPickerHandle {
-  width: 36px; height: 4px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 2px; margin: 10px auto 0;
-  flex-shrink: 0;
-}
-
-#musicPickerHeader {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px 8px;
-  flex-shrink: 0;
-}
-#musicPickerHeader h3 {
-  color: white; font-size: 16px; font-family: Arial; margin: 0;
-}
-#musicPickerClose {
-  background: rgba(255,255,255,0.1); border: none;
-  color: white; font-size: 18px; cursor: pointer;
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
-
-#musicSearchWrap {
-  display: flex; gap: 8px;
-  padding: 8px 16px; flex-shrink: 0;
-}
-#musicSearchInput {
-  flex: 1; background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px; padding: 8px 14px;
-  color: white; font-size: 14px; font-family: Arial;
-  outline: none;
-}
-#musicSearchInput::placeholder { color: rgba(255,255,255,0.4); }
-#musicSearchBtn {
-  background: rgba(255,255,255,0.1); border: none;
-  color: white; font-size: 18px; cursor: pointer;
-  width: 38px; height: 38px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
-
-#musicTabs {
-  display: flex; gap: 0;
-  padding: 0 16px 8px; flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.music-tab {
-  background: none; border: none;
-  color: rgba(255,255,255,0.5);
-  font-size: 13px; font-family: Arial;
-  padding: 8px 16px; cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-.music-tab.active {
-  color: white;
-  border-bottom-color: white;
-}
-
-#musicListWrap {
-  flex: 1; overflow-y: auto; padding: 8px 0;
-  -webkit-overflow-scrolling: touch;
-}
-#musicListWrap::-webkit-scrollbar { display: none; }
-
-/* ── Song card ── */
-.music-card {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 16px;
-  transition: background 0.15s;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.music-card:active { background: rgba(255,255,255,0.06); }
-
-.music-card-thumb {
-  width: 48px; height: 48px; border-radius: 8px;
-  object-fit: cover; flex-shrink: 0;
-  background: #333;
-}
-.music-card-info {
-  flex: 1; min-width: 0; display: flex;
-  flex-direction: column; gap: 2px;
-}
-.music-card-title {
-  color: white; font-size: 13px; font-family: Arial;
-  font-weight: 600; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-.music-card-artist {
-  color: rgba(255,255,255,0.6); font-size: 11px;
-  font-family: Arial; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-.music-card-source {
-  color: rgba(255,255,255,0.35); font-size: 10px; font-family: Arial;
-}
-.music-card-btn {
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.3);
-  background: transparent; color: white;
-  font-size: 18px; cursor: pointer; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-.music-card-btn.selected {
-  background: white; color: #000;
-  border-color: white;
-}
-
-/* ── Vibe badge ── */
-.music-vibe-badge {
-  margin: 8px 16px 4px;
-  padding: 6px 12px;
-  background: linear-gradient(135deg,rgba(240,148,51,0.2),rgba(188,24,136,0.2));
-  border: 1px solid rgba(240,148,51,0.3);
-  border-radius: 20px;
-  color: rgba(255,255,255,0.85);
-  font-size: 11px; font-family: Arial;
-  display: inline-block;
-}
-
-/* ── Loader ── */
-#musicLoader {
-  display: flex; align-items: center; justify-content: center;
-  padding: 40px;
-}
-.music-spinner {
-  width: 28px; height: 28px;
-  border: 3px solid rgba(255,255,255,0.15);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-#musicEmpty {
-  text-align: center; padding: 40px 20px;
-  color: rgba(255,255,255,0.4); font-size: 14px; font-family: Arial;
-}
-
-/* ── Menu profile row ── */
-#menuProfileRow {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-#menuProfileRow:hover { background: #f9f9f9; }
-#menuProfileName { font-weight: bold; font-size: 14px; color: #111; }
-
-/* ── Animations ── */
-@keyframes sv2FadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* ══════════════════════════════════════════════
-   UPDATE 5-8: NEW MUSIC CARD STYLES
-   ══════════════════════════════════════════════ */
-
-/* Action buttons container */
-.music-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-/* Save button */
-.music-card-save {
-  width: 30px; height: 30px;
-  background: transparent;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  border-radius: 50%;
-  color: rgba(255,255,255,0.7);
-  font-size: 13px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-.music-card-save:active { background: rgba(255,255,255,0.1); }
-
-/* Plus button (add to story) */
-.music-card-plus {
-  width: 32px; height: 32px;
-  background: transparent;
-  border: 1.5px solid rgba(255,255,255,0.35);
-  border-radius: 50%;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, border-color 0.15s, transform 0.12s;
-  flex-shrink: 0;
-  font-weight: 300;
-  -webkit-tap-highlight-color: transparent;
-}
-.music-card-plus:active { transform: scale(0.88); }
-.music-card-plus.selected {
-  background: white;
-  border-color: white;
-  color: #111;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-/* Minus button (remove from saved) */
-.music-card-minus {
-  width: 32px; height: 32px;
-  background: transparent;
-  border: 1.5px solid rgba(255,80,80,0.4);
-  border-radius: 50%;
-  color: rgba(255,100,100,0.9);
-  font-size: 18px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, transform 0.12s;
-  flex-shrink: 0;
-  font-weight: 300;
-  -webkit-tap-highlight-color: transparent;
-}
-.music-card-minus:active { transform: scale(0.88); background: rgba(255,80,80,0.1); }
-
-/* UPDATE 5: Previewing card highlight */
-.music-card.previewing {
-  background: rgba(255,255,255,0.07);
-}
-.music-card.previewing .music-card-title {
-  color: #f09433;
-}
-.music-card.previewing .music-card-thumb {
-  box-shadow: 0 0 0 2px #f09433;
-}
-
-/* Thumbnail cursor pointer */
-.music-card-thumb, .music-card-info {
-  cursor: pointer;
-}
-
-/* Fade out animation for removed saved songs */
-@keyframes fadeOutCard {
-  from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(40px); }
-}
-
-/* Remove old music-card-btn (replaced by music-card-plus/save/minus) */
-.music-card-btn { display: none !important; }
-
-/* ══════════════════════════════════════════════
-   VIDEO STORY EDIT OVERLAY — text animations
-   (used when a video story has saved editor text;
-   image edits are baked into the image itself so
-   they don't need any of this)
-   ══════════════════════════════════════════════ */
-@keyframes sv2VidTextFade  { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
-@keyframes sv2VidTextSlide { 0% { transform: translate(-50%,-50%) translateX(-8px); opacity: 0.5; } 100% { transform: translate(-50%,-50%) translateX(0); opacity: 1; } }
-@keyframes sv2VidTextZoom  { 0%,100% { transform: translate(-50%,-50%) scale(0.88); } 50% { transform: translate(-50%,-50%) scale(1); } }
-
-.sv2-vidtext-anim-fade  { animation: sv2VidTextFade 2s ease-in-out infinite; }
-.sv2-vidtext-anim-slide { animation: sv2VidTextSlide 0.6s ease forwards; }
-.sv2-vidtext-anim-zoom  { animation: sv2VidTextZoom 1.8s ease-in-out infinite; }
-
-#storyEditOverlayLayer {
+/* ── Vertical scroll-snap feed — native GPU-accelerated scrolling,
+   this alone is what gives the 60fps/zero-lag swipe feel, far
+   smoother than a hand-rolled touch-drag implementation. ── */
+#shortsScroller {
   position: absolute;
   inset: 0;
+  bottom: 58px;   /* leave room for bottom nav */
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#shortsScroller::-webkit-scrollbar { display: none; }
+
+.shorts-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── Player host — the YT.Player iframe attaches here ── */
+.shorts-player-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.shorts-player-host iframe {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  /* Oversize + center-crop so a landscape-source video still fills a
+     vertical frame edge-to-edge instead of letterboxing (matches
+     the Reels/TikTok "fill" look). Width is driven by JS based on
+     viewport aspect ratio, this is just the base rule. */
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  pointer-events: none;   /* taps go to our own overlay, not the iframe's native controls */
+}
+
+/* ── Shimmer loading placeholder (shown until the player reports
+   ready, and as the thumbnail poster underneath it) ── */
+.shorts-shimmer {
+  position: absolute;
+  inset: 0;
+  background: #111;
+  overflow: hidden;
+}
+.shorts-shimmer img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: blur(2px) brightness(0.6);
+}
+.shorts-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg,
+    transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shortsShimmerMove 1.4s ease-in-out infinite;
+}
+@keyframes shortsShimmerMove {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+.shorts-shimmer.hidden { display: none; }
+
+/* ── Buffering spinner (shown mid-playback if the player stalls) ── */
+.shorts-buffer-spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  animation: shortsSpin 0.8s linear infinite;
+  display: none;
+  z-index: 5;
+}
+.shorts-buffer-spinner.active { display: block; }
+@keyframes shortsSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* ── Bottom gradient for text legibility ── */
+.shorts-bottom-gradient {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 220px;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
   pointer-events: none;
+}
+
+/* ── Top progress bar — fills as the active video plays ── */
+.shorts-progress-track {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2.5px;
+  background: rgba(255,255,255,0.2);
   z-index: 6;
 }
+.shorts-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #fff;
+  transition: width 0.2s linear;
+}
+
+/* ── Bottom-left info block (channel + title) ── */
+.shorts-info {
+  position: absolute;
+  left: 14px; right: 76px; bottom: 20px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.shorts-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: white;
+  border: 1.5px solid rgba(255,255,255,0.7);
+  text-transform: uppercase;
+}
+.shorts-info-text { min-width: 0; }
+.shorts-channel {
+  color: white; font-size: 13.5px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+.shorts-title {
+  color: rgba(255,255,255,0.92); font-size: 13px;
+  margin-top: 2px; line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+/* ── Right action rail ── */
+.shorts-actions {
+  position: absolute;
+  right: 10px; bottom: 24px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.shorts-action-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+}
+/* Save / Share / Repost — Instagram-Reels-style frosted glass circles:
+   transparent glassmorphic background, white icon, unchanged size/position. */
+.shorts-action-icon {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 22px;
+  transition: transform 0.15s, background 0.15s;
+}
+.shorts-action-btn:active .shorts-action-icon { transform: scale(0.88); }
+.shorts-action-icon.saved {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+}
+.shorts-action-icon.reposted {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+}
+.shorts-action-label {
+  color: white; font-size: 11px; font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* Mute toggle sits above the action rail, near top-right */
+.shorts-mute-btn {
+  position: absolute;
+  top: 14px; right: 14px;
+  z-index: 6;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  border: none; color: white; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Double-tap like heart ── */
+.shorts-like-burst {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 90px;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.4));
+}
+.shorts-like-burst.burst {
+  animation: shortsLikeBurst 0.7s cubic-bezier(0.2,0.9,0.3,1.1) forwards;
+}
+@keyframes shortsLikeBurst {
+  0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0; }
+  35%  { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+  60%  { transform: translate(-50%,-50%) scale(0.95); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1);    opacity: 0; }
+}
+
+/* ── Top-of-feed label (category / search context) ── */
+.shorts-topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 6;
+  padding: 14px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.shorts-topbar span {
+  color: white; font-size: 14px; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+/* ── Empty / error state ── */
+.shorts-empty-state {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: rgba(255,255,255,0.6); text-align: center; padding: 0 30px;
+}
+.shorts-empty-state.active { display: flex; }
+.shorts-empty-state .icon { font-size: 40px; }
+.shorts-empty-state .msg { font-size: 14px; line-height: 1.5; }
+.shorts-empty-state button {
+  margin-top: 8px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white; padding: 10px 24px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOTTOM NAVIGATION — Home(Shorts) / Search / Message / Profile
+   ═══════════════════════════════════════════════════════════ */
+#shortsBottomNav {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 58px;
+  z-index: 20;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.shorts-nav-btn {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: rgba(255,255,255,0.55);
+  padding: 6px 14px;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.shorts-nav-btn.active { color: white; }
+.shorts-nav-icon { font-size: 21px; line-height: 1; }
+.shorts-nav-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255,255,255,0.4);
+}
+.shorts-nav-status-dot {
+  position: absolute;
+  top: 2px; right: 8px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid #0a0a0a;
+  background: #8a8a8a;   /* grey = offline, default */
+}
+.shorts-nav-status-dot.online { background: #2ecc71; }  /* green = online */
+
+.shorts-nav-badge {
+  position: absolute;
+  top: 0; right: 2px;
+  min-width: 15px; height: 15px;
+  border-radius: 8px;
+  background: #ff3b30;
+  color: white; font-size: 9.5px; font-weight: 700;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 0 3px;
+  box-sizing: border-box;
+}
+.shorts-nav-badge.show { display: flex; }
+
+/* ═══════════════════════════════════════════════════════════
+   SEARCH OVERLAY
+   ═══════════════════════════════════════════════════════════ */
+#shortsSearchOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 15500;
+  background: #0a0a0a;
+  flex-direction: column;
+}
+#shortsSearchOverlay.active { display: flex; }
+
+.shorts-search-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 14px 10px;
+  padding-top: max(14px, env(safe-area-inset-top, 14px));
+  flex-shrink: 0;
+}
+#shortsSearchClose {
+  background: none; border: none; color: white; font-size: 20px;
+  cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+#shortsSearchInput {
+  flex: 1;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: white; font-size: 14px; outline: none;
+}
+#shortsSearchInput::placeholder { color: rgba(255,255,255,0.4); }
+
+.shorts-search-results {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.shorts-search-item {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  background: #151515;
+  cursor: pointer;
+  overflow: hidden;
+}
+.shorts-search-item img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.shorts-search-item .views {
+  position: absolute; left: 5px; bottom: 5px;
+  color: white; font-size: 10.5px; font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  display: flex; align-items: center; gap: 2px;
+}
+.shorts-search-empty {
+  grid-column: 1 / -1;
+  text-align: center; color: rgba(255,255,255,0.4);
+  font-size: 13px; padding: 40px 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAVED SHORTS PAGE — Instagram-style grid
+   ═══════════════════════════════════════════════════════════ */
+#shortsSavedOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 15500;
+  background: #0a0a0a;
+  flex-direction: column;
+}
+#shortsSavedOverlay.active { display: flex; }
+
+.shorts-saved-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 10px;
+  padding-top: max(14px, env(safe-area-inset-top, 14px));
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.shorts-saved-header h3 { color: white; font-size: 16px; margin: 0; }
+#shortsSavedClose { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+
+.shorts-saved-grid {
+  flex: 1; overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px; padding: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.shorts-saved-item {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  background: #151515;
+  cursor: pointer;
+  overflow: hidden;
+}
+.shorts-saved-item img { width: 100%; height: 100%; object-fit: cover; }
+.shorts-saved-empty {
+  grid-column: 1 / -1;
+  text-align: center; color: rgba(255,255,255,0.4);
+  font-size: 13px; padding: 60px 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHORTS ENTRY BUTTON — added to chat input row (additive,
+   sits alongside the emoji button, does not remove/replace it)
+   ═══════════════════════════════════════════════════════════ */
+#shortsEntryBtn {
+  background: none; border: none; font-size: 20px; cursor: pointer;
+  padding: 8px 4px; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-safe: keep action rail/info readable on very short screens */
+@media (max-height: 560px) {
+  .shorts-actions { gap: 12px; bottom: 14px; }
+  .shorts-info { bottom: 12px; }
+   }
+     

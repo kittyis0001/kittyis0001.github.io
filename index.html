@@ -2610,7 +2610,7 @@ window.toggleReaction=async function(msgKey,emoji){
 // ─────────────────────────────────────────────
 // PUSH NOTIFICATIONS — Firebase Cloud Messaging
 // ─────────────────────────────────────────────
-const VAPID_KEY = "BNxLn6-3anuCi_rRqeA1j6kD1mDuWyie7jZAm3cSwe7wRGPGvTZ9Y7t3NtUElb-5Wg1dDCANjMFZc6GJEc3VG8Y" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
 
 let messagingInstance = null
 let pushInitialized = false
@@ -2664,7 +2664,7 @@ async function initPushNotifications(){
 
 async function refreshFcmToken(){
   if(!messagingInstance || Notification.permission!=="granted") return
-  if(!VAPID_KEY || VAPID_KEY==="PASTE_YOUR_VAPID_KEY_HERE"){
+  if(!VAPID_KEY || VAPID_KEY==="BNxLn6-3anuCi_rRqeA1j6kD1mDuWyie7jZAm3cSwe7wRGPGvTZ9Y7t3NtUElb-5Wg1dDCANjMFZc6GJEc3VG8Y"){
     console.warn("⚠️ VAPID_KEY এখনো বসানো হয়নি — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
     return
   }
@@ -2728,15 +2728,24 @@ function updateNotifToggleLabel(){
 }
 
 function listenNotifPreference(){
+  // Instant local restore — no waiting on the network round trip —
+  // then Firebase (source of truth) confirms/corrects it right after.
+  const cached = localStorage.getItem("notifEnabled")
+  if(cached !== null){
+    notifEnabled = cached === "on"
+    updateNotifToggleLabel()
+  }
+
   _notifRef = ref(db, "userSettings/"+username+"/notifications")
   onValue(_notifRef, snap=>{
     const val = snap.val()
     if(val === null){
-      notifEnabled = true
-      set(_notifRef, "on").catch(()=>{})
+      notifEnabled = cached !== null ? (cached === "on") : true
+      set(_notifRef, notifEnabled ? "on" : "off").catch(()=>{})
     } else {
       notifEnabled = val === "on"
     }
+    localStorage.setItem("notifEnabled", notifEnabled ? "on" : "off")
     updateNotifToggleLabel()
     if(notifEnabled) enablePushToken()
     else disablePushToken()
@@ -2748,18 +2757,20 @@ window.toggleNotifications = function(){
   const newVal = !notifEnabled
   notifEnabled = newVal
   updateNotifToggleLabel()
+  localStorage.setItem("notifEnabled", newVal ? "on" : "off")
   set(_notifRef, newVal ? "on" : "off").catch(()=>{})
   if(newVal) enablePushToken()
   else disablePushToken()
 }
 
-// ── Logout — clears this device's saved login completely.
-//    Notification ON/OFF is per-account, so it is NOT touched here. ──
+// ── Logout — clears ONLY this device's saved login/session.
+//    Notification preference and the FCM token are left untouched, so
+//    notifications keep working (and stay in the same ON/OFF state)
+//    the next time this device logs back in. ──
 window.logoutDevice = async function(){
   closeMenuBox()
   if(!confirm("Logout from this device? You will need username & password again next time.")) return
   try{
-    await remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId()))
     await set(ref(db, "activeViewers/"+username), {active:false, last:Date.now()})
     await set(ref(db, "status/"+username), {online:false,last:Date.now()})
   }catch(e){}

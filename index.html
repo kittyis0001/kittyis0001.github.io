@@ -2664,6 +2664,10 @@ async function initPushNotifications(){
 
 async function refreshFcmToken(){
   if(!messagingInstance || Notification.permission!=="granted") return
+  if(!VAPID_KEY || VAPID_KEY==="PASTE_YOUR_VAPID_KEY_HERE"){
+    console.warn("⚠️ VAPID_KEY এখনো বসানো হয়নি — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
+    return
+  }
   try{
     const token = await getToken(messagingInstance, {
       vapidKey: VAPID_KEY,
@@ -2675,6 +2679,9 @@ async function refreshFcmToken(){
         updated: Date.now(),
         ua: navigator.userAgent.slice(0,120)
       })
+      console.log("✅ FCM token saved for this device")
+    } else {
+      console.warn("⚠️ getToken() returned no token — check notification permission & VAPID key")
     }
   } catch(e){
     console.warn("FCM token fetch failed", e)
@@ -2690,6 +2697,10 @@ function enablePushToken(){
     // already denied it at the browser level we can't override that;
     // the toggle will simply have no effect until they re-enable it
     // from the browser's own site settings.
+    if(Notification.permission === "denied"){
+      alert("⚠️ Notification permission blocked আছে ব্রাউজারে। Browser address bar-এর lock/site-info icon → Permissions → Notifications → Allow করে আবার চেষ্টা করুন।")
+      return
+    }
     Notification.requestPermission().then(()=>{
       if(Notification.permission==="granted") enablePushToken()
     })
@@ -2704,7 +2715,8 @@ function disablePushToken(){
   remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId())).catch(()=>{})
 }
 
-// ── Notification ON/OFF toggle — per device, saved in Firebase ──
+// ── Notification ON/OFF toggle — saved per ACCOUNT (username), so it
+//    stays the same across logout/login and every device on this account ──
 let notifEnabled = true
 let _notifRef = null
 
@@ -2716,7 +2728,7 @@ function updateNotifToggleLabel(){
 }
 
 function listenNotifPreference(){
-  _notifRef = ref(db, "userSettings/"+username+"/notifDevices/"+getDeviceId())
+  _notifRef = ref(db, "userSettings/"+username+"/notifications")
   onValue(_notifRef, snap=>{
     const val = snap.val()
     if(val === null){
@@ -2741,13 +2753,14 @@ window.toggleNotifications = function(){
   else disablePushToken()
 }
 
-// ── Logout — clears this device's saved login completely ──
+// ── Logout — clears this device's saved login completely.
+//    Notification ON/OFF is per-account, so it is NOT touched here. ──
 window.logoutDevice = async function(){
   closeMenuBox()
   if(!confirm("Logout from this device? You will need username & password again next time.")) return
   try{
     await remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId()))
-    await set(ref(db, "activeViewers/"+username), false)
+    await set(ref(db, "activeViewers/"+username), {active:false, last:Date.now()})
     await set(ref(db, "status/"+username), {online:false,last:Date.now()})
   }catch(e){}
   localStorage.removeItem("savedUser")
@@ -2757,19 +2770,29 @@ window.logoutDevice = async function(){
 }
 
 // ── Active-viewer tracking — lets the backend skip the push when the
-//    recipient already has this chat open & focused ──
+//    recipient already has this chat open & focused. Uses a heartbeat
+//    (active + last-updated timestamp) instead of a plain boolean, so a
+//    missed "went to background" event can never leave it stuck "true"
+//    forever and silently block every future notification. ──
+let activeHeartbeatInterval = null
 function setupActiveViewerTracking(){
   const activeRef = ref(db, "activeViewers/"+username)
   const isChatVisible = ()=> document.visibilityState==="visible" && document.hasFocus()
 
-  function setActive(state){ set(activeRef, state).catch(()=>{}) }
+  function setActive(state){
+    set(activeRef, { active: state, last: Date.now() }).catch(()=>{})
+  }
 
   setActive(isChatVisible())
-  onDisconnect(activeRef).set(false)
+  onDisconnect(activeRef).set({ active:false, last:Date.now() })
+
+  if(activeHeartbeatInterval) clearInterval(activeHeartbeatInterval)
+  activeHeartbeatInterval = setInterval(()=>{ setActive(isChatVisible()) }, 10000)
 
   document.addEventListener("visibilitychange", ()=> setActive(isChatVisible()))
   window.addEventListener("focus", ()=> setActive(isChatVisible()))
   window.addEventListener("blur", ()=> setActive(isChatVisible()))
+  window.addEventListener("pagehide", ()=> setActive(false))
 }
 
 // ── Ask the backend to push a notification to the other user ──
@@ -2785,7 +2808,7 @@ async function sendPushNotification(message, key, toUser){
   const replyPreview = (message.replyTo && message.replyTo.text) ? message.replyTo.text : ""
 
   try{
-    await fetch(BACKEND+"/send-notification", {
+    const res = await fetch(BACKEND+"/send-notification", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
@@ -2799,6 +2822,8 @@ async function sendPushNotification(message, key, toUser){
         msgKey: key
       })
     })
+    const result = await res.json().catch(()=>null)
+    console.log("send-notification result:", result)
   } catch(e){ /* chat still works fine without push */ }
 }
 

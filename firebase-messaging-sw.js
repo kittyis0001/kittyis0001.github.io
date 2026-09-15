@@ -27,17 +27,18 @@ messaging.onBackgroundMessage((payload) => {
   const data = payload.data || {}
   const type = data.type || "text"
 
-  let body = data.preview || "New message"
-  if (type === "image") body = "📷 Photo"
-  else if (type === "video") body = "🎥 Video"
-  else if (type === "voice") body = "🎤 Voice message"
-  else if (type === "gif") body = "GIF"
+  let msgPreview = data.preview || "New message"
+  if (type === "image") msgPreview = "📷 Photo"
+  else if (type === "video") msgPreview = "🎥 Video"
+  else if (type === "voice") msgPreview = "🎤 Voice message"
+  else if (type === "gif") msgPreview = "GIF"
 
   if (data.replyPreview) {
-    body = "↩ " + data.replyPreview.slice(0, 40) + "\n" + body
+    msgPreview = "↩ " + data.replyPreview.slice(0, 40) + "\n" + msgPreview
   }
 
   const title = data.fromNick || "New message"
+  const body = title + ": " + msgPreview
   const icon = data.avatar && data.avatar.trim() ? data.avatar : FALLBACK_ICON
 
   // tag + renotify: a second message from the same sender replaces the

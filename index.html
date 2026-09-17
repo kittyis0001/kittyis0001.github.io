@@ -4,6 +4,11 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Private Chat</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8060cc">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 body{
@@ -378,6 +383,13 @@ transition:transform 0.15s;
   color: rgba(58, 42, 106, 0.4);
   flex-shrink: 0;
 }
+
+.menuSubText{
+  font-size: 11px;
+  color: rgba(58,42,106,0.55);
+  margin-top: 1px;
+}
+body.dark-theme .menuSubText{ color: rgba(233,237,239,0.5); }
 
 .menuItem.softRed .menuIconBox {
   background: rgba(229, 57, 53, 0.12);
@@ -1318,7 +1330,7 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
 <body>
 
 <div id="access">
-<h2>Enter Access Key</h2>
+<h2 id="accessTitle">Enter Access Key</h2>
 <input id="key" placeholder="Key" maxlength="6">
 <button onclick="unlock()">Enter</button>
 </div>
@@ -1397,6 +1409,20 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
     <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
   </div>
 
+  <div class="menuItem" id="notifToggleItem" onclick="toggleNotifications()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+    </div>
+    <div style="flex:1;overflow:hidden;">
+      <div class="menuText" style="margin-bottom:1px;">Notification</div>
+      <div class="menuSubText">Receive message notifications</div>
+    </div>
+    <div class="menuToggleSwitch" id="notifToggleSwitch"></div>
+  </div>
+
   <div class="menuItem" id="darkThemeItem" onclick="toggleDarkTheme(event)">
     <div class="menuIconBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1428,6 +1454,20 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
       </svg>
     </div>
     <span class="menuText" id="blockBtnText">Block User</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
+  <div class="menuItem dangerRed" id="logoutBtn" onclick="logoutDevice()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+    </div>
+    <span class="menuText">Logout</span>
     <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
@@ -1581,6 +1621,8 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
 import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get, off }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
@@ -1601,6 +1643,28 @@ fetch(BACKEND).catch(()=>{})
 const bgCount = 59
 const bgIndex = Math.floor(Math.random() * bgCount) + 1
 document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
+
+// Register the FCM service worker as early as possible so it's ready
+// before the person logs in (registration itself needs no username).
+let swRegistration = null
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    .then(reg=>{ swRegistration = reg })
+    .catch(err=>console.warn("SW registration failed", err))
+}
+
+// ─────────────────────────────────────────────
+// APP LOCK — device stays logged in after the first
+// successful login; only the access code is asked again.
+// ─────────────────────────────────────────────
+function encodeSavedPass(p){ try{ return btoa(unescape(encodeURIComponent(p))) }catch(e){ return p } }
+function decodeSavedPass(p){ try{ return decodeURIComponent(escape(atob(p))) }catch(e){ return p } }
+
+const hasSavedDeviceLogin = !!(localStorage.getItem("savedUser") && localStorage.getItem("savedPassEnc"))
+if(hasSavedDeviceLogin){
+  const t = document.getElementById("accessTitle")
+  if(t) t.innerText = "🔒 Enter Access Code"
+}
 
 let username = ""
 let otherUser = ""
@@ -2544,6 +2608,237 @@ window.toggleReaction=async function(msgKey,emoji){
 }
 
 // ─────────────────────────────────────────────
+// PUSH NOTIFICATIONS — Firebase Cloud Messaging
+// ─────────────────────────────────────────────
+const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+
+let messagingInstance = null
+let pushInitialized = false
+let onMessageBound = false
+
+function getDeviceId(){
+  let id = localStorage.getItem("deviceId")
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : "dev_"+Date.now()+"_"+Math.random().toString(36).slice(2))
+    localStorage.setItem("deviceId", id)
+  }
+  return id
+}
+
+async function initPushNotifications(){
+  if(pushInitialized) return
+  pushInitialized = true
+
+  if(!("Notification" in window) || !("serviceWorker" in navigator)) return
+
+  try{
+    const supported = await isMessagingSupported().catch(()=>false)
+    if(!supported) return
+  } catch(e){ return }
+
+  try{
+    if(!swRegistration){
+      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    }
+    messagingInstance = getMessaging(app)
+
+    // Ask for permission exactly once, ever.
+    const askedBefore = localStorage.getItem("notifPermissionAsked")
+    if(Notification.permission === "default" && !askedBefore){
+      localStorage.setItem("notifPermissionAsked","1")
+      await Notification.requestPermission()
+    }
+
+    if(!onMessageBound){
+      onMessageBound = true
+      onMessage(messagingInstance, ()=>{
+        // Foreground messages: the Realtime Database listener above
+        // already updates the UI live, so no separate OS notification
+        // is shown here — this prevents duplicate/ghost alerts.
+      })
+    }
+  } catch(e){
+    console.warn("Push notification setup failed", e)
+  }
+}
+
+async function refreshFcmToken(){
+  if(!messagingInstance || Notification.permission!=="granted") return
+  if(!VAPID_KEY || VAPID_KEY==="BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY"){
+    console.warn("⚠️ VAPID_KEY এখনো বসানো হয়নি — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
+    return
+  }
+  try{
+    const token = await getToken(messagingInstance, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: swRegistration
+    })
+    if(token){
+      await set(ref(db, "fcmTokens/"+username+"/"+getDeviceId()), {
+        token,
+        updated: Date.now(),
+        ua: navigator.userAgent.slice(0,120)
+      })
+      console.log("✅ FCM token saved for this device")
+    } else {
+      console.warn("⚠️ getToken() returned no token — check notification permission & VAPID key")
+    }
+  } catch(e){
+    console.warn("FCM token fetch failed", e)
+  }
+}
+
+let tokenRefreshInterval = null
+
+function enablePushToken(){
+  if(Notification.permission !== "granted"){
+    // Ask now — this is an explicit user action (toggled ON), so it's
+    // fine to prompt even if we stayed quiet earlier. If the user has
+    // already denied it at the browser level we can't override that;
+    // the toggle will simply have no effect until they re-enable it
+    // from the browser's own site settings.
+    if(Notification.permission === "denied"){
+      alert("⚠️ Notification permission blocked আছে ব্রাউজারে। Browser address bar-এর lock/site-info icon → Permissions → Notifications → Allow করে আবার চেষ্টা করুন।")
+      return
+    }
+    Notification.requestPermission().then(()=>{
+      if(Notification.permission==="granted") enablePushToken()
+    })
+    return
+  }
+  refreshFcmToken()
+  if(!tokenRefreshInterval) tokenRefreshInterval = setInterval(refreshFcmToken, 6*60*60*1000)
+}
+
+function disablePushToken(){
+  if(tokenRefreshInterval){ clearInterval(tokenRefreshInterval); tokenRefreshInterval=null }
+  remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId())).catch(()=>{})
+}
+
+// ── Notification ON/OFF toggle — saved per ACCOUNT (username), so it
+//    stays the same across logout/login and every device on this account ──
+let notifEnabled = true
+let _notifRef = null
+
+function updateNotifToggleLabel(){
+  const sw = document.getElementById("notifToggleSwitch")
+  if(!sw) return
+  if(notifEnabled) sw.classList.add("active")
+  else sw.classList.remove("active")
+}
+
+function listenNotifPreference(){
+  // Instant local restore — no waiting on the network round trip —
+  // then Firebase (source of truth) confirms/corrects it right after.
+  const cached = localStorage.getItem("notifEnabled")
+  if(cached !== null){
+    notifEnabled = cached === "on"
+    updateNotifToggleLabel()
+  }
+
+  _notifRef = ref(db, "userSettings/"+username+"/notifications")
+  onValue(_notifRef, snap=>{
+    const val = snap.val()
+    if(val === null){
+      notifEnabled = cached !== null ? (cached === "on") : true
+      set(_notifRef, notifEnabled ? "on" : "off").catch(()=>{})
+    } else {
+      notifEnabled = val === "on"
+    }
+    localStorage.setItem("notifEnabled", notifEnabled ? "on" : "off")
+    updateNotifToggleLabel()
+    if(notifEnabled) enablePushToken()
+    else disablePushToken()
+  })
+}
+
+window.toggleNotifications = function(){
+  if(!_notifRef) return
+  const newVal = !notifEnabled
+  notifEnabled = newVal
+  updateNotifToggleLabel()
+  localStorage.setItem("notifEnabled", newVal ? "on" : "off")
+  set(_notifRef, newVal ? "on" : "off").catch(()=>{})
+  if(newVal) enablePushToken()
+  else disablePushToken()
+}
+
+// ── Logout — clears ONLY this device's saved login/session.
+//    Notification preference and the FCM token are left untouched, so
+//    notifications keep working (and stay in the same ON/OFF state)
+//    the next time this device logs back in. ──
+window.logoutDevice = async function(){
+  closeMenuBox()
+  if(!confirm("Logout from this device? You will need username & password again next time.")) return
+  try{
+    await set(ref(db, "activeViewers/"+username), {active:false, last:Date.now()})
+    await set(ref(db, "status/"+username), {online:false,last:Date.now()})
+  }catch(e){}
+  localStorage.removeItem("savedUser")
+  localStorage.removeItem("savedPassEnc")
+  localStorage.removeItem("chatUser")
+  location.reload()
+}
+
+// ── Active-viewer tracking — lets the backend skip the push when the
+//    recipient already has this chat open & focused. Uses a heartbeat
+//    (active + last-updated timestamp) instead of a plain boolean, so a
+//    missed "went to background" event can never leave it stuck "true"
+//    forever and silently block every future notification. ──
+let activeHeartbeatInterval = null
+function setupActiveViewerTracking(){
+  const activeRef = ref(db, "activeViewers/"+username)
+  const isChatVisible = ()=> document.visibilityState==="visible" && document.hasFocus()
+
+  function setActive(state){
+    set(activeRef, { active: state, last: Date.now() }).catch(()=>{})
+  }
+
+  setActive(isChatVisible())
+  onDisconnect(activeRef).set({ active:false, last:Date.now() })
+
+  if(activeHeartbeatInterval) clearInterval(activeHeartbeatInterval)
+  activeHeartbeatInterval = setInterval(()=>{ setActive(isChatVisible()) }, 10000)
+
+  document.addEventListener("visibilitychange", ()=> setActive(isChatVisible()))
+  window.addEventListener("focus", ()=> setActive(isChatVisible()))
+  window.addEventListener("blur", ()=> setActive(isChatVisible()))
+  window.addEventListener("pagehide", ()=> setActive(false))
+}
+
+// ── Ask the backend to push a notification to the other user ──
+async function sendPushNotification(message, key, toUser){
+  let preview = message.text || ""
+  let type = message.type || "text"
+  if(preview.startsWith("__voice__")){ preview="Voice message"; type="voice" }
+  else if(preview.startsWith("__gif__")){ preview="GIF"; type="gif" }
+  else if(type==="image") preview="Photo"
+  else if(type==="video") preview="Video"
+  else preview = preview.slice(0,100)
+
+  const replyPreview = (message.replyTo && message.replyTo.text) ? message.replyTo.text : ""
+
+  try{
+    const res = await fetch(BACKEND+"/send-notification", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        toUser,
+        fromUser: username,
+        fromNick: getNick(username),
+        avatar: getAvatar(username),
+        type,
+        preview,
+        replyPreview,
+        msgKey: key
+      })
+    })
+    const result = await res.json().catch(()=>null)
+    console.log("send-notification result:", result)
+  } catch(e){ /* chat still works fine without push */ }
+}
+
+// ─────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────
 window.unlock=async function(){
@@ -2556,7 +2851,20 @@ window.unlock=async function(){
     if(!data.ok){ window.location.href="closed.html"; return }
   } catch(e){ accessLoader.style.display="none"; window.location.href="closed.html"; return }
   document.getElementById("access").style.display="none"
-  document.getElementById("login").style.display="block"
+
+  const savedUser = localStorage.getItem("savedUser")
+  const savedPassEnc = localStorage.getItem("savedPassEnc")
+  if(savedUser && savedPassEnc){
+    // Returning device — access code alone unlocks the chat,
+    // no username/password prompt.
+    document.getElementById("name").value = savedUser
+    document.getElementById("code").value = decodeSavedPass(savedPassEnc)
+    accessLoader.style.display="flex"
+    await start()
+    accessLoader.style.display="none"
+  } else {
+    document.getElementById("login").style.display="block"
+  }
 }
 
 window.start=async function(){
@@ -2579,6 +2887,8 @@ window.start=async function(){
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
   localStorage.setItem("chatUser",username)
+  localStorage.setItem("savedUser", username)
+  localStorage.setItem("savedPassEnc", encodeSavedPass(password))
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -2608,6 +2918,24 @@ window.start=async function(){
   listenIncomingCalls()
   listenTheme()
   listenGifSuggestions()
+  setupActiveViewerTracking()
+
+  // Lightweight per-device record (device login list) — does not
+  // affect chat, purely for future "known devices" visibility.
+  set(ref(db, "devices/"+username+"/"+getDeviceId()), {
+    lastLogin: Date.now(),
+    ua: navigator.userAgent.slice(0,120)
+  }).catch(()=>{})
+
+  await initPushNotifications()
+  listenNotifPreference()
+
+  if(navigator.setAppBadge && typeof window.listenUnseenMessageCount === "function"){
+    window.listenUnseenMessageCount(count=>{
+      if(count>0) navigator.setAppBadge(count).catch(()=>{})
+      else if(navigator.clearAppBadge) navigator.clearAppBadge().catch(()=>{})
+    })
+  }
 
   if(typeof showStoryBar === "function") {
     showStoryBar()
@@ -2615,6 +2943,14 @@ window.start=async function(){
 
   if(typeof showShortsFeed === "function") {
     showShortsFeed()
+  }
+
+  // Deep link from a tapped notification: jump straight to that message.
+  const _urlParams = new URLSearchParams(window.location.search)
+  const _openMsgKey = _urlParams.get("openMsg")
+  if(_openMsgKey){
+    setTimeout(()=>{ if(typeof scrollToMsg==="function") scrollToMsg(_openMsgKey) }, 1200)
+    history.replaceState({}, "", window.location.pathname)
   }
 }
 
@@ -2895,18 +3231,8 @@ function createMessage(message,key){
 onChildAdded(ref(db,"messages"),data=>{
   createMessage(data.val(),data.key)
   const message=data.val()
-  if(message.time>appStartTime&&message.name==="kittyis0001"&&message.type!=="system"){
-    const now=new Date()
-    const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
-    let notifText = message.text
-    if(message.text.startsWith("__voice__")) notifText = " Voice message"
-    else if(message.text.startsWith("__gif__")) notifText = " GIF"
-    else if(message.type === "image") notifText = " Photo"
-    else if(message.type === "video") notifText = " Video"
-    fetch(BACKEND+"/notify",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text:notifText,time})
-    }).catch(()=>{})
+  if(message.time>appStartTime && message.name===username && message.type!=="system"){
+    sendPushNotification(message, data.key, otherUser)
   }
 })
 

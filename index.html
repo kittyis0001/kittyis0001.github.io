@@ -2610,7 +2610,7 @@ window.toggleReaction=async function(msgKey,emoji){
 // ─────────────────────────────────────────────
 // PUSH NOTIFICATIONS — Firebase Cloud Messaging
 // ─────────────────────────────────────────────
-const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = "BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
 
 let messagingInstance = null
 let pushInitialized = false
@@ -2664,7 +2664,7 @@ async function initPushNotifications(){
 
 async function refreshFcmToken(){
   if(!messagingInstance || Notification.permission!=="granted") return
-  if(!VAPID_KEY || VAPID_KEY==="PASTE_YOUR_VAPID_KEY_HERE"){
+  if(!VAPID_KEY || VAPID_KEY==="BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY"){
     console.warn("⚠️ VAPID_KEY এখনো বসানো হয়নি — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
     return
   }

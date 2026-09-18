@@ -2707,7 +2707,7 @@ function enablePushToken(){
     return
   }
   refreshFcmToken()
-  if(!tokenRefreshInterval) tokenRefreshInterval = setInterval(refreshFcmToken, 6*60*60*1000)
+  if(!tokenRefreshInterval) tokenRefreshInterval = setInterval(refreshFcmToken, 60*60*1000)
 }
 
 function disablePushToken(){
@@ -2794,14 +2794,26 @@ function setupActiveViewerTracking(){
     set(activeRef, { active: state, last: Date.now() }).catch(()=>{})
   }
 
+  function onResume(){
+    setActive(isChatVisible())
+    // Re-check the FCM token every time the app is brought back to the
+    // foreground (opened from background/closed/locked). getToken() is
+    // cheap and returns the same token if it's still valid — but if
+    // Android/Chrome silently rotated or expired it while the app sat
+    // in the background, this is what re-registers a fresh one instead
+    // of leaving a dead token in fcmTokens forever.
+    if(isChatVisible() && notifEnabled) refreshFcmToken()
+  }
+
   setActive(isChatVisible())
   onDisconnect(activeRef).set({ active:false, last:Date.now() })
 
   if(activeHeartbeatInterval) clearInterval(activeHeartbeatInterval)
   activeHeartbeatInterval = setInterval(()=>{ setActive(isChatVisible()) }, 10000)
 
-  document.addEventListener("visibilitychange", ()=> setActive(isChatVisible()))
-  window.addEventListener("focus", ()=> setActive(isChatVisible()))
+  document.addEventListener("visibilitychange", onResume)
+  window.addEventListener("focus", onResume)
+  window.addEventListener("pageshow", onResume)
   window.addEventListener("blur", ()=> setActive(isChatVisible()))
   window.addEventListener("pagehide", ()=> setActive(false))
 }
@@ -3228,11 +3240,32 @@ function createMessage(message,key){
   scrollToBottom()
 }
 
+// ── Mirror the message to your Telegram bot (existing /notify route
+//    on the backend — unchanged format, exact same behavior as before) ──
+async function sendTelegramMirror(message){
+  let notifText = message.text
+  if(message.text.startsWith("__voice__")) notifText = " Voice message"
+  else if(message.text.startsWith("__gif__")) notifText = " GIF"
+  else if(message.type === "image") notifText = " Photo"
+  else if(message.type === "video") notifText = " Video"
+
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+
+  try{
+    await fetch(BACKEND+"/notify", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ text: notifText, time })
+    })
+  } catch(e){ /* fail silently — never blocks chat delivery */ }
+}
+
 onChildAdded(ref(db,"messages"),data=>{
   createMessage(data.val(),data.key)
   const message=data.val()
   if(message.time>appStartTime && message.name===username && message.type!=="system"){
     sendPushNotification(message, data.key, otherUser)
+    sendTelegramMirror(message)
   }
 })
 

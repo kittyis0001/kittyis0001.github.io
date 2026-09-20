@@ -3,7 +3,7 @@
 
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kitty Chat</title>
+<title>Private Chat</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#8060cc">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1322,6 +1322,380 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
   animation: highlightMsg 1.5s ease;
 }
 
+/* ═══════════════════════════════════════════════════════
+   MOOD / STATUS TAG (header)
+   ═══════════════════════════════════════════════════════ */
+#moodTag{
+  font-size: 11px;
+  color: #8a7aca;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+  display: none;
+}
+body.dark-theme #moodTag{ color: #7a9ab0; }
+
+/* ═══════════════════════════════════════════════════════
+   CONNECTION STATUS BADGE
+   ═══════════════════════════════════════════════════════ */
+#connectionBadge{
+  display: none;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #e0a83a, #d88a2a);
+  padding: 6px 10px;
+  letter-spacing: 0.3px;
+}
+#connectionBadge.show{ display: block; }
+#connectionBadge .connDot{
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: white;
+  margin-right: 6px;
+  animation: pulse 1s infinite;
+  vertical-align: middle;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PREMIUM VECTOR CALL ICONS
+   ═══════════════════════════════════════════════════════ */
+#callBtn, #videoCallBtn{
+  background:none;
+  border:none;
+  color:#6a5aaa;
+  cursor:pointer;
+  padding:6px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform 0.15s;
+}
+#callBtn:active, #videoCallBtn:active{ transform:scale(0.88); }
+#callBtn svg, #videoCallBtn svg{ width:22px; height:22px; }
+body.dark-theme #callBtn, body.dark-theme #videoCallBtn{ color:#8696a0; }
+
+/* ═══════════════════════════════════════════════════════
+   TYPING INDICATOR — PREMIUM AVATAR BUBBLE
+   ═══════════════════════════════════════════════════════ */
+#typingIndicator{
+  display:none;
+  padding: 4px 10px 8px;
+  align-items: flex-end;
+  gap: 6px;
+}
+#typingIndicator .typingAvatar{
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.8);
+}
+#typingIndicator .typingBubble{
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(200,180,240,0.3);
+  border-radius: 16px;
+  border-bottom-left-radius: 5px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 10px rgba(140,100,200,0.15);
+}
+body.dark-theme #typingIndicator .typingBubble{
+  background: #202c33;
+  border: none;
+}
+@keyframes typingDotBounce{
+  0%, 60%, 100% { transform: translateY(0); opacity:0.5; }
+  30% { transform: translateY(-5px); opacity:1; }
+}
+#typingIndicator .typingDot{
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #8060cc;
+  animation: typingDotBounce 1.2s infinite;
+}
+body.dark-theme #typingIndicator .typingDot{ background: #00a884; }
+#typingIndicator .typingDot:nth-child(2){ animation-delay: 0.15s; }
+#typingIndicator .typingDot:nth-child(3){ animation-delay: 0.3s; }
+
+/* ═══════════════════════════════════════════════════════
+   DISAPPEARING MESSAGE SYSTEM LABEL (chat)
+   ═══════════════════════════════════════════════════════ */
+.disappearIcon{ display:inline-block; vertical-align:middle; margin-right:3px; }
+
+/* ═══════════════════════════════════════════════════════
+   SETTINGS MODAL — premium sheet
+   ═══════════════════════════════════════════════════════ */
+#settingsModal, #notesModal{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  z-index:9999;
+  justify-content:center;
+  align-items:flex-end;
+}
+#settingsModal.active, #notesModal.active{ display:flex; }
+
+.settingsSheet{
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width:100%;
+  max-width:480px;
+  max-height:88vh;
+  border-radius:24px 24px 0 0;
+  padding:16px 0 20px;
+  overflow-y:auto;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
+}
+@keyframes sheetUp{ from{ transform:translateY(100%);} to{ transform:translateY(0);} }
+body.dark-theme .settingsSheet{ background: rgba(31,44,52,0.97); }
+
+.settingsHandle{
+  width:40px; height:4px;
+  background: rgba(0,0,0,0.15);
+  border-radius:2px;
+  margin: 0 auto 12px;
+}
+body.dark-theme .settingsHandle{ background: rgba(255,255,255,0.2); }
+
+.settingsHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 20px 14px;
+  border-bottom: 1px solid rgba(128,96,204,0.12);
+  margin-bottom: 6px;
+}
+.settingsHeader h2{
+  margin:0; font-size:18px; color:#3a2a6a;
+}
+body.dark-theme .settingsHeader h2{ color:#e9edef; }
+.settingsHeader h2 .backArrow{ display:none; cursor:pointer; margin-right:8px; }
+.settingsCloseBtn{
+  background:none; border:none; font-size:22px; color:#8a7aba; cursor:pointer; padding:4px;
+}
+
+.settingsSection{
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(128,96,204,0.08);
+}
+.settingsSection:last-child{ border-bottom:none; }
+.settingsSectionTitle{
+  font-size:13px; font-weight:700; color:#8060cc; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
+}
+body.dark-theme .settingsSectionTitle{ color:#00a884; }
+
+.settingsRow{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0;
+  cursor:pointer;
+}
+.settingsRowLabel{ font-size:14.5px; color:#3a2a5a; font-weight:600; }
+body.dark-theme .settingsRowLabel{ color:#e9edef; }
+.settingsRowValue{ font-size:13px; color:#8a7aba; }
+body.dark-theme .settingsRowValue{ color:#8696a0; }
+
+.optionList{ display:flex; flex-direction:column; gap:2px; }
+.optionItem{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:background 0.15s;
+}
+.optionItem:active{ background:rgba(128,96,204,0.1); }
+.optionItem.selected{ background:rgba(128,96,204,0.12); }
+body.dark-theme .optionItem.selected{ background:rgba(0,168,132,0.12); }
+.optionItemLabel{ font-size:14.5px; color:#3a2a5a; }
+body.dark-theme .optionItemLabel{ color:#e9edef; }
+.optionCheck{
+  width:20px; height:20px;
+  border-radius:50%;
+  border:2px solid rgba(128,96,204,0.35);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.optionItem.selected .optionCheck{ background:#8060cc; border-color:#8060cc; }
+body.dark-theme .optionItem.selected .optionCheck{ background:#00a884; border-color:#00a884; }
+.optionCheck svg{ width:12px; height:12px; color:white; display:none; }
+.optionItem.selected .optionCheck svg{ display:block; }
+
+.wallpaperGrid, .themeGrid{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+  margin-top:8px;
+}
+.wallpaperSwatch, .themeSwatch{
+  aspect-ratio: 1;
+  border-radius:14px;
+  cursor:pointer;
+  border: 2.5px solid transparent;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.wallpaperSwatch.selected, .themeSwatch.selected{ border-color:#8060cc; }
+body.dark-theme .wallpaperSwatch.selected, body.dark-theme .themeSwatch.selected{ border-color:#00a884; }
+.wallpaperSwatch .swCheck, .themeSwatch .swCheck{
+  position:absolute; bottom:4px; right:4px;
+  width:18px; height:18px; border-radius:50%;
+  background:#8060cc; color:white;
+  display:none; align-items:center; justify-content:center;
+}
+.wallpaperSwatch.selected .swCheck, .themeSwatch.selected .swCheck{ display:flex; }
+.wallpaperSwatch .swCheck svg, .themeSwatch .swCheck svg{ width:11px; height:11px; }
+.wallpaperUploadBtn{
+  border:2px dashed rgba(128,96,204,0.4);
+  border-radius:14px;
+  aspect-ratio:1;
+  display:flex; align-items:center; justify-content:center;
+  color:#8060cc;
+  cursor:pointer;
+  background:rgba(128,96,204,0.06);
+}
+body.dark-theme .wallpaperUploadBtn{ color:#00a884; border-color:rgba(0,168,132,0.4); background:rgba(0,168,132,0.08); }
+
+.moodInputRow{ display:flex; gap:8px; margin-top:8px; }
+.moodInputRow input{
+  flex:1; padding:10px 12px; border-radius:12px; border:1.5px solid rgba(128,96,204,0.25);
+  font-size:14px; outline:none; background:rgba(255,255,255,0.9);
+}
+.moodInputRow button{
+  padding:10px 16px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,#7ec8f7,#b09ef5,#e899d4); color:white; font-weight:600; cursor:pointer;
+}
+.moodPresets{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.moodPresetBtn{
+  font-size:18px; background:rgba(128,96,204,0.08); border:none; border-radius:10px;
+  padding:6px 10px; cursor:pointer;
+}
+.moodClearBtn{
+  margin-top:8px; font-size:12.5px; color:#c62828; background:none; border:none; cursor:pointer; padding:0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   KEEP NOTE — premium note-taking UI
+   ═══════════════════════════════════════════════════════ */
+.notesSheet{
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width:100%; max-width:480px; height:85vh;
+  border-radius:24px 24px 0 0;
+  display:flex; flex-direction:column;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
+}
+body.dark-theme .notesSheet{ background: rgba(31,44,52,0.97); }
+
+.notesHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(128,96,204,0.12);
+}
+.notesHeader h2{ margin:0; font-size:18px; color:#3a2a6a; display:flex; align-items:center; gap:8px; }
+body.dark-theme .notesHeader h2{ color:#e9edef; }
+
+.notesListWrap{ flex:1; overflow-y:auto; padding:14px 16px; }
+.noteEmptyState{ text-align:center; color:#9a8aba; font-size:13px; margin-top:60px; }
+.noteCard{
+  background: linear-gradient(135deg, rgba(126,200,247,0.15), rgba(232,153,212,0.15));
+  border: 1px solid rgba(128,96,204,0.15);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition: transform 0.12s;
+  position:relative;
+}
+.noteCard:active{ transform:scale(0.98); }
+body.dark-theme .noteCard{ background: rgba(0,168,132,0.08); border-color: rgba(0,168,132,0.15); }
+.noteCardText{
+  font-size:14px; color:#3a2a5a; white-space:pre-wrap; word-break:break-word;
+  max-height: 90px; overflow:hidden; line-height:1.4;
+}
+body.dark-theme .noteCardText{ color:#e9edef; }
+.noteCardMeta{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.noteCardTime{ font-size:10.5px; color:#9a8aba; }
+.noteCardDelete{
+  background:none; border:none; color:#c62828; cursor:pointer; padding:2px 6px; font-size:15px;
+}
+
+.notesFab{
+  position:absolute; bottom:20px; right:20px;
+  width:52px; height:52px; border-radius:50%;
+  background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+  color:white; border:none; box-shadow:0 4px 16px rgba(160,120,230,0.4);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  font-size:24px;
+}
+
+#noteEditorView{ display:none; flex-direction:column; height:100%; }
+#noteEditorView.active{ display:flex; }
+.noteEditorTextarea{
+  flex:1; border:none; outline:none; resize:none; padding:16px 18px;
+  font-size:15px; line-height:1.5; background:transparent; color:#3a2a5a; font-family:Arial;
+}
+body.dark-theme .noteEditorTextarea{ color:#e9edef; }
+.noteEditorFooter{
+  padding:10px 16px; font-size:11px; color:#9a8aba; text-align:right; border-top:1px solid rgba(128,96,204,0.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIDEO CALL — separate overlay, does not touch audio call
+   ═══════════════════════════════════════════════════════ */
+#videoCallOverlay{
+  display:none;
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:#000; z-index:10000;
+  flex-direction:column;
+}
+#videoCallOverlay.active{ display:flex; }
+#remoteVideoEl{
+  position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; background:#111;
+}
+#localVideoEl{
+  position:absolute; top:16px; right:16px; width:110px; height:150px;
+  border-radius:14px; object-fit:cover; border:2px solid rgba(255,255,255,0.4);
+  box-shadow:0 4px 14px rgba(0,0,0,0.4); z-index:2; background:#222;
+}
+.videoCallTopBar{
+  position:relative; z-index:2; padding:20px; color:white; text-align:center;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
+}
+.videoCallTopBar .vcName{ font-size:19px; font-weight:bold; }
+.videoCallTopBar .vcStatus{ font-size:13px; opacity:0.85; margin-top:2px; }
+.videoCallActions{
+  position:absolute; bottom:36px; left:0; width:100%;
+  display:flex; gap:26px; justify-content:center; z-index:2; flex-wrap:wrap; padding:0 20px; box-sizing:border-box;
+}
+.vcActionBtn{
+  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:transform 0.15s;
+}
+.vcActionBtn:active{ transform:scale(0.88); }
+.vcActionBtn svg{ width:24px; height:24px; }
+#vcEndBtn{ background:#ff3b30; color:white; }
+#vcMuteBtn, #vcCamBtn, #vcSwitchBtn{ background:rgba(255,255,255,0.18); color:white; }
+#vcMuteBtn.active, #vcCamBtn.active{ background:rgba(255,59,48,0.85); }
+#vcIncomingActions{ display:none; }
+#vcActiveActions{ display:none; }
+.vcBtnWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.7); font-size:11px; }
+
 </style>
 <link rel="stylesheet" href="story.css">
 <link rel="stylesheet" href="shorts.css">
@@ -1355,10 +1729,18 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
   <div id="headerInfo">
     <div id="headerName">Private Chat</div>
     <div id="statusText">Offline</div>
+    <div id="moodTag"></div>
   </div>
-  <button id="callBtn" onclick="initiateCall()" title="Voice Call">📞</button>
+  <button id="callBtn" onclick="initiateCall()" title="Voice Call">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+  </button>
+  <button id="videoCallBtn" onclick="initiateVideoCall()" title="Video Call">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>
+  </button>
   <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
+
+<div id="connectionBadge"><span class="connDot"></span><span id="connectionBadgeText">Reconnecting…</span></div>
 
 <!-- ✅ 3-DOT MENU UI — Instagram / WhatsApp Style -->
 <div id="menuBackdrop"></div>
@@ -1433,6 +1815,19 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
     <div class="menuToggleSwitch" id="darkThemeSwitch"></div>
   </div>
 
+  <div class="menuItem" id="keepNoteItem" onclick="openNotesModal()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11H3v10h18V11h-6"></path>
+        <path d="M15 3l6 6-9 9H6v-6z"></path>
+      </svg>
+    </div>
+    <span class="menuText">Keep Note</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
   <div class="menuItem softRed" onclick="deleteAll()">
     <div class="menuIconBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1468,6 +1863,19 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
       </svg>
     </div>
     <span class="menuText">Logout</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
+  <div class="menuItem" id="settingsMenuItem" onclick="openSettingsModal()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </div>
+    <span class="menuText">Settings</span>
     <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
@@ -1571,6 +1979,144 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════
+     SETTINGS MODAL — Disappearing Messages, Wallpaper, Theme, Mood
+     ═══════════════════════════════════════════════════════ -->
+<div id="settingsModal">
+  <div class="settingsSheet">
+    <div class="settingsHandle"></div>
+    <div class="settingsHeader">
+      <h2><span class="backArrow" id="settingsBackArrow" onclick="closeSettingsSubview()">←</span><span id="settingsTitle">Settings</span></h2>
+      <button class="settingsCloseBtn" onclick="closeSettingsModal()">✕</button>
+    </div>
+
+    <div id="settingsMainView">
+      <div class="settingsSection">
+        <div class="settingsSectionTitle">Chat</div>
+        <div class="settingsRow" onclick="openDisappearingView()">
+          <div class="settingsRowLabel">⏱ Disappearing Messages</div>
+          <div class="settingsRowValue" id="disappearingValueLabel">Disable ›</div>
+        </div>
+      </div>
+
+      <div class="settingsSection">
+        <div class="settingsSectionTitle">Appearance</div>
+        <div class="settingsRowLabel" style="margin-bottom:2px;">🖼 Chat Wallpaper</div>
+        <div class="wallpaperGrid" id="wallpaperGrid"></div>
+        <input type="file" id="wallpaperInput" accept="image/*" style="display:none">
+      </div>
+
+      <div class="settingsSection">
+        <div class="settingsRowLabel" style="margin-bottom:2px;">🎨 Chat Theme</div>
+        <div class="themeGrid" id="themeGrid"></div>
+      </div>
+
+      <div class="settingsSection">
+        <div class="settingsSectionTitle">Status</div>
+        <div class="settingsRowLabel" style="margin-bottom:2px;">😴 Your Mood / Status</div>
+        <div class="moodInputRow">
+          <input id="moodInput" placeholder="What's on your mind?" maxlength="30">
+          <button onclick="saveMood()">Save</button>
+        </div>
+        <div class="moodPresets" id="moodPresets"></div>
+        <button class="moodClearBtn" onclick="clearMood()">Clear status</button>
+      </div>
+    </div>
+
+    <div id="disappearingView" style="display:none;">
+      <div class="settingsSection">
+        <div class="settingsRowLabel" style="margin-bottom:10px;">Messages will disappear from this chat after the selected time.</div>
+        <div class="optionList" id="disappearingOptionList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     KEEP NOTE MODAL
+     ═══════════════════════════════════════════════════════ -->
+<div id="notesModal">
+  <div class="notesSheet" style="position:relative;">
+    <div id="notesListView" style="display:flex; flex-direction:column; height:100%;">
+      <div class="notesHeader">
+        <h2>📝 Keep Note</h2>
+        <button class="settingsCloseBtn" onclick="closeNotesModal()">✕</button>
+      </div>
+      <div class="notesListWrap" id="notesListWrap">
+        <div class="noteEmptyState">No notes yet. Tap + to add one.</div>
+      </div>
+      <button class="notesFab" onclick="openNoteEditor(null)">＋</button>
+    </div>
+
+    <div id="noteEditorView">
+      <div class="notesHeader">
+        <h2><span class="backArrow" style="display:inline;cursor:pointer;" onclick="closeNoteEditor()">←</span> Note</h2>
+        <button class="settingsCloseBtn" id="noteDeleteBtn" onclick="deleteCurrentNote()" title="Delete">🗑️</button>
+      </div>
+      <textarea class="noteEditorTextarea" id="noteEditorTextarea" placeholder="Write your note..."></textarea>
+      <div class="noteEditorFooter" id="noteEditorFooter"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     VIDEO CALL OVERLAY — separate from the existing audio call
+     ═══════════════════════════════════════════════════════ -->
+<div id="videoCallOverlay">
+  <video id="remoteVideoEl" autoplay playsinline></video>
+  <video id="localVideoEl" autoplay playsinline muted></video>
+  <div class="videoCallTopBar">
+    <div class="vcName" id="vcName">Kitty</div>
+    <div class="vcStatus" id="vcStatus">Calling...</div>
+  </div>
+
+  <div class="videoCallActions" id="vcIncomingActions">
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcRejectBtn" onclick="rejectVideoCall()" style="background:#ff3b30;color:white;">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9L12 9z" transform="rotate(135 12 12)"/></svg>
+      </button>
+      <div class="vcLabel">Decline</div>
+    </div>
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcAcceptBtn" onclick="acceptVideoCall()" style="background:#34c759;color:white;">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+      </button>
+      <div class="vcLabel">Accept</div>
+    </div>
+  </div>
+
+  <div class="videoCallActions" id="vcActiveActions">
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcMuteBtn" onclick="toggleVideoCallMute()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+      </button>
+      <div class="vcLabel" id="vcMuteLabel">Mute</div>
+    </div>
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcCamBtn" onclick="toggleVideoCallCam()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>
+      </button>
+      <div class="vcLabel" id="vcCamLabel">Camera</div>
+    </div>
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcSwitchBtn" onclick="switchVideoCallCamera()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+      <div class="vcLabel">Flip</div>
+    </div>
+    <div class="vcBtnWrap">
+      <button class="vcActionBtn" id="vcEndBtn" onclick="endVideoCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg)"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9z"/></svg>
+      </button>
+      <div class="vcLabel">End</div>
+    </div>
+  </div>
+</div>
+
+<audio id="vcRingtoneAudio" loop>
+  <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
+</audio>
+
 <div id="callOverlay">
   <div class="callTop">
     <img id="callAvatar" src="" alt="">
@@ -1619,7 +2165,7 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get, off }
+import { getDatabase, ref, push, onChildAdded, onChildChanged, onChildRemoved, remove, set, onValue, onDisconnect, update, get, off }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
 import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
@@ -2850,6 +3396,561 @@ async function sendPushNotification(message, key, toUser){
   } catch(e){ /* chat still works fine without push */ }
 }
 
+// ═══════════════════════════════════════════════════════
+// CONNECTION STATUS BADGE
+// ═══════════════════════════════════════════════════════
+function setupConnectionBadge(){
+  const badge = document.getElementById("connectionBadge")
+  const badgeText = document.getElementById("connectionBadgeText")
+  let firstCheck = true
+  onValue(ref(db, ".info/connected"), snap=>{
+    const connected = snap.val() === true
+    if(firstCheck){ firstCheck = false; return } // don't flash on initial load
+    if(connected){
+      if(badge.classList.contains("show")){
+        badgeText.innerText = "Connected"
+        setTimeout(()=>{ badge.classList.remove("show") }, 1500)
+      }
+    } else {
+      badgeText.innerText = "Reconnecting…"
+      badge.classList.add("show")
+    }
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// MOOD / STATUS TAG
+// ═══════════════════════════════════════════════════════
+const MOOD_PRESETS = ["😴 Sleeping","📚 Studying","💻 Working","🍽 Eating","🎮 Gaming","🚌 Traveling","😌 Chilling","❤️ Thinking of you"]
+
+function listenMoodTag(){
+  onValue(ref(db, "userSettings/"+otherUser+"/mood"), snap=>{
+    const val = snap.val()
+    const tag = document.getElementById("moodTag")
+    if(!tag) return
+    if(val){ tag.innerText = val; tag.style.display = "block" }
+    else { tag.innerText = ""; tag.style.display = "none" }
+  })
+  onValue(ref(db, "userSettings/"+username+"/mood"), snap=>{
+    const val = snap.val()
+    const input = document.getElementById("moodInput")
+    if(input && document.activeElement !== input) input.value = val || ""
+  })
+}
+
+window.saveMood = function(){
+  const val = document.getElementById("moodInput").value.trim()
+  if(!val) return
+  set(ref(db, "userSettings/"+username+"/mood"), val).catch(()=>{})
+}
+
+window.clearMood = function(){
+  document.getElementById("moodInput").value = ""
+  set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
+}
+
+function renderMoodPresets(){
+  const wrap = document.getElementById("moodPresets")
+  if(!wrap || wrap.childElementCount) return
+  MOOD_PRESETS.forEach(p=>{
+    const btn = document.createElement("button")
+    btn.className = "moodPresetBtn"
+    btn.innerText = p
+    btn.onclick = ()=>{
+      document.getElementById("moodInput").value = p
+      set(ref(db, "userSettings/"+username+"/mood"), p).catch(()=>{})
+    }
+    wrap.appendChild(btn)
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// SETTINGS MODAL — navigation shell
+// ═══════════════════════════════════════════════════════
+window.openSettingsModal = function(){
+  closeMenuBox()
+  document.getElementById("settingsModal").classList.add("active")
+  document.getElementById("settingsMainView").style.display = "block"
+  document.getElementById("disappearingView").style.display = "none"
+  document.getElementById("settingsBackArrow").style.display = "none"
+  document.getElementById("settingsTitle").innerText = "Settings"
+  renderMoodPresets()
+}
+window.closeSettingsModal = function(){
+  document.getElementById("settingsModal").classList.remove("active")
+}
+window.openDisappearingView = function(){
+  document.getElementById("settingsMainView").style.display = "none"
+  document.getElementById("disappearingView").style.display = "block"
+  document.getElementById("settingsBackArrow").style.display = "inline"
+  document.getElementById("settingsTitle").innerText = "Disappearing Messages"
+  renderDisappearingOptions()
+}
+window.closeSettingsSubview = function(){
+  document.getElementById("settingsMainView").style.display = "block"
+  document.getElementById("disappearingView").style.display = "none"
+  document.getElementById("settingsBackArrow").style.display = "none"
+  document.getElementById("settingsTitle").innerText = "Settings"
+}
+
+// ═══════════════════════════════════════════════════════
+// DISAPPEARING MESSAGES — shared chat-wide setting
+// ═══════════════════════════════════════════════════════
+let currentDisappearing = "off"
+let disappearingPruneInterval = null
+const DISAPPEARING_OPTIONS = [
+  {val:"24", label:"24 Hours"},
+  {val:"8",  label:"8 Hours"},
+  {val:"4",  label:"4 Hours"},
+  {val:"off", label:"Disable"}
+]
+
+function listenDisappearingMessages(){
+  onValue(ref(db, "chatSettings/disappearingMessages"), snap=>{
+    const data = snap.val()
+    currentDisappearing = (data && data.duration) ? data.duration : "off"
+    const label = DISAPPEARING_OPTIONS.find(o=>o.val===currentDisappearing)
+    const lbl = document.getElementById("disappearingValueLabel")
+    if(lbl) lbl.innerText = (label ? label.label : "Disable") + " ›"
+    renderDisappearingOptions()
+
+    if(disappearingPruneInterval){ clearInterval(disappearingPruneInterval); disappearingPruneInterval=null }
+    if(currentDisappearing !== "off"){
+      pruneExpiredMessages()
+      disappearingPruneInterval = setInterval(pruneExpiredMessages, 60000)
+    }
+  })
+}
+
+function renderDisappearingOptions(){
+  const list = document.getElementById("disappearingOptionList")
+  if(!list) return
+  list.innerHTML = ""
+  DISAPPEARING_OPTIONS.forEach(opt=>{
+    const item = document.createElement("div")
+    item.className = "optionItem" + (opt.val===currentDisappearing ? " selected" : "")
+    item.innerHTML = `<div class="optionItemLabel">${opt.label}</div><div class="optionCheck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+    item.onclick = ()=> setDisappearing(opt.val)
+    list.appendChild(item)
+  })
+}
+
+async function setDisappearing(val){
+  if(val === currentDisappearing) return
+  await set(ref(db, "chatSettings/disappearingMessages"), { duration: val, changedBy: username, time: Date.now() })
+  await push(ref(db, "messages"), { type:"system", action:"disappearing", actor:username, duration:val, time: Date.now() })
+  closeSettingsSubview()
+}
+
+async function pruneExpiredMessages(){
+  if(currentDisappearing === "off") return
+  const hours = parseInt(currentDisappearing, 10)
+  if(!hours) return
+  const cutoff = Date.now() - hours*60*60*1000
+  try{
+    const snap = await get(ref(db, "messages"))
+    const data = snap.val()
+    if(!data) return
+    const deletions = []
+    Object.entries(data).forEach(([key, msg])=>{
+      if(msg.type!=="system" && msg.time && msg.time < cutoff){
+        deletions.push(remove(ref(db, "messages/"+key)).catch(()=>{}))
+      }
+    })
+    await Promise.all(deletions)
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+// CUSTOM CHAT WALLPAPER (personal, this device)
+// ═══════════════════════════════════════════════════════
+const WALLPAPER_PRESETS = [5, 15, 25, 35, 45].map(n=>`https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${n}.jpg`)
+let originalRandomBg = ""
+
+function applyWallpaper(url){
+  document.body.style.backgroundImage = `url('${url}')`
+}
+
+function initWallpaperAndThemeUI(){
+  originalRandomBg = document.body.style.backgroundImage
+  const savedWallpaper = localStorage.getItem("chatWallpaper")
+  if(savedWallpaper) applyWallpaper(savedWallpaper)
+
+  const savedTheme = localStorage.getItem("chatTheme")
+  if(savedTheme) applyTheme_chatGradient(savedTheme)
+
+  renderWallpaperGrid()
+  renderThemeGrid()
+
+  document.getElementById("wallpaperInput").addEventListener("change", async function(){
+    const file = this.files[0]
+    this.value = ""
+    if(!file) return
+    try{
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch(BACKEND+"/upload", {method:"POST", body:formData})
+      const data = await res.json()
+      if(!data.url){ alert("Wallpaper upload failed ⚠️"); return }
+      localStorage.setItem("chatWallpaper", data.url)
+      applyWallpaper(data.url)
+      renderWallpaperGrid()
+    } catch(e){ alert("Wallpaper upload failed ⚠️") }
+  })
+}
+
+function renderWallpaperGrid(){
+  const grid = document.getElementById("wallpaperGrid")
+  if(!grid) return
+  const current = localStorage.getItem("chatWallpaper")
+  grid.innerHTML = ""
+
+  const defaultSw = document.createElement("div")
+  defaultSw.className = "wallpaperSwatch" + (!current ? " selected" : "")
+  defaultSw.style.backgroundImage = originalRandomBg
+  defaultSw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+  defaultSw.onclick = ()=>{ localStorage.removeItem("chatWallpaper"); applyWallpaper(""); document.body.style.backgroundImage = originalRandomBg; renderWallpaperGrid() }
+  grid.appendChild(defaultSw)
+
+  WALLPAPER_PRESETS.forEach(url=>{
+    const sw = document.createElement("div")
+    sw.className = "wallpaperSwatch" + (current===url ? " selected" : "")
+    sw.style.backgroundImage = `url('${url}')`
+    sw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+    sw.onclick = ()=>{ localStorage.setItem("chatWallpaper", url); applyWallpaper(url); renderWallpaperGrid() }
+    grid.appendChild(sw)
+  })
+
+  const uploadBtn = document.createElement("div")
+  uploadBtn.className = "wallpaperUploadBtn"
+  uploadBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
+  uploadBtn.onclick = ()=> document.getElementById("wallpaperInput").click()
+  grid.appendChild(uploadBtn)
+}
+
+// ═══════════════════════════════════════════════════════
+// CHAT THEME / COLOR PACKS (personal, this device)
+// ═══════════════════════════════════════════════════════
+const CHAT_THEMES = [
+  { id:"default", swatch:"linear-gradient(135deg,#c8d8f8,#e8c0e0,#e0b8d8)", css:null },
+  { id:"ocean",   swatch:"linear-gradient(135deg,#a2d9f7,#7ec8f7,#5aa8e0)", css:"linear-gradient(180deg,#c8ecf8 0%,#a8e0f0 30%,#8ecfe8 60%,#7ec8f7 100%)" },
+  { id:"sunset",  swatch:"linear-gradient(135deg,#ffd39a,#ff9a8b,#e899d4)", css:"linear-gradient(180deg,#ffe8c8 0%,#ffd0b0 30%,#ffaea0 60%,#e899d4 100%)" },
+  { id:"mint",    swatch:"linear-gradient(135deg,#b8f0d0,#8fe0b8,#7ec8a0)", css:"linear-gradient(180deg,#d4f8e4 0%,#b8f0d0 30%,#9ce8c0 60%,#7ec8a0 100%)" },
+  { id:"midnight",swatch:"linear-gradient(135deg,#3a3a5a,#5a4a7a,#7a5a9a)", css:"linear-gradient(180deg,#2a2a4a 0%,#3a3a5a 30%,#4a3a6a 60%,#5a4a7a 100%)" }
+]
+
+function applyTheme_chatGradient(themeId){
+  const t = CHAT_THEMES.find(x=>x.id===themeId)
+  const chatEl = document.getElementById("chat")
+  if(!t || !t.css){ chatEl.style.background = ""; return }
+  chatEl.style.background = t.css
+}
+
+function renderThemeGrid(){
+  const grid = document.getElementById("themeGrid")
+  if(!grid) return
+  const current = localStorage.getItem("chatTheme") || "default"
+  grid.innerHTML = ""
+  CHAT_THEMES.forEach(t=>{
+    const sw = document.createElement("div")
+    sw.className = "themeSwatch" + (current===t.id ? " selected" : "")
+    sw.style.background = t.swatch
+    sw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+    sw.onclick = ()=>{ localStorage.setItem("chatTheme", t.id); applyTheme_chatGradient(t.id); renderThemeGrid() }
+    grid.appendChild(sw)
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// KEEP NOTE — per-user, Firebase-persisted (survives refresh/logout)
+// ═══════════════════════════════════════════════════════
+let currentNoteId = null
+let notesCache = {}
+
+window.openNotesModal = async function(){
+  closeMenuBox()
+  document.getElementById("notesModal").classList.add("active")
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+window.closeNotesModal = function(){
+  document.getElementById("notesModal").classList.remove("active")
+}
+
+async function refreshNotesList(){
+  const wrap = document.getElementById("notesListWrap")
+  try{
+    const snap = await get(ref(db, "notes/"+username))
+    notesCache = snap.val() || {}
+  } catch(e){ notesCache = {} }
+
+  const entries = Object.entries(notesCache).sort((a,b)=> (b[1].updated||0)-(a[1].updated||0))
+  if(!entries.length){
+    wrap.innerHTML = `<div class="noteEmptyState">No notes yet. Tap + to add one.</div>`
+    return
+  }
+  wrap.innerHTML = ""
+  entries.forEach(([id, note])=>{
+    const card = document.createElement("div")
+    card.className = "noteCard"
+    const d = new Date(note.updated || Date.now())
+    const timeStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) + " · " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    card.innerHTML = `<div class="noteCardText">${(note.text||"").replace(/</g,"&lt;")}</div><div class="noteCardMeta"><span class="noteCardTime">${timeStr}</span></div>`
+    card.onclick = ()=> openNoteEditor(id)
+    wrap.appendChild(card)
+  })
+}
+
+window.openNoteEditor = function(noteId){
+  currentNoteId = noteId
+  const textarea = document.getElementById("noteEditorTextarea")
+  const footer = document.getElementById("noteEditorFooter")
+  const deleteBtn = document.getElementById("noteDeleteBtn")
+  if(noteId && notesCache[noteId]){
+    textarea.value = notesCache[noteId].text || ""
+    footer.innerText = "Edited " + new Date(notesCache[noteId].updated).toLocaleString()
+    deleteBtn.style.display = "inline-block"
+  } else {
+    textarea.value = ""
+    footer.innerText = ""
+    deleteBtn.style.display = "none"
+  }
+  document.getElementById("notesListView").style.display = "none"
+  document.getElementById("noteEditorView").classList.add("active")
+  setTimeout(()=> textarea.focus(), 100)
+}
+
+window.closeNoteEditor = async function(){
+  const text = document.getElementById("noteEditorTextarea").value.trim()
+  if(text){
+    const id = currentNoteId || ("note_"+Date.now())
+    await set(ref(db, "notes/"+username+"/"+id), { text, updated: Date.now() }).catch(()=>{})
+  } else if(currentNoteId){
+    // saved-but-emptied note gets removed
+    await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
+  }
+  currentNoteId = null
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+
+window.deleteCurrentNote = async function(){
+  if(!currentNoteId) return
+  if(!confirm("Delete this note?")) return
+  await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
+  currentNoteId = null
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+
+// ═══════════════════════════════════════════════════════
+// VIDEO CALL — fully separate signaling path/variables from
+// the existing audio call, so audio calling is never touched.
+// ═══════════════════════════════════════════════════════
+let vcPeerConnection = null
+let vcLocalStream = null
+let vcCurrentCallId = null
+let vcIsCallActive = false
+let vcIsMuted = false
+let vcIsCamOff = false
+let vcFacingMode = "user"
+
+function vcShowOverlay(mode){
+  document.getElementById("videoCallOverlay").classList.add("active")
+  document.getElementById("vcName").innerText = getNick(otherUser)
+  document.getElementById("vcIncomingActions").style.display = "none"
+  document.getElementById("vcActiveActions").style.display = "none"
+
+  if(mode==="outgoing"){
+    document.getElementById("vcStatus").innerText = "Calling..."
+    document.getElementById("vcActiveActions").style.display = "flex"
+    document.getElementById("vcMuteBtn").style.display = "none"
+    document.getElementById("vcCamBtn").style.display = "none"
+    document.getElementById("vcSwitchBtn").style.display = "none"
+  } else if(mode==="incoming"){
+    document.getElementById("vcStatus").innerText = "Incoming video call..."
+    document.getElementById("vcIncomingActions").style.display = "flex"
+    try{ document.getElementById("vcRingtoneAudio").play().catch(()=>{}) }catch(e){}
+  } else if(mode==="active"){
+    document.getElementById("vcStatus").innerText = "Connected"
+    document.getElementById("vcActiveActions").style.display = "flex"
+    document.getElementById("vcMuteBtn").style.display = "flex"
+    document.getElementById("vcCamBtn").style.display = "flex"
+    document.getElementById("vcSwitchBtn").style.display = "flex"
+    try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+  }
+}
+
+function vcHideOverlay(){
+  document.getElementById("videoCallOverlay").classList.remove("active")
+  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+}
+
+async function vcCreatePeerConnection(){
+  vcPeerConnection = new RTCPeerConnection(ICE_SERVERS)
+  if(vcLocalStream){
+    vcLocalStream.getTracks().forEach(track=> vcPeerConnection.addTrack(track, vcLocalStream))
+  }
+  vcPeerConnection.ontrack = e=>{
+    if(e.streams && e.streams[0]){
+      document.getElementById("remoteVideoEl").srcObject = e.streams[0]
+    }
+  }
+  vcPeerConnection.onicecandidate = e=>{
+    if(e.candidate && vcCurrentCallId){
+      push(ref(db, "videoCalls/"+vcCurrentCallId+"/candidates/"+username), e.candidate.toJSON())
+    }
+  }
+  vcPeerConnection.onconnectionstatechange = ()=>{
+    const state = vcPeerConnection.connectionState
+    if(state==="connected"){ vcShowOverlay("active"); vcIsCallActive=true }
+    else if(state==="disconnected"||state==="failed"||state==="closed"){
+      if(vcIsCallActive) endVideoCall()
+    }
+  }
+}
+
+window.initiateVideoCall = async function(){
+  if(vcIsCallActive) return
+  if(!username){ alert("Please login first"); return }
+  try{
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode}, audio:true })
+    document.getElementById("localVideoEl").srcObject = vcLocalStream
+  } catch(e){ alert("Camera/Mic permission denied."); return }
+
+  vcCurrentCallId = "vc_"+username+"_"+Date.now()
+  vcIsCallActive = true
+  await vcCreatePeerConnection()
+
+  const offer = await vcPeerConnection.createOffer()
+  await vcPeerConnection.setLocalDescription(offer)
+
+  await set(ref(db, "videoCalls/"+vcCurrentCallId), {
+    caller: username, callee: otherUser, status: "ringing",
+    offer: { type: offer.type, sdp: offer.sdp }, time: Date.now()
+  })
+
+  vcShowOverlay("outgoing")
+
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/answer"), async snap=>{
+    const answer = snap.val()
+    if(answer && vcPeerConnection && vcPeerConnection.signalingState!=="stable"){
+      try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(answer)) }catch(e){}
+    }
+  })
+  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+otherUser), async snap=>{
+    const c = snap.val()
+    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
+  })
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
+    const status = snap.val()
+    if(status==="rejected"||status==="ended") vcCleanup()
+  })
+}
+
+function listenIncomingVideoCalls(){
+  onValue(ref(db,"videoCalls"), snap=>{
+    const calls = snap.val()
+    if(!calls) return
+    Object.entries(calls).forEach(([callId, callData])=>{
+      const isFresh = callData.time && (Date.now() - callData.time) < 45000
+      if(callData.callee===username && callData.status==="ringing" && callId!==vcCurrentCallId && isFresh){
+        if(!vcIsCallActive){ vcCurrentCallId = callId; vcShowOverlay("incoming") }
+      }
+    })
+  })
+}
+
+window.acceptVideoCall = async function(){
+  if(!vcCurrentCallId) return
+  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+  try{
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode}, audio:true })
+    document.getElementById("localVideoEl").srcObject = vcLocalStream
+  } catch(e){ alert("Camera/Mic permission denied."); rejectVideoCall(); return }
+
+  await vcCreatePeerConnection()
+  document.getElementById("vcStatus").innerText = "Connecting..."
+  document.getElementById("vcIncomingActions").style.display = "none"
+
+  let offer = null
+  for(let i=0;i<10;i++){
+    const snap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/offer"))
+    offer = snap.val()
+    if(offer) break
+    await new Promise(r=>setTimeout(r,400))
+  }
+  if(!offer){ vcCleanup(); return }
+
+  try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(offer)) }catch(e){ vcCleanup(); return }
+  const answer = await vcPeerConnection.createAnswer()
+  await vcPeerConnection.setLocalDescription(answer)
+  await update(ref(db,"videoCalls/"+vcCurrentCallId), { answer:{type:answer.type, sdp:answer.sdp}, status:"active" })
+
+  vcShowOverlay("active")
+  vcIsCallActive = true
+
+  const callerSnap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/caller"))
+  const caller = callerSnap.val() || otherUser
+  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+caller), async snap=>{
+    const c = snap.val()
+    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
+  })
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
+    if(snap.val()==="ended") vcCleanup()
+  })
+}
+
+window.rejectVideoCall = async function(){
+  if(vcCurrentCallId) await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"rejected"}).catch(()=>{})
+  vcCleanup()
+}
+window.endVideoCall = async function(){
+  if(vcCurrentCallId) await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"ended"}).catch(()=>{})
+  vcCleanup()
+}
+function vcCleanup(){
+  vcIsCallActive = false
+  if(vcPeerConnection){ vcPeerConnection.close(); vcPeerConnection=null }
+  if(vcLocalStream){ vcLocalStream.getTracks().forEach(t=>t.stop()); vcLocalStream=null }
+  document.getElementById("remoteVideoEl").srcObject = null
+  document.getElementById("localVideoEl").srcObject = null
+  vcIsMuted=false; vcIsCamOff=false
+  vcCurrentCallId = null
+  vcHideOverlay()
+}
+window.toggleVideoCallMute = function(){
+  if(!vcLocalStream) return
+  vcIsMuted = !vcIsMuted
+  vcLocalStream.getAudioTracks().forEach(t=> t.enabled = !vcIsMuted)
+  document.getElementById("vcMuteBtn").classList.toggle("active", vcIsMuted)
+  document.getElementById("vcMuteLabel").innerText = vcIsMuted ? "Unmute" : "Mute"
+}
+window.toggleVideoCallCam = function(){
+  if(!vcLocalStream) return
+  vcIsCamOff = !vcIsCamOff
+  vcLocalStream.getVideoTracks().forEach(t=> t.enabled = !vcIsCamOff)
+  document.getElementById("vcCamBtn").classList.toggle("active", vcIsCamOff)
+  document.getElementById("vcCamLabel").innerText = vcIsCamOff ? "Cam On" : "Camera"
+}
+window.switchVideoCallCamera = async function(){
+  if(!vcLocalStream || !vcPeerConnection) return
+  vcFacingMode = vcFacingMode==="user" ? "environment" : "user"
+  try{
+    const newStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode} })
+    const newVideoTrack = newStream.getVideoTracks()[0]
+    const sender = vcPeerConnection.getSenders().find(s=> s.track && s.track.kind==="video")
+    if(sender) await sender.replaceTrack(newVideoTrack)
+    const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
+    if(oldVideoTrack){ oldVideoTrack.stop(); vcLocalStream.removeTrack(oldVideoTrack) }
+    vcLocalStream.addTrack(newVideoTrack)
+    document.getElementById("localVideoEl").srcObject = vcLocalStream
+  } catch(e){}
+}
+
 // ─────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────
@@ -2919,8 +4020,13 @@ window.start=async function(){
 
   onValue(ref(db,"typing/"+otherUser),snap=>{
     const isTyping=snap.val()
-    typingIndicator.style.display=isTyping?"block":"none"
-    typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
+    if(isTyping){
+      typingIndicator.style.display="flex"
+      typingIndicator.innerHTML = `<img class="typingAvatar" src="${getAvatar(otherUser)}"><div class="typingBubble"><span class="typingDot"></span><span class="typingDot"></span><span class="typingDot"></span></div>`
+    } else {
+      typingIndicator.style.display="none"
+      typingIndicator.innerHTML=""
+    }
   })
 
   listenNickNames()
@@ -2928,9 +4034,14 @@ window.start=async function(){
   listenProfilePics()
   markSeenMessages()
   listenIncomingCalls()
+  listenIncomingVideoCalls()
   listenTheme()
   listenGifSuggestions()
   setupActiveViewerTracking()
+  setupConnectionBadge()
+  listenMoodTag()
+  listenDisappearingMessages()
+  initWallpaperAndThemeUI()
 
   // Lightweight per-device record (device login list) — does not
   // affect chat, purely for future "known devices" visibility.
@@ -3090,6 +4201,12 @@ function createMessage(message,key){
     const timeStr=formatBlockTime(message.time)
     if(message.action==="block") div.innerHTML=`🚫 ${actorNick} blocked. ${timeStr}`
     else if(message.action==="unblock") div.innerHTML=`✅ ${actorNick} unblocked. ${timeStr}`
+    else if(message.action==="disappearing"){
+      const d = message.duration
+      div.innerHTML = d==="off"
+        ? `⏱ ${actorNick} turned off disappearing messages.`
+        : `⏱ ${actorNick} set disappearing messages to ${d} hours.`
+    }
     messagesEl.appendChild(div)
     scrollToBottom()
     return
@@ -3267,6 +4384,11 @@ onChildAdded(ref(db,"messages"),data=>{
     sendPushNotification(message, data.key, otherUser)
     sendTelegramMirror(message)
   }
+})
+
+onChildRemoved(ref(db,"messages"),data=>{
+  const row=document.getElementById(data.key)
+  if(row) row.remove()
 })
 
 onChildChanged(ref(db,"messages"),data=>{

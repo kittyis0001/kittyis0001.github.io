@@ -1345,10 +1345,12 @@ body.dark-theme #moodTag{ color: #7a9ab0; }
   font-size: 12px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #e0a83a, #d88a2a);
+  background: linear-gradient(135deg, #e0483a, #c8362a);
   padding: 6px 10px;
   letter-spacing: 0.3px;
+  transition: background 0.25s;
 }
+#connectionBadge.connected{ background: linear-gradient(135deg, #3ec26a, #2ea858); }
 #connectionBadge.show{ display: block; }
 #connectionBadge .connDot{
   display: inline-block;
@@ -1530,13 +1532,13 @@ body.dark-theme .optionItem.selected .optionCheck{ background:#00a884; border-co
 .optionCheck svg{ width:12px; height:12px; color:white; display:none; }
 .optionItem.selected .optionCheck svg{ display:block; }
 
-.wallpaperGrid, .themeGrid{
+.themeGrid{
   display:grid;
   grid-template-columns: repeat(4, 1fr);
   gap:10px;
   margin-top:8px;
 }
-.wallpaperSwatch, .themeSwatch{
+.themeSwatch{
   aspect-ratio: 1;
   border-radius:14px;
   cursor:pointer;
@@ -1547,26 +1549,16 @@ body.dark-theme .optionItem.selected .optionCheck{ background:#00a884; border-co
   display:flex; align-items:center; justify-content:center;
   overflow:hidden;
 }
-.wallpaperSwatch.selected, .themeSwatch.selected{ border-color:#8060cc; }
-body.dark-theme .wallpaperSwatch.selected, body.dark-theme .themeSwatch.selected{ border-color:#00a884; }
-.wallpaperSwatch .swCheck, .themeSwatch .swCheck{
+.themeSwatch.selected{ border-color:#8060cc; }
+body.dark-theme .themeSwatch.selected{ border-color:#00a884; }
+.themeSwatch .swCheck{
   position:absolute; bottom:4px; right:4px;
   width:18px; height:18px; border-radius:50%;
   background:#8060cc; color:white;
   display:none; align-items:center; justify-content:center;
 }
-.wallpaperSwatch.selected .swCheck, .themeSwatch.selected .swCheck{ display:flex; }
-.wallpaperSwatch .swCheck svg, .themeSwatch .swCheck svg{ width:11px; height:11px; }
-.wallpaperUploadBtn{
-  border:2px dashed rgba(128,96,204,0.4);
-  border-radius:14px;
-  aspect-ratio:1;
-  display:flex; align-items:center; justify-content:center;
-  color:#8060cc;
-  cursor:pointer;
-  background:rgba(128,96,204,0.06);
-}
-body.dark-theme .wallpaperUploadBtn{ color:#00a884; border-color:rgba(0,168,132,0.4); background:rgba(0,168,132,0.08); }
+.themeSwatch.selected .swCheck{ display:flex; }
+.themeSwatch .swCheck svg{ width:11px; height:11px; }
 
 .moodInputRow{ display:flex; gap:8px; margin-top:8px; }
 .moodInputRow input{
@@ -1671,29 +1663,49 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
   position:absolute; top:16px; right:16px; width:110px; height:150px;
   border-radius:14px; object-fit:cover; border:2px solid rgba(255,255,255,0.4);
   box-shadow:0 4px 14px rgba(0,0,0,0.4); z-index:2; background:#222;
+  transition: opacity 0.25s;
 }
+.vcControlsLayer{
+  position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
+  pointer-events:none;
+  transition: opacity 0.25s ease;
+}
+.vcControlsLayer > *{ pointer-events:auto; }
+.vcControlsLayer.hidden{ opacity:0; }
+.vcControlsLayer.hidden .videoCallActions,
+.vcControlsLayer.hidden .videoCallTopBar{ pointer-events:none; }
 .videoCallTopBar{
-  position:relative; z-index:2; padding:20px; color:white; text-align:center;
+  position:relative; padding:20px; color:white; text-align:center;
   background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
 }
 .videoCallTopBar .vcName{ font-size:19px; font-weight:bold; }
 .videoCallTopBar .vcStatus{ font-size:13px; opacity:0.85; margin-top:2px; }
 .videoCallActions{
   position:absolute; bottom:36px; left:0; width:100%;
-  display:flex; gap:26px; justify-content:center; z-index:2; flex-wrap:wrap; padding:0 20px; box-sizing:border-box;
+  display:flex; gap:22px; justify-content:center; flex-wrap:wrap; padding:0 20px; box-sizing:border-box;
 }
 .vcActionBtn{
-  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; transition:transform 0.15s;
+  width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:transform 0.15s, background 0.15s;
+  background: rgba(30,30,30,0.55);
+  color:white;
 }
 .vcActionBtn:active{ transform:scale(0.88); }
 .vcActionBtn svg{ width:24px; height:24px; }
-#vcEndBtn{ background:#ff3b30; color:white; }
-#vcMuteBtn, #vcCamBtn, #vcSwitchBtn{ background:rgba(255,255,255,0.18); color:white; }
-#vcMuteBtn.active, #vcCamBtn.active{ background:rgba(255,59,48,0.85); }
+#vcEndBtn{ background:#ff3b30 !important; color:white !important; }
+/* WhatsApp-style: OFF state = translucent dark w/ white icon.
+   ON/active-toggled state = solid white circle w/ colored icon. */
+#vcMuteBtn.active, #vcCamBtn.active{ background:#ffffff !important; color:#ff3b30 !important; }
 #vcIncomingActions{ display:none; }
 #vcActiveActions{ display:none; }
 .vcBtnWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.75); font-size:11px; }
+.vcMutedPill{
+  position:absolute; top:76px; left:16px; z-index:2;
+  background:rgba(0,0,0,0.55); color:white; font-size:12.5px;
+  padding:6px 12px; border-radius:16px; display:none;
+}
+.vcMutedPill.show{ display:block; }
 .vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.7); font-size:11px; }
 
 </style>
@@ -1772,23 +1784,6 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
     <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
-  </div>
-
-  <div class="menuItem" id="gifToggleItem" onclick="toggleGifSuggestions()">
-    <div class="menuIconBox">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-        <line x1="7" y1="2" x2="7" y2="22"></line>
-        <line x1="17" y1="2" x2="17" y2="22"></line>
-        <line x1="2" y1="12" x2="22" y2="12"></line>
-        <line x1="2" y1="7" x2="7" y2="7"></line>
-        <line x1="2" y1="17" x2="7" y2="17"></line>
-        <line x1="17" y1="17" x2="22" y2="17"></line>
-        <line x1="17" y1="7" x2="22" y2="7"></line>
-      </svg>
-    </div>
-    <span class="menuText">GIF Suggestions</span>
-    <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
   </div>
 
   <div class="menuItem" id="notifToggleItem" onclick="toggleNotifications()">
@@ -1997,13 +1992,10 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
           <div class="settingsRowLabel">⏱ Disappearing Messages</div>
           <div class="settingsRowValue" id="disappearingValueLabel">Disable ›</div>
         </div>
-      </div>
-
-      <div class="settingsSection">
-        <div class="settingsSectionTitle">Appearance</div>
-        <div class="settingsRowLabel" style="margin-bottom:2px;">🖼 Chat Wallpaper</div>
-        <div class="wallpaperGrid" id="wallpaperGrid"></div>
-        <input type="file" id="wallpaperInput" accept="image/*" style="display:none">
+        <div class="settingsRow" onclick="toggleGifSuggestions()" style="cursor:pointer;">
+          <div class="settingsRowLabel">🎞 GIF Suggestions</div>
+          <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
+        </div>
       </div>
 
       <div class="settingsSection">
@@ -2016,7 +2008,7 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
         <div class="settingsRowLabel" style="margin-bottom:2px;">😴 Your Mood / Status</div>
         <div class="moodInputRow">
           <input id="moodInput" placeholder="What's on your mind?" maxlength="30">
-          <button onclick="saveMood()">Save</button>
+          <button id="moodSaveBtn" onclick="saveMood()">Save</button>
         </div>
         <div class="moodPresets" id="moodPresets"></div>
         <button class="moodClearBtn" onclick="clearMood()">Clear status</button>
@@ -2064,53 +2056,59 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
      ═══════════════════════════════════════════════════════ -->
 <div id="videoCallOverlay">
   <video id="remoteVideoEl" autoplay playsinline></video>
+
+  <div class="vcControlsLayer" id="vcControlsLayer">
+    <div class="videoCallTopBar">
+      <div class="vcName" id="vcName">Kitty</div>
+      <div class="vcStatus" id="vcStatus">Calling...</div>
+    </div>
+
+    <div class="vcMutedPill" id="vcMutedPill"><span id="vcMutedPillText"></span></div>
+
+    <div class="videoCallActions" id="vcIncomingActions">
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcRejectBtn" onclick="rejectVideoCall()" style="background:#ff3b30;color:white;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9L12 9z" transform="rotate(135 12 12)"/></svg>
+        </button>
+        <div class="vcLabel">Decline</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcAcceptBtn" onclick="acceptVideoCall()" style="background:#34c759;color:white;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+        </button>
+        <div class="vcLabel">Accept</div>
+      </div>
+    </div>
+
+    <div class="videoCallActions" id="vcActiveActions">
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcMuteBtn" onclick="toggleVideoCallMute()">
+          <span id="vcMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
+        </button>
+        <div class="vcLabel" id="vcMuteLabel">Mute</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcCamBtn" onclick="toggleVideoCallCam()">
+          <span id="vcCamIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></span>
+        </button>
+        <div class="vcLabel" id="vcCamLabel">Camera</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcSwitchBtn" onclick="switchVideoCallCamera()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <div class="vcLabel">Flip</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcEndBtn" onclick="endVideoCall()">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg)"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9z"/></svg>
+        </button>
+        <div class="vcLabel">End</div>
+      </div>
+    </div>
+  </div>
+
   <video id="localVideoEl" autoplay playsinline muted></video>
-  <div class="videoCallTopBar">
-    <div class="vcName" id="vcName">Kitty</div>
-    <div class="vcStatus" id="vcStatus">Calling...</div>
-  </div>
-
-  <div class="videoCallActions" id="vcIncomingActions">
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcRejectBtn" onclick="rejectVideoCall()" style="background:#ff3b30;color:white;">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9L12 9z" transform="rotate(135 12 12)"/></svg>
-      </button>
-      <div class="vcLabel">Decline</div>
-    </div>
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcAcceptBtn" onclick="acceptVideoCall()" style="background:#34c759;color:white;">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
-      </button>
-      <div class="vcLabel">Accept</div>
-    </div>
-  </div>
-
-  <div class="videoCallActions" id="vcActiveActions">
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcMuteBtn" onclick="toggleVideoCallMute()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-      </button>
-      <div class="vcLabel" id="vcMuteLabel">Mute</div>
-    </div>
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcCamBtn" onclick="toggleVideoCallCam()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>
-      </button>
-      <div class="vcLabel" id="vcCamLabel">Camera</div>
-    </div>
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcSwitchBtn" onclick="switchVideoCallCamera()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-      </button>
-      <div class="vcLabel">Flip</div>
-    </div>
-    <div class="vcBtnWrap">
-      <button class="vcActionBtn" id="vcEndBtn" onclick="endVideoCall()">
-        <svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg)"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.29.7l-2.19 2.19a1 1 0 0 1-1.31.08 15.4 15.4 0 0 1-3.51-3.51 1 1 0 0 1 .08-1.31l6.5-6.5a1 1 0 0 1 1.31-.08c1.1.85 2.44 1.5 3.9 1.9z"/></svg>
-      </button>
-      <div class="vcLabel">End</div>
-    </div>
-  </div>
 </div>
 
 <audio id="vcRingtoneAudio" loop>
@@ -3409,10 +3407,12 @@ function setupConnectionBadge(){
     if(connected){
       if(badge.classList.contains("show")){
         badgeText.innerText = "Connected"
-        setTimeout(()=>{ badge.classList.remove("show") }, 1500)
+        badge.classList.add("connected")
+        setTimeout(()=>{ badge.classList.remove("show"); badge.classList.remove("connected") }, 1500)
       }
     } else {
       badgeText.innerText = "Reconnecting…"
+      badge.classList.remove("connected")
       badge.classList.add("show")
     }
   })
@@ -3422,26 +3422,68 @@ function setupConnectionBadge(){
 // MOOD / STATUS TAG
 // ═══════════════════════════════════════════════════════
 const MOOD_PRESETS = ["😴 Sleeping","📚 Studying","💻 Working","🍽 Eating","🎮 Gaming","🚌 Traveling","😌 Chilling","❤️ Thinking of you"]
+const MOOD_TTL_MS = 24*60*60*1000 // status auto-expires after 24 hours
+
+let latestOtherMood = null
+let latestOwnMood = null
+
+function isMoodExpired(moodObj){
+  if(!moodObj || !moodObj.time) return true
+  return (Date.now() - moodObj.time) >= MOOD_TTL_MS
+}
+
+function renderMoodTag(){
+  const tag = document.getElementById("moodTag")
+  if(!tag) return
+  if(latestOtherMood && !isMoodExpired(latestOtherMood)){
+    tag.innerText = latestOtherMood.text
+    tag.style.display = "block"
+  } else {
+    tag.innerText = ""
+    tag.style.display = "none"
+  }
+}
+
+function checkMoodExpiryTick(){
+  // Re-render (hides an other-user status the instant it crosses 24h,
+  // even with no new Firebase write in between).
+  renderMoodTag()
+  // Self-clean my own expired status so it doesn't linger forever.
+  if(latestOwnMood && isMoodExpired(latestOwnMood)){
+    set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
+  }
+}
 
 function listenMoodTag(){
   onValue(ref(db, "userSettings/"+otherUser+"/mood"), snap=>{
-    const val = snap.val()
-    const tag = document.getElementById("moodTag")
-    if(!tag) return
-    if(val){ tag.innerText = val; tag.style.display = "block" }
-    else { tag.innerText = ""; tag.style.display = "none" }
+    latestOtherMood = snap.val()
+    renderMoodTag()
   })
   onValue(ref(db, "userSettings/"+username+"/mood"), snap=>{
-    const val = snap.val()
+    latestOwnMood = snap.val()
     const input = document.getElementById("moodInput")
-    if(input && document.activeElement !== input) input.value = val || ""
+    if(input && document.activeElement !== input){
+      input.value = (latestOwnMood && !isMoodExpired(latestOwnMood)) ? latestOwnMood.text : ""
+    }
   })
+  setInterval(checkMoodExpiryTick, 60000)
+}
+
+function setMood(text){
+  set(ref(db, "userSettings/"+username+"/mood"), { text, time: Date.now() }).catch(()=>{})
 }
 
 window.saveMood = function(){
   const val = document.getElementById("moodInput").value.trim()
   if(!val) return
-  set(ref(db, "userSettings/"+username+"/mood"), val).catch(()=>{})
+  setMood(val)
+  const btn = document.getElementById("moodSaveBtn")
+  if(btn){
+    const original = btn.innerText
+    btn.innerText = "Saved ✓"
+    btn.disabled = true
+    setTimeout(()=>{ btn.innerText = original; btn.disabled = false }, 1500)
+  }
 }
 
 window.clearMood = function(){
@@ -3458,7 +3500,7 @@ function renderMoodPresets(){
     btn.innerText = p
     btn.onclick = ()=>{
       document.getElementById("moodInput").value = p
-      set(ref(db, "userSettings/"+username+"/mood"), p).catch(()=>{})
+      setMood(p)
     }
     wrap.appendChild(btn)
   })
@@ -3562,70 +3604,12 @@ async function pruneExpiredMessages(){
 }
 
 // ═══════════════════════════════════════════════════════
-// CUSTOM CHAT WALLPAPER (personal, this device)
+// THEME INIT (personal, this device)
 // ═══════════════════════════════════════════════════════
-const WALLPAPER_PRESETS = [5, 15, 25, 35, 45].map(n=>`https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${n}.jpg`)
-let originalRandomBg = ""
-
-function applyWallpaper(url){
-  document.body.style.backgroundImage = `url('${url}')`
-}
-
 function initWallpaperAndThemeUI(){
-  originalRandomBg = document.body.style.backgroundImage
-  const savedWallpaper = localStorage.getItem("chatWallpaper")
-  if(savedWallpaper) applyWallpaper(savedWallpaper)
-
   const savedTheme = localStorage.getItem("chatTheme")
   if(savedTheme) applyTheme_chatGradient(savedTheme)
-
-  renderWallpaperGrid()
   renderThemeGrid()
-
-  document.getElementById("wallpaperInput").addEventListener("change", async function(){
-    const file = this.files[0]
-    this.value = ""
-    if(!file) return
-    try{
-      const formData = new FormData()
-      formData.append("file", file)
-      const res = await fetch(BACKEND+"/upload", {method:"POST", body:formData})
-      const data = await res.json()
-      if(!data.url){ alert("Wallpaper upload failed ⚠️"); return }
-      localStorage.setItem("chatWallpaper", data.url)
-      applyWallpaper(data.url)
-      renderWallpaperGrid()
-    } catch(e){ alert("Wallpaper upload failed ⚠️") }
-  })
-}
-
-function renderWallpaperGrid(){
-  const grid = document.getElementById("wallpaperGrid")
-  if(!grid) return
-  const current = localStorage.getItem("chatWallpaper")
-  grid.innerHTML = ""
-
-  const defaultSw = document.createElement("div")
-  defaultSw.className = "wallpaperSwatch" + (!current ? " selected" : "")
-  defaultSw.style.backgroundImage = originalRandomBg
-  defaultSw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
-  defaultSw.onclick = ()=>{ localStorage.removeItem("chatWallpaper"); applyWallpaper(""); document.body.style.backgroundImage = originalRandomBg; renderWallpaperGrid() }
-  grid.appendChild(defaultSw)
-
-  WALLPAPER_PRESETS.forEach(url=>{
-    const sw = document.createElement("div")
-    sw.className = "wallpaperSwatch" + (current===url ? " selected" : "")
-    sw.style.backgroundImage = `url('${url}')`
-    sw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
-    sw.onclick = ()=>{ localStorage.setItem("chatWallpaper", url); applyWallpaper(url); renderWallpaperGrid() }
-    grid.appendChild(sw)
-  })
-
-  const uploadBtn = document.createElement("div")
-  uploadBtn.className = "wallpaperUploadBtn"
-  uploadBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
-  uploadBtn.onclick = ()=> document.getElementById("wallpaperInput").click()
-  grid.appendChild(uploadBtn)
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3760,6 +3744,7 @@ let vcFacingMode = "user"
 
 function vcShowOverlay(mode){
   document.getElementById("videoCallOverlay").classList.add("active")
+  document.getElementById("vcControlsLayer").classList.remove("hidden")
   document.getElementById("vcName").innerText = getNick(otherUser)
   document.getElementById("vcIncomingActions").style.display = "none"
   document.getElementById("vcActiveActions").style.display = "none"
@@ -3784,8 +3769,17 @@ function vcShowOverlay(mode){
   }
 }
 
+// Tap anywhere on the video (not on a button) to hide/show the WhatsApp-style controls
+let vcControlsHidden = false
+document.getElementById("remoteVideoEl").addEventListener("click", ()=>{
+  vcControlsHidden = !vcControlsHidden
+  document.getElementById("vcControlsLayer").classList.toggle("hidden", vcControlsHidden)
+})
+
 function vcHideOverlay(){
   document.getElementById("videoCallOverlay").classList.remove("active")
+  document.getElementById("vcControlsLayer").classList.remove("hidden")
+  vcControlsHidden = false
   try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
 }
 
@@ -3817,7 +3811,10 @@ window.initiateVideoCall = async function(){
   if(vcIsCallActive) return
   if(!username){ alert("Please login first"); return }
   try{
-    vcLocalStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode}, audio:true })
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:vcFacingMode},
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
     document.getElementById("localVideoEl").srcObject = vcLocalStream
   } catch(e){ alert("Camera/Mic permission denied."); return }
 
@@ -3868,7 +3865,10 @@ window.acceptVideoCall = async function(){
   if(!vcCurrentCallId) return
   try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
   try{
-    vcLocalStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode}, audio:true })
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:vcFacingMode},
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
     document.getElementById("localVideoEl").srcObject = vcLocalStream
   } catch(e){ alert("Camera/Mic permission denied."); rejectVideoCall(); return }
 
@@ -3918,16 +3918,31 @@ function vcCleanup(){
   if(vcLocalStream){ vcLocalStream.getTracks().forEach(t=>t.stop()); vcLocalStream=null }
   document.getElementById("remoteVideoEl").srcObject = null
   document.getElementById("localVideoEl").srcObject = null
+  document.getElementById("localVideoEl").style.opacity = "1"
   vcIsMuted=false; vcIsCamOff=false
+  document.getElementById("vcMuteBtn").classList.remove("active")
+  document.getElementById("vcCamBtn").classList.remove("active")
+  document.getElementById("vcMuteIcon").innerHTML = VC_ICON_MIC_ON
+  document.getElementById("vcCamIcon").innerHTML = VC_ICON_CAM_ON
+  document.getElementById("vcMutedPill").classList.remove("show")
   vcCurrentCallId = null
   vcHideOverlay()
 }
+const VC_ICON_MIC_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`
+const VC_ICON_MIC_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5-2.24-5-5H5.29c0 3.53 2.61 6.43 6 6.92V21h2v-3.08a8.964 8.964 0 0 0 2.55-.75L20.73 21 22 19.73 4.27 3z"/></svg>`
+const VC_ICON_CAM_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>`
+const VC_ICON_CAM_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 2 2 3.27 4.73 6H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2zM6.83 8 15 16.17V17H5V8h1.83zM21 7l-4 4v-.34l-2-2V7l1.55 1.55L21 17v-6.5l-1.09-1.09L21 7z"/></svg>`
+
 window.toggleVideoCallMute = function(){
   if(!vcLocalStream) return
   vcIsMuted = !vcIsMuted
   vcLocalStream.getAudioTracks().forEach(t=> t.enabled = !vcIsMuted)
   document.getElementById("vcMuteBtn").classList.toggle("active", vcIsMuted)
   document.getElementById("vcMuteLabel").innerText = vcIsMuted ? "Unmute" : "Mute"
+  document.getElementById("vcMuteIcon").innerHTML = vcIsMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
+  const pill = document.getElementById("vcMutedPill")
+  document.getElementById("vcMutedPillText").innerText = getNick(username) + " is muted."
+  pill.classList.toggle("show", vcIsMuted)
 }
 window.toggleVideoCallCam = function(){
   if(!vcLocalStream) return
@@ -3935,20 +3950,37 @@ window.toggleVideoCallCam = function(){
   vcLocalStream.getVideoTracks().forEach(t=> t.enabled = !vcIsCamOff)
   document.getElementById("vcCamBtn").classList.toggle("active", vcIsCamOff)
   document.getElementById("vcCamLabel").innerText = vcIsCamOff ? "Cam On" : "Camera"
+  document.getElementById("vcCamIcon").innerHTML = vcIsCamOff ? VC_ICON_CAM_OFF : VC_ICON_CAM_ON
+  document.getElementById("localVideoEl").style.opacity = vcIsCamOff ? "0.15" : "1"
 }
 window.switchVideoCallCamera = async function(){
-  if(!vcLocalStream || !vcPeerConnection) return
-  vcFacingMode = vcFacingMode==="user" ? "environment" : "user"
+  if(!vcLocalStream || !vcPeerConnection){ console.warn("Flip camera: no active call/stream"); return }
+  const nextFacing = vcFacingMode==="user" ? "environment" : "user"
   try{
-    const newStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:vcFacingMode} })
+    const newStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:nextFacing } } })
     const newVideoTrack = newStream.getVideoTracks()[0]
+    if(!newVideoTrack) throw new Error("No video track from switched camera")
+
     const sender = vcPeerConnection.getSenders().find(s=> s.track && s.track.kind==="video")
     if(sender) await sender.replaceTrack(newVideoTrack)
+
+    // Stop the old video track(s) and rebuild the local stream fresh so the
+    // preview element reliably reflects the new camera (some Android/Chrome
+    // versions don't re-render in place when a track is swapped on the same
+    // MediaStream object that's already attached via srcObject).
     const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
-    if(oldVideoTrack){ oldVideoTrack.stop(); vcLocalStream.removeTrack(oldVideoTrack) }
-    vcLocalStream.addTrack(newVideoTrack)
-    document.getElementById("localVideoEl").srcObject = vcLocalStream
-  } catch(e){}
+    if(oldVideoTrack) oldVideoTrack.stop()
+    const audioTracks = vcLocalStream.getAudioTracks()
+    const rebuiltStream = new MediaStream([newVideoTrack, ...audioTracks])
+    vcLocalStream = rebuiltStream
+    vcFacingMode = nextFacing
+
+    const localEl = document.getElementById("localVideoEl")
+    localEl.srcObject = null
+    localEl.srcObject = vcLocalStream
+  } catch(e){
+    console.warn("Flip camera failed:", e)
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -4897,7 +4929,8 @@ function listenIncomingCalls(){
     const calls=snap.val()
     if(!calls) return
     Object.entries(calls).forEach(([callId, callData])=>{
-      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId){
+      const isFresh = callData.time && (Date.now() - callData.time) < 45000
+      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId && isFresh){
         if(!isCallActive){
           currentCallId=callId
           showIncomingCall(callData)

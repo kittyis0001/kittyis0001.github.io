@@ -862,6 +862,7 @@ align-items:center;
 justify-content:center;
 transition:transform 0.15s;
 }
+.callActionBtn svg{ width:26px; height:26px; }
 
 .callActionBtn:active{ transform:scale(0.88); }
 
@@ -2125,26 +2126,36 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
 
   <div id="incomingActions" class="callActions">
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">📵</button>
+      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg)"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+      </button>
       <div class="callLabel">Decline</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">📞</button>
+      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+      </button>
       <div class="callLabel">Accept</div>
     </div>
   </div>
 
   <div id="activeActions" class="callActions">
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">🎤</button>
+      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">
+        <span id="acMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
+      </button>
       <div class="callLabel" id="muteLabel">Mute</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">📵</button>
+      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg)"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+      </button>
       <div class="callLabel">End</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
+      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/><path d="M14 3.23v2.06a7 7 0 0 1 0 13.42v2.06A9 9 0 0 0 14 3.23z"/></svg>
+      </button>
       <div class="callLabel" id="speakerLabel">Speaker</div>
     </div>
   </div>
@@ -3752,9 +3763,9 @@ function vcShowOverlay(mode){
   if(mode==="outgoing"){
     document.getElementById("vcStatus").innerText = "Calling..."
     document.getElementById("vcActiveActions").style.display = "flex"
-    document.getElementById("vcMuteBtn").style.display = "none"
-    document.getElementById("vcCamBtn").style.display = "none"
-    document.getElementById("vcSwitchBtn").style.display = "none"
+    document.getElementById("vcMuteBtn").style.display = "flex"
+    document.getElementById("vcCamBtn").style.display = "flex"
+    document.getElementById("vcSwitchBtn").style.display = "flex"
   } else if(mode==="incoming"){
     document.getElementById("vcStatus").innerText = "Incoming video call..."
     document.getElementById("vcIncomingActions").style.display = "flex"
@@ -3926,6 +3937,7 @@ function vcCleanup(){
   document.getElementById("vcCamIcon").innerHTML = VC_ICON_CAM_ON
   document.getElementById("vcMutedPill").classList.remove("show")
   vcCurrentCallId = null
+  vcCachedVideoDevices = null
   vcHideOverlay()
 }
 const VC_ICON_MIC_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`
@@ -3953,33 +3965,73 @@ window.toggleVideoCallCam = function(){
   document.getElementById("vcCamIcon").innerHTML = vcIsCamOff ? VC_ICON_CAM_OFF : VC_ICON_CAM_ON
   document.getElementById("localVideoEl").style.opacity = vcIsCamOff ? "0.15" : "1"
 }
+let vcCachedVideoDevices = null
+
+async function vcGetVideoDevices(){
+  // Cache the device list per call — device labels/ids only become
+  // available (non-empty) after a getUserMedia permission was granted,
+  // which is already true by the time this is called mid-call.
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    vcCachedVideoDevices = devices.filter(d=> d.kind === "videoinput")
+  } catch(e){
+    vcCachedVideoDevices = []
+  }
+  return vcCachedVideoDevices
+}
+
 window.switchVideoCallCamera = async function(){
   if(!vcLocalStream || !vcPeerConnection){ console.warn("Flip camera: no active call/stream"); return }
-  const nextFacing = vcFacingMode==="user" ? "environment" : "user"
+
+  const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
+  const oldSettings = oldVideoTrack ? oldVideoTrack.getSettings() : {}
+
+  // Free the current camera BEFORE requesting the next one — on many
+  // Android/Chrome builds a second camera stays "busy" and silently
+  // fails to open if the first track hasn't been stopped yet, which is
+  // the most common reason camera flip does nothing.
+  if(oldVideoTrack) oldVideoTrack.stop()
+
+  const devices = vcCachedVideoDevices || await vcGetVideoDevices()
+  let newVideoTrack = null
+
   try{
-    const newStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:nextFacing } } })
-    const newVideoTrack = newStream.getVideoTracks()[0]
+    if(devices.length >= 2){
+      // Prefer explicit deviceId cycling — far more reliable across
+      // devices than relying on the facingMode constraint alone.
+      const currentId = oldSettings.deviceId
+      const currentIdx = devices.findIndex(d=> d.deviceId === currentId)
+      const nextDevice = devices[(currentIdx + 1 + devices.length) % devices.length]
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: nextDevice.deviceId } }
+      })
+      newVideoTrack = stream.getVideoTracks()[0]
+    } else {
+      // Fallback: only one enumerable camera, or enumeration failed —
+      // fall back to the facingMode constraint.
+      const nextFacing = vcFacingMode==="user" ? "environment" : "user"
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:nextFacing } } })
+      newVideoTrack = stream.getVideoTracks()[0]
+      vcFacingMode = nextFacing
+    }
     if(!newVideoTrack) throw new Error("No video track from switched camera")
 
     const sender = vcPeerConnection.getSenders().find(s=> s.track && s.track.kind==="video")
     if(sender) await sender.replaceTrack(newVideoTrack)
 
-    // Stop the old video track(s) and rebuild the local stream fresh so the
-    // preview element reliably reflects the new camera (some Android/Chrome
-    // versions don't re-render in place when a track is swapped on the same
+    // Rebuild the local stream fresh so the preview element reliably
+    // reflects the new camera (some Android/Chrome versions don't
+    // re-render in place when a track is swapped on the same
     // MediaStream object that's already attached via srcObject).
-    const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
-    if(oldVideoTrack) oldVideoTrack.stop()
     const audioTracks = vcLocalStream.getAudioTracks()
-    const rebuiltStream = new MediaStream([newVideoTrack, ...audioTracks])
-    vcLocalStream = rebuiltStream
-    vcFacingMode = nextFacing
+    vcLocalStream = new MediaStream([newVideoTrack, ...audioTracks])
 
     const localEl = document.getElementById("localVideoEl")
     localEl.srcObject = null
     localEl.srcObject = vcLocalStream
   } catch(e){
     console.warn("Flip camera failed:", e)
+    alert("Camera flip failed — this device may not support switching cameras mid-call.")
   }
 }
 
@@ -5024,6 +5076,12 @@ function cleanupCall(){
   remoteAudio.srcObject=null
   isMuted=false
   isSpeakerOn=false
+  const muteIcon=document.getElementById("acMuteIcon")
+  if(muteIcon) muteIcon.innerHTML = VC_ICON_MIC_ON
+  const muteBtn=document.getElementById("muteCallBtn")
+  if(muteBtn){ muteBtn.style.background="rgba(255,255,255,0.15)"; muteBtn.style.color="white" }
+  const spkBtn=document.getElementById("speakerBtn")
+  if(spkBtn){ spkBtn.style.background="rgba(255,255,255,0.15)"; spkBtn.style.color="white" }
   currentCallId=null
   hideCallOverlay()
 }
@@ -5034,7 +5092,10 @@ window.toggleMute = function(){
   localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
   const btn=document.getElementById("muteCallBtn")
   const lbl=document.getElementById("muteLabel")
-  btn.innerText=isMuted?"🔇":"🎤"
+  const icon=document.getElementById("acMuteIcon")
+  if(icon) icon.innerHTML = isMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
+  btn.style.background = isMuted ? "#ffffff" : "rgba(255,255,255,0.15)"
+  btn.style.color = isMuted ? "#ff3b30" : "white"
   lbl.innerText=isMuted?"Unmute":"Mute"
 }
 
@@ -5042,7 +5103,8 @@ window.toggleSpeaker = function(){
   isSpeakerOn=!isSpeakerOn
   const btn=document.getElementById("speakerBtn")
   const lbl=document.getElementById("speakerLabel")
-  btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
+  btn.style.background=isSpeakerOn?"#ffffff":"rgba(255,255,255,0.15)"
+  btn.style.color=isSpeakerOn?"#8060cc":"white"
   lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
 }
 

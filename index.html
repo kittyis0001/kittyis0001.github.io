@@ -4,11 +4,6 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Private Chat</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#8060cc">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 body{
@@ -383,13 +378,6 @@ transition:transform 0.15s;
   color: rgba(58, 42, 106, 0.4);
   flex-shrink: 0;
 }
-
-.menuSubText{
-  font-size: 11px;
-  color: rgba(58,42,106,0.55);
-  margin-top: 1px;
-}
-body.dark-theme .menuSubText{ color: rgba(233,237,239,0.5); }
 
 .menuItem.softRed .menuIconBox {
   background: rgba(229, 57, 53, 0.12);
@@ -862,7 +850,6 @@ align-items:center;
 justify-content:center;
 transition:transform 0.15s;
 }
-.callActionBtn svg{ width:26px; height:26px; }
 
 .callActionBtn:active{ transform:scale(0.88); }
 
@@ -1323,392 +1310,6 @@ body.dark-theme .mediaSheetItem span { color: #e9edef; }
   animation: highlightMsg 1.5s ease;
 }
 
-/* ═══════════════════════════════════════════════════════
-   MOOD / STATUS TAG (header)
-   ═══════════════════════════════════════════════════════ */
-#moodTag{
-  font-size: 11px;
-  color: #8a7aca;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
-  display: none;
-}
-body.dark-theme #moodTag{ color: #7a9ab0; }
-
-/* ═══════════════════════════════════════════════════════
-   CONNECTION STATUS BADGE
-   ═══════════════════════════════════════════════════════ */
-#connectionBadge{
-  display: none;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, #e0483a, #c8362a);
-  padding: 6px 10px;
-  letter-spacing: 0.3px;
-  transition: background 0.25s;
-}
-#connectionBadge.connected{ background: linear-gradient(135deg, #3ec26a, #2ea858); }
-#connectionBadge.show{ display: block; }
-#connectionBadge .connDot{
-  display: inline-block;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: white;
-  margin-right: 6px;
-  animation: pulse 1s infinite;
-  vertical-align: middle;
-}
-
-/* ═══════════════════════════════════════════════════════
-   PREMIUM VECTOR CALL ICONS
-   ═══════════════════════════════════════════════════════ */
-#callBtn, #videoCallBtn{
-  background:none;
-  border:none;
-  color:#6a5aaa;
-  cursor:pointer;
-  padding:6px;
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:transform 0.15s;
-}
-#callBtn:active, #videoCallBtn:active{ transform:scale(0.88); }
-#callBtn svg, #videoCallBtn svg{ width:22px; height:22px; }
-body.dark-theme #callBtn, body.dark-theme #videoCallBtn{ color:#8696a0; }
-
-/* ═══════════════════════════════════════════════════════
-   TYPING INDICATOR — PREMIUM AVATAR BUBBLE
-   ═══════════════════════════════════════════════════════ */
-#typingIndicator{
-  display:none;
-  padding: 4px 10px 8px;
-  align-items: flex-end;
-  gap: 6px;
-}
-#typingIndicator .typingAvatar{
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.8);
-}
-#typingIndicator .typingBubble{
-  background: rgba(255,255,255,0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(200,180,240,0.3);
-  border-radius: 16px;
-  border-bottom-left-radius: 5px;
-  padding: 9px 14px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 2px 10px rgba(140,100,200,0.15);
-}
-body.dark-theme #typingIndicator .typingBubble{
-  background: #202c33;
-  border: none;
-}
-@keyframes typingDotBounce{
-  0%, 60%, 100% { transform: translateY(0); opacity:0.5; }
-  30% { transform: translateY(-5px); opacity:1; }
-}
-#typingIndicator .typingDot{
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #8060cc;
-  animation: typingDotBounce 1.2s infinite;
-}
-body.dark-theme #typingIndicator .typingDot{ background: #00a884; }
-#typingIndicator .typingDot:nth-child(2){ animation-delay: 0.15s; }
-#typingIndicator .typingDot:nth-child(3){ animation-delay: 0.3s; }
-
-/* ═══════════════════════════════════════════════════════
-   DISAPPEARING MESSAGE SYSTEM LABEL (chat)
-   ═══════════════════════════════════════════════════════ */
-.disappearIcon{ display:inline-block; vertical-align:middle; margin-right:3px; }
-
-/* ═══════════════════════════════════════════════════════
-   SETTINGS MODAL — premium sheet
-   ═══════════════════════════════════════════════════════ */
-#settingsModal, #notesModal{
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.5);
-  z-index:9999;
-  justify-content:center;
-  align-items:flex-end;
-}
-#settingsModal.active, #notesModal.active{ display:flex; }
-
-.settingsSheet{
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  width:100%;
-  max-width:480px;
-  max-height:88vh;
-  border-radius:24px 24px 0 0;
-  padding:16px 0 20px;
-  overflow-y:auto;
-  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
-  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
-}
-@keyframes sheetUp{ from{ transform:translateY(100%);} to{ transform:translateY(0);} }
-body.dark-theme .settingsSheet{ background: rgba(31,44,52,0.97); }
-
-.settingsHandle{
-  width:40px; height:4px;
-  background: rgba(0,0,0,0.15);
-  border-radius:2px;
-  margin: 0 auto 12px;
-}
-body.dark-theme .settingsHandle{ background: rgba(255,255,255,0.2); }
-
-.settingsHeader{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 0 20px 14px;
-  border-bottom: 1px solid rgba(128,96,204,0.12);
-  margin-bottom: 6px;
-}
-.settingsHeader h2{
-  margin:0; font-size:18px; color:#3a2a6a;
-}
-body.dark-theme .settingsHeader h2{ color:#e9edef; }
-.settingsHeader h2 .backArrow{ display:none; cursor:pointer; margin-right:8px; }
-.settingsCloseBtn{
-  background:none; border:none; font-size:22px; color:#8a7aba; cursor:pointer; padding:4px;
-}
-
-.settingsSection{
-  padding: 14px 20px;
-  border-bottom: 1px solid rgba(128,96,204,0.08);
-}
-.settingsSection:last-child{ border-bottom:none; }
-.settingsSectionTitle{
-  font-size:13px; font-weight:700; color:#8060cc; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
-}
-body.dark-theme .settingsSectionTitle{ color:#00a884; }
-
-.settingsRow{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:11px 0;
-  cursor:pointer;
-}
-.settingsRowLabel{ font-size:14.5px; color:#3a2a5a; font-weight:600; }
-body.dark-theme .settingsRowLabel{ color:#e9edef; }
-.settingsRowValue{ font-size:13px; color:#8a7aba; }
-body.dark-theme .settingsRowValue{ color:#8696a0; }
-
-.optionList{ display:flex; flex-direction:column; gap:2px; }
-.optionItem{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 14px;
-  border-radius:12px;
-  cursor:pointer;
-  transition:background 0.15s;
-}
-.optionItem:active{ background:rgba(128,96,204,0.1); }
-.optionItem.selected{ background:rgba(128,96,204,0.12); }
-body.dark-theme .optionItem.selected{ background:rgba(0,168,132,0.12); }
-.optionItemLabel{ font-size:14.5px; color:#3a2a5a; }
-body.dark-theme .optionItemLabel{ color:#e9edef; }
-.optionCheck{
-  width:20px; height:20px;
-  border-radius:50%;
-  border:2px solid rgba(128,96,204,0.35);
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.optionItem.selected .optionCheck{ background:#8060cc; border-color:#8060cc; }
-body.dark-theme .optionItem.selected .optionCheck{ background:#00a884; border-color:#00a884; }
-.optionCheck svg{ width:12px; height:12px; color:white; display:none; }
-.optionItem.selected .optionCheck svg{ display:block; }
-
-.themeGrid{
-  display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap:10px;
-  margin-top:8px;
-}
-.themeSwatch{
-  aspect-ratio: 1;
-  border-radius:14px;
-  cursor:pointer;
-  border: 2.5px solid transparent;
-  background-size:cover;
-  background-position:center;
-  position:relative;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
-}
-.themeSwatch.selected{ border-color:#8060cc; }
-body.dark-theme .themeSwatch.selected{ border-color:#00a884; }
-.themeSwatch .swCheck{
-  position:absolute; bottom:4px; right:4px;
-  width:18px; height:18px; border-radius:50%;
-  background:#8060cc; color:white;
-  display:none; align-items:center; justify-content:center;
-}
-.themeSwatch.selected .swCheck{ display:flex; }
-.themeSwatch .swCheck svg{ width:11px; height:11px; }
-
-.moodInputRow{ display:flex; gap:8px; margin-top:8px; }
-.moodInputRow input{
-  flex:1; padding:10px 12px; border-radius:12px; border:1.5px solid rgba(128,96,204,0.25);
-  font-size:14px; outline:none; background:rgba(255,255,255,0.9);
-}
-.moodInputRow button{
-  padding:10px 16px; border-radius:12px; border:none;
-  background:linear-gradient(135deg,#7ec8f7,#b09ef5,#e899d4); color:white; font-weight:600; cursor:pointer;
-}
-.moodPresets{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-.moodPresetBtn{
-  font-size:18px; background:rgba(128,96,204,0.08); border:none; border-radius:10px;
-  padding:6px 10px; cursor:pointer;
-}
-.moodClearBtn{
-  margin-top:8px; font-size:12.5px; color:#c62828; background:none; border:none; cursor:pointer; padding:0;
-}
-
-/* ═══════════════════════════════════════════════════════
-   KEEP NOTE — premium note-taking UI
-   ═══════════════════════════════════════════════════════ */
-.notesSheet{
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  width:100%; max-width:480px; height:85vh;
-  border-radius:24px 24px 0 0;
-  display:flex; flex-direction:column;
-  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
-  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
-}
-body.dark-theme .notesSheet{ background: rgba(31,44,52,0.97); }
-
-.notesHeader{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid rgba(128,96,204,0.12);
-}
-.notesHeader h2{ margin:0; font-size:18px; color:#3a2a6a; display:flex; align-items:center; gap:8px; }
-body.dark-theme .notesHeader h2{ color:#e9edef; }
-
-.notesListWrap{ flex:1; overflow-y:auto; padding:14px 16px; }
-.noteEmptyState{ text-align:center; color:#9a8aba; font-size:13px; margin-top:60px; }
-.noteCard{
-  background: linear-gradient(135deg, rgba(126,200,247,0.15), rgba(232,153,212,0.15));
-  border: 1px solid rgba(128,96,204,0.15);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:12px;
-  cursor:pointer;
-  transition: transform 0.12s;
-  position:relative;
-}
-.noteCard:active{ transform:scale(0.98); }
-body.dark-theme .noteCard{ background: rgba(0,168,132,0.08); border-color: rgba(0,168,132,0.15); }
-.noteCardText{
-  font-size:14px; color:#3a2a5a; white-space:pre-wrap; word-break:break-word;
-  max-height: 90px; overflow:hidden; line-height:1.4;
-}
-body.dark-theme .noteCardText{ color:#e9edef; }
-.noteCardMeta{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
-.noteCardTime{ font-size:10.5px; color:#9a8aba; }
-.noteCardDelete{
-  background:none; border:none; color:#c62828; cursor:pointer; padding:2px 6px; font-size:15px;
-}
-
-.notesFab{
-  position:absolute; bottom:20px; right:20px;
-  width:52px; height:52px; border-radius:50%;
-  background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
-  color:white; border:none; box-shadow:0 4px 16px rgba(160,120,230,0.4);
-  display:flex; align-items:center; justify-content:center; cursor:pointer;
-  font-size:24px;
-}
-
-#noteEditorView{ display:none; flex-direction:column; height:100%; }
-#noteEditorView.active{ display:flex; }
-.noteEditorTextarea{
-  flex:1; border:none; outline:none; resize:none; padding:16px 18px;
-  font-size:15px; line-height:1.5; background:transparent; color:#3a2a5a; font-family:Arial;
-}
-body.dark-theme .noteEditorTextarea{ color:#e9edef; }
-.noteEditorFooter{
-  padding:10px 16px; font-size:11px; color:#9a8aba; text-align:right; border-top:1px solid rgba(128,96,204,0.1);
-}
-
-/* ═══════════════════════════════════════════════════════
-   VIDEO CALL — separate overlay, does not touch audio call
-   ═══════════════════════════════════════════════════════ */
-#videoCallOverlay{
-  display:none;
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:#000; z-index:10000;
-  flex-direction:column;
-}
-#videoCallOverlay.active{ display:flex; }
-#remoteVideoEl{
-  position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; background:#111;
-}
-#localVideoEl{
-  position:absolute; top:16px; right:16px; width:110px; height:150px;
-  border-radius:14px; object-fit:cover; border:2px solid rgba(255,255,255,0.4);
-  box-shadow:0 4px 14px rgba(0,0,0,0.4); z-index:2; background:#222;
-  transition: opacity 0.25s;
-}
-.vcControlsLayer{
-  position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
-  pointer-events:none;
-  transition: opacity 0.25s ease;
-}
-.vcControlsLayer > *{ pointer-events:auto; }
-.vcControlsLayer.hidden{ opacity:0; }
-.vcControlsLayer.hidden .videoCallActions,
-.vcControlsLayer.hidden .videoCallTopBar{ pointer-events:none; }
-.videoCallTopBar{
-  position:relative; padding:20px; color:white; text-align:center;
-  background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
-}
-.videoCallTopBar .vcName{ font-size:19px; font-weight:bold; }
-.videoCallTopBar .vcStatus{ font-size:13px; opacity:0.85; margin-top:2px; }
-.videoCallActions{
-  position:absolute; bottom:36px; left:0; width:100%;
-  display:flex; gap:22px; justify-content:center; flex-wrap:wrap; padding:0 20px; box-sizing:border-box;
-}
-.vcActionBtn{
-  width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; transition:transform 0.15s, background 0.15s;
-  background: rgba(30,30,30,0.55);
-  color:white;
-}
-.vcActionBtn:active{ transform:scale(0.88); }
-.vcActionBtn svg{ width:24px; height:24px; }
-#vcEndBtn{ background:#ff3b30 !important; color:white !important; }
-/* WhatsApp-style: OFF state = translucent dark w/ white icon.
-   ON/active-toggled state = solid white circle w/ colored icon. */
-#vcMuteBtn.active, #vcCamBtn.active{ background:#ffffff !important; color:#ff3b30 !important; }
-#vcIncomingActions{ display:none; }
-#vcActiveActions{ display:none; }
-.vcBtnWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.75); font-size:11px; }
-.vcMutedPill{
-  position:absolute; top:76px; left:16px; z-index:2;
-  background:rgba(0,0,0,0.55); color:white; font-size:12.5px;
-  padding:6px 12px; border-radius:16px; display:none;
-}
-.vcMutedPill.show{ display:block; }
-.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.7); font-size:11px; }
-
 </style>
 <link rel="stylesheet" href="story.css">
 <link rel="stylesheet" href="shorts.css">
@@ -1717,8 +1318,8 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
 <body>
 
 <div id="access">
-<h2 id="accessTitle">Enter Access Key</h2>
-<input id="key" type="password" pattern="[0-9]*" placeholder="Key" maxlength="6" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" data-lpignore="true" data-1p-ignore="true" data-form-type="other" data-bwignore="true" data-dashlane-ignore="true">
+<h2>Enter Access Key</h2>
+<input id="key" placeholder="Key" maxlength="6">
 <button onclick="unlock()">Enter</button>
 </div>
 
@@ -1742,18 +1343,10 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
   <div id="headerInfo">
     <div id="headerName">Private Chat</div>
     <div id="statusText">Offline</div>
-    <div id="moodTag"></div>
   </div>
-  <button id="callBtn" onclick="initiateCall()" title="Voice Call">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
-  </button>
-  <button id="videoCallBtn" onclick="initiateVideoCall()" title="Video Call">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>
-  </button>
+  <button id="callBtn" onclick="initiateCall()" title="Voice Call">📞</button>
   <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
-
-<div id="connectionBadge"><span class="connDot"></span><span id="connectionBadgeText">Reconnecting…</span></div>
 
 <!-- ✅ 3-DOT MENU UI — Instagram / WhatsApp Style -->
 <div id="menuBackdrop"></div>
@@ -1787,18 +1380,21 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
     </svg>
   </div>
 
-  <div class="menuItem" id="notifToggleItem" onclick="toggleNotifications()">
+  <div class="menuItem" id="gifToggleItem" onclick="toggleGifSuggestions()">
     <div class="menuIconBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+        <line x1="7" y1="2" x2="7" y2="22"></line>
+        <line x1="17" y1="2" x2="17" y2="22"></line>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <line x1="2" y1="7" x2="7" y2="7"></line>
+        <line x1="2" y1="17" x2="7" y2="17"></line>
+        <line x1="17" y1="17" x2="22" y2="17"></line>
+        <line x1="17" y1="7" x2="22" y2="7"></line>
       </svg>
     </div>
-    <div style="flex:1;overflow:hidden;">
-      <div class="menuText" style="margin-bottom:1px;">Notification</div>
-      <div class="menuSubText">Receive message notifications</div>
-    </div>
-    <div class="menuToggleSwitch" id="notifToggleSwitch"></div>
+    <span class="menuText">GIF Suggestions</span>
+    <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
   </div>
 
   <div class="menuItem" id="darkThemeItem" onclick="toggleDarkTheme(event)">
@@ -1809,19 +1405,6 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
     </div>
     <span class="menuText">Dark Theme</span>
     <div class="menuToggleSwitch" id="darkThemeSwitch"></div>
-  </div>
-
-  <div class="menuItem" id="keepNoteItem" onclick="openNotesModal()">
-    <div class="menuIconBox">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 11H3v10h18V11h-6"></path>
-        <path d="M15 3l6 6-9 9H6v-6z"></path>
-      </svg>
-    </div>
-    <span class="menuText">Keep Note</span>
-    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
   </div>
 
   <div class="menuItem softRed" onclick="deleteAll()">
@@ -1845,33 +1428,6 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
       </svg>
     </div>
     <span class="menuText" id="blockBtnText">Block User</span>
-    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </div>
-
-  <div class="menuItem dangerRed" id="logoutBtn" onclick="logoutDevice()">
-    <div class="menuIconBox">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
-      </svg>
-    </div>
-    <span class="menuText">Logout</span>
-    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </div>
-
-  <div class="menuItem" id="settingsMenuItem" onclick="openSettingsModal()">
-    <div class="menuIconBox">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-    </div>
-    <span class="menuText">Settings</span>
     <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
@@ -1975,147 +1531,6 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     SETTINGS MODAL — Disappearing Messages, Wallpaper, Theme, Mood
-     ═══════════════════════════════════════════════════════ -->
-<div id="settingsModal">
-  <div class="settingsSheet">
-    <div class="settingsHandle"></div>
-    <div class="settingsHeader">
-      <h2><span class="backArrow" id="settingsBackArrow" onclick="closeSettingsSubview()">←</span><span id="settingsTitle">Settings</span></h2>
-      <button class="settingsCloseBtn" onclick="closeSettingsModal()">✕</button>
-    </div>
-
-    <div id="settingsMainView">
-      <div class="settingsSection">
-        <div class="settingsSectionTitle">Chat</div>
-        <div class="settingsRow" onclick="openDisappearingView()">
-          <div class="settingsRowLabel">⏱ Disappearing Messages</div>
-          <div class="settingsRowValue" id="disappearingValueLabel">Disable ›</div>
-        </div>
-        <div class="settingsRow" onclick="toggleGifSuggestions()" style="cursor:pointer;">
-          <div class="settingsRowLabel">🎞 GIF Suggestions</div>
-          <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
-        </div>
-      </div>
-
-      <div class="settingsSection">
-        <div class="settingsRowLabel" style="margin-bottom:2px;">🎨 Chat Theme</div>
-        <div class="themeGrid" id="themeGrid"></div>
-      </div>
-
-      <div class="settingsSection">
-        <div class="settingsSectionTitle">Status</div>
-        <div class="settingsRowLabel" style="margin-bottom:2px;">😴 Your Mood / Status</div>
-        <div class="moodInputRow">
-          <input id="moodInput" placeholder="What's on your mind?" maxlength="30">
-          <button id="moodSaveBtn" onclick="saveMood()">Save</button>
-        </div>
-        <div class="moodPresets" id="moodPresets"></div>
-        <button class="moodClearBtn" onclick="clearMood()">Clear status</button>
-      </div>
-    </div>
-
-    <div id="disappearingView" style="display:none;">
-      <div class="settingsSection">
-        <div class="settingsRowLabel" style="margin-bottom:10px;">Messages will disappear from this chat after the selected time.</div>
-        <div class="optionList" id="disappearingOptionList"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     KEEP NOTE MODAL
-     ═══════════════════════════════════════════════════════ -->
-<div id="notesModal">
-  <div class="notesSheet" style="position:relative;">
-    <div id="notesListView" style="display:flex; flex-direction:column; height:100%;">
-      <div class="notesHeader">
-        <h2>📝 Keep Note</h2>
-        <button class="settingsCloseBtn" onclick="closeNotesModal()">✕</button>
-      </div>
-      <div class="notesListWrap" id="notesListWrap">
-        <div class="noteEmptyState">No notes yet. Tap + to add one.</div>
-      </div>
-      <button class="notesFab" onclick="openNoteEditor(null)">＋</button>
-    </div>
-
-    <div id="noteEditorView">
-      <div class="notesHeader">
-        <h2><span class="backArrow" style="display:inline;cursor:pointer;" onclick="closeNoteEditor()">←</span> Note</h2>
-        <button class="settingsCloseBtn" id="noteDeleteBtn" onclick="deleteCurrentNote()" title="Delete">🗑️</button>
-      </div>
-      <textarea class="noteEditorTextarea" id="noteEditorTextarea" placeholder="Write your note..."></textarea>
-      <div class="noteEditorFooter" id="noteEditorFooter"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     VIDEO CALL OVERLAY — separate from the existing audio call
-     ═══════════════════════════════════════════════════════ -->
-<div id="videoCallOverlay">
-  <video id="remoteVideoEl" autoplay playsinline></video>
-
-  <div class="vcControlsLayer" id="vcControlsLayer">
-    <div class="videoCallTopBar">
-      <div class="vcName" id="vcName">Kitty</div>
-      <div class="vcStatus" id="vcStatus">Calling...</div>
-    </div>
-
-    <div class="vcMutedPill" id="vcMutedPill"><span id="vcMutedPillText"></span></div>
-
-    <div class="videoCallActions" id="vcIncomingActions">
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcRejectBtn" onclick="rejectVideoCall()" style="background:#ff3b30;color:white;">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-        </button>
-        <div class="vcLabel">Decline</div>
-      </div>
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcAcceptBtn" onclick="acceptVideoCall()" style="background:#34c759;color:white;">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
-        </button>
-        <div class="vcLabel">Accept</div>
-      </div>
-    </div>
-
-    <div class="videoCallActions" id="vcActiveActions">
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcMuteBtn" onclick="toggleVideoCallMute()">
-          <span id="vcMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
-        </button>
-        <div class="vcLabel" id="vcMuteLabel">Mute</div>
-      </div>
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcCamBtn" onclick="toggleVideoCallCam()">
-          <span id="vcCamIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></span>
-        </button>
-        <div class="vcLabel" id="vcCamLabel">Camera</div>
-      </div>
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcSwitchBtn" onclick="switchVideoCallCamera()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-        </button>
-        <div class="vcLabel">Flip</div>
-      </div>
-      <div class="vcBtnWrap">
-        <button class="vcActionBtn" id="vcEndBtn" onclick="endVideoCall()">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-        </button>
-        <div class="vcLabel">End</div>
-      </div>
-    </div>
-  </div>
-
-  <video id="localVideoEl" autoplay playsinline muted></video>
-</div>
-
-<audio id="vcRingtoneAudio" loop>
-  <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
-</audio>
-
 <div id="callOverlay">
   <div class="callTop">
     <img id="callAvatar" src="" alt="">
@@ -2126,36 +1541,26 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
 
   <div id="incomingActions" class="callActions">
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-      </button>
+      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">📵</button>
       <div class="callLabel">Decline</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
-      </button>
+      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">📞</button>
       <div class="callLabel">Accept</div>
     </div>
   </div>
 
   <div id="activeActions" class="callActions">
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">
-        <span id="acMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
-      </button>
+      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">🎤</button>
       <div class="callLabel" id="muteLabel">Mute</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-      </button>
+      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">📵</button>
       <div class="callLabel">End</div>
     </div>
     <div class="callBtnWrap">
-      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/><path d="M14 3.23v2.06a7 7 0 0 1 0 13.42v2.06A9 9 0 0 0 14 3.23z"/></svg>
-      </button>
+      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
       <div class="callLabel" id="speakerLabel">Speaker</div>
     </div>
   </div>
@@ -2174,10 +1579,8 @@ body.dark-theme .noteEditorTextarea{ color:#e9edef; }
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-import { getDatabase, ref, push, onChildAdded, onChildChanged, onChildRemoved, remove, set, onValue, onDisconnect, update, get, off }
+import { getDatabase, ref, push, onChildAdded, onChildChanged, remove, set, onValue, onDisconnect, update, get, off }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
-import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
@@ -2198,28 +1601,6 @@ fetch(BACKEND).catch(()=>{})
 const bgCount = 59
 const bgIndex = Math.floor(Math.random() * bgCount) + 1
 document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
-
-// Register the FCM service worker as early as possible so it's ready
-// before the person logs in (registration itself needs no username).
-let swRegistration = null
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("/firebase-messaging-sw.js")
-    .then(reg=>{ swRegistration = reg })
-    .catch(err=>console.warn("SW registration failed", err))
-}
-
-// ─────────────────────────────────────────────
-// APP LOCK — device stays logged in after the first
-// successful login; only the access code is asked again.
-// ─────────────────────────────────────────────
-function encodeSavedPass(p){ try{ return btoa(unescape(encodeURIComponent(p))) }catch(e){ return p } }
-function decodeSavedPass(p){ try{ return decodeURIComponent(escape(atob(p))) }catch(e){ return p } }
-
-const hasSavedDeviceLogin = !!(localStorage.getItem("savedUser") && localStorage.getItem("savedPassEnc"))
-if(hasSavedDeviceLogin){
-  const t = document.getElementById("accessTitle")
-  if(t) t.innerText = "🔒 Enter Access Code"
-}
 
 let username = ""
 let otherUser = ""
@@ -3163,896 +2544,6 @@ window.toggleReaction=async function(msgKey,emoji){
 }
 
 // ─────────────────────────────────────────────
-// PUSH NOTIFICATIONS — Firebase Cloud Messaging
-// ─────────────────────────────────────────────
-const VAPID_KEY = "BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
-
-let messagingInstance = null
-let pushInitialized = false
-let onMessageBound = false
-
-function getDeviceId(){
-  let id = localStorage.getItem("deviceId")
-  if(!id){
-    id = (crypto.randomUUID ? crypto.randomUUID() : "dev_"+Date.now()+"_"+Math.random().toString(36).slice(2))
-    localStorage.setItem("deviceId", id)
-  }
-  return id
-}
-
-async function initPushNotifications(){
-  if(pushInitialized) return
-  pushInitialized = true
-
-  if(!("Notification" in window) || !("serviceWorker" in navigator)) return
-
-  try{
-    const supported = await isMessagingSupported().catch(()=>false)
-    if(!supported) return
-  } catch(e){ return }
-
-  try{
-    if(!swRegistration){
-      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
-    }
-    messagingInstance = getMessaging(app)
-
-    // Ask for permission exactly once, ever.
-    const askedBefore = localStorage.getItem("notifPermissionAsked")
-    if(Notification.permission === "default" && !askedBefore){
-      localStorage.setItem("notifPermissionAsked","1")
-      await Notification.requestPermission()
-    }
-
-    if(!onMessageBound){
-      onMessageBound = true
-      onMessage(messagingInstance, ()=>{
-        // Foreground messages: the Realtime Database listener above
-        // already updates the UI live, so no separate OS notification
-        // is shown here — this prevents duplicate/ghost alerts.
-      })
-    }
-  } catch(e){
-    console.warn("Push notification setup failed", e)
-  }
-}
-
-async function refreshFcmToken(){
-  if(!messagingInstance || Notification.permission!=="granted") return
-  if(!VAPID_KEY || VAPID_KEY.length < 50 || VAPID_KEY.includes("PASTE")){
-    console.warn("⚠️ VAPID_KEY সঠিকভাবে বসানো নেই — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
-    return
-  }
-  try{
-    const token = await getToken(messagingInstance, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: swRegistration
-    })
-    if(token){
-      await set(ref(db, "fcmTokens/"+username+"/"+getDeviceId()), {
-        token,
-        updated: Date.now(),
-        ua: navigator.userAgent.slice(0,120)
-      })
-      console.log("✅ FCM token saved for this device")
-    } else {
-      console.warn("⚠️ getToken() returned no token — check notification permission & VAPID key")
-    }
-  } catch(e){
-    console.warn("FCM token fetch failed", e)
-  }
-}
-
-let tokenRefreshInterval = null
-
-function enablePushToken(){
-  if(Notification.permission !== "granted"){
-    // Ask now — this is an explicit user action (toggled ON), so it's
-    // fine to prompt even if we stayed quiet earlier. If the user has
-    // already denied it at the browser level we can't override that;
-    // the toggle will simply have no effect until they re-enable it
-    // from the browser's own site settings.
-    if(Notification.permission === "denied"){
-      alert("⚠️ Notification permission blocked আছে ব্রাউজারে। Browser address bar-এর lock/site-info icon → Permissions → Notifications → Allow করে আবার চেষ্টা করুন।")
-      return
-    }
-    Notification.requestPermission().then(()=>{
-      if(Notification.permission==="granted") enablePushToken()
-    })
-    return
-  }
-  refreshFcmToken()
-  if(!tokenRefreshInterval) tokenRefreshInterval = setInterval(refreshFcmToken, 60*60*1000)
-}
-
-function disablePushToken(){
-  if(tokenRefreshInterval){ clearInterval(tokenRefreshInterval); tokenRefreshInterval=null }
-  remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId())).catch(()=>{})
-}
-
-// ── Notification ON/OFF toggle — saved per ACCOUNT (username), so it
-//    stays the same across logout/login and every device on this account ──
-let notifEnabled = true
-let _notifRef = null
-
-function updateNotifToggleLabel(){
-  const sw = document.getElementById("notifToggleSwitch")
-  if(!sw) return
-  if(notifEnabled) sw.classList.add("active")
-  else sw.classList.remove("active")
-}
-
-function listenNotifPreference(){
-  // Instant local restore — no waiting on the network round trip —
-  // then Firebase (source of truth) confirms/corrects it right after.
-  const cached = localStorage.getItem("notifEnabled")
-  if(cached !== null){
-    notifEnabled = cached === "on"
-    updateNotifToggleLabel()
-  }
-
-  _notifRef = ref(db, "userSettings/"+username+"/notifications")
-  onValue(_notifRef, snap=>{
-    const val = snap.val()
-    if(val === null){
-      notifEnabled = cached !== null ? (cached === "on") : true
-      set(_notifRef, notifEnabled ? "on" : "off").catch(()=>{})
-    } else {
-      notifEnabled = val === "on"
-    }
-    localStorage.setItem("notifEnabled", notifEnabled ? "on" : "off")
-    updateNotifToggleLabel()
-    if(notifEnabled) enablePushToken()
-    else disablePushToken()
-  })
-}
-
-window.toggleNotifications = function(){
-  if(!_notifRef) return
-  const newVal = !notifEnabled
-  notifEnabled = newVal
-  updateNotifToggleLabel()
-  localStorage.setItem("notifEnabled", newVal ? "on" : "off")
-  set(_notifRef, newVal ? "on" : "off").catch(()=>{})
-  if(newVal) enablePushToken()
-  else disablePushToken()
-}
-
-// ── Logout — clears ONLY this device's saved login/session.
-//    Notification preference and the FCM token are left untouched, so
-//    notifications keep working (and stay in the same ON/OFF state)
-//    the next time this device logs back in. ──
-window.logoutDevice = async function(){
-  closeMenuBox()
-  if(!confirm("Logout from this device? You will need username & password again next time.")) return
-  try{
-    await set(ref(db, "activeViewers/"+username), {active:false, last:Date.now()})
-    await set(ref(db, "status/"+username), {online:false,last:Date.now()})
-  }catch(e){}
-  localStorage.removeItem("savedUser")
-  localStorage.removeItem("savedPassEnc")
-  localStorage.removeItem("chatUser")
-  location.reload()
-}
-
-// ── Active-viewer tracking — lets the backend skip the push when the
-//    recipient already has this chat open & focused. Uses a heartbeat
-//    (active + last-updated timestamp) instead of a plain boolean, so a
-//    missed "went to background" event can never leave it stuck "true"
-//    forever and silently block every future notification. ──
-let activeHeartbeatInterval = null
-function setupActiveViewerTracking(){
-  const activeRef = ref(db, "activeViewers/"+username)
-  const isChatVisible = ()=> document.visibilityState==="visible" && document.hasFocus()
-
-  function setActive(state){
-    set(activeRef, { active: state, last: Date.now() }).catch(()=>{})
-  }
-
-  function onResume(){
-    setActive(isChatVisible())
-    // Re-check the FCM token every time the app is brought back to the
-    // foreground (opened from background/closed/locked). getToken() is
-    // cheap and returns the same token if it's still valid — but if
-    // Android/Chrome silently rotated or expired it while the app sat
-    // in the background, this is what re-registers a fresh one instead
-    // of leaving a dead token in fcmTokens forever.
-    if(isChatVisible() && notifEnabled) refreshFcmToken()
-  }
-
-  setActive(isChatVisible())
-  onDisconnect(activeRef).set({ active:false, last:Date.now() })
-
-  if(activeHeartbeatInterval) clearInterval(activeHeartbeatInterval)
-  activeHeartbeatInterval = setInterval(()=>{ setActive(isChatVisible()) }, 10000)
-
-  document.addEventListener("visibilitychange", onResume)
-  window.addEventListener("focus", onResume)
-  window.addEventListener("pageshow", onResume)
-  window.addEventListener("blur", ()=> setActive(isChatVisible()))
-  window.addEventListener("pagehide", ()=> setActive(false))
-}
-
-// ── Ask the backend to push a notification to the other user ──
-async function sendPushNotification(message, key, toUser){
-  let preview = message.text || ""
-  let type = message.type || "text"
-  if(preview.startsWith("__voice__")){ preview="Voice message"; type="voice" }
-  else if(preview.startsWith("__gif__")){ preview="GIF"; type="gif" }
-  else if(type==="image") preview="Photo"
-  else if(type==="video") preview="Video"
-  else preview = preview.slice(0,100)
-
-  const replyPreview = (message.replyTo && message.replyTo.text) ? message.replyTo.text : ""
-
-  try{
-    const res = await fetch(BACKEND+"/send-notification", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        toUser,
-        fromUser: username,
-        fromNick: getNick(username),
-        avatar: getAvatar(username),
-        type,
-        preview,
-        replyPreview,
-        msgKey: key
-      })
-    })
-    const result = await res.json().catch(()=>null)
-    console.log("send-notification result:", result)
-  } catch(e){ /* chat still works fine without push */ }
-}
-
-// ═══════════════════════════════════════════════════════
-// CONNECTION STATUS BADGE
-// ═══════════════════════════════════════════════════════
-function setupConnectionBadge(){
-  const badge = document.getElementById("connectionBadge")
-  const badgeText = document.getElementById("connectionBadgeText")
-  let firstCheck = true
-  onValue(ref(db, ".info/connected"), snap=>{
-    const connected = snap.val() === true
-    if(firstCheck){ firstCheck = false; return } // don't flash on initial load
-    if(connected){
-      if(badge.classList.contains("show")){
-        badgeText.innerText = "Connected"
-        badge.classList.add("connected")
-        setTimeout(()=>{ badge.classList.remove("show"); badge.classList.remove("connected") }, 1500)
-      }
-    } else {
-      badgeText.innerText = "Reconnecting…"
-      badge.classList.remove("connected")
-      badge.classList.add("show")
-    }
-  })
-}
-
-// ═══════════════════════════════════════════════════════
-// MOOD / STATUS TAG
-// ═══════════════════════════════════════════════════════
-const MOOD_PRESETS = ["😴 Sleeping","📚 Studying","💻 Working","🍽 Eating","🎮 Gaming","🚌 Traveling","😌 Chilling","❤️ Thinking of you"]
-const MOOD_TTL_MS = 24*60*60*1000 // status auto-expires after 24 hours
-
-let latestOtherMood = null
-let latestOwnMood = null
-
-function isMoodExpired(moodObj){
-  if(!moodObj || !moodObj.time) return true
-  return (Date.now() - moodObj.time) >= MOOD_TTL_MS
-}
-
-function renderMoodTag(){
-  const tag = document.getElementById("moodTag")
-  if(!tag) return
-  if(latestOtherMood && !isMoodExpired(latestOtherMood)){
-    tag.innerText = latestOtherMood.text
-    tag.style.display = "block"
-  } else {
-    tag.innerText = ""
-    tag.style.display = "none"
-  }
-}
-
-function checkMoodExpiryTick(){
-  // Re-render (hides an other-user status the instant it crosses 24h,
-  // even with no new Firebase write in between).
-  renderMoodTag()
-  // Self-clean my own expired status so it doesn't linger forever.
-  if(latestOwnMood && isMoodExpired(latestOwnMood)){
-    set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
-  }
-}
-
-let moodExpiryInterval = null
-function listenMoodTag(){
-  onValue(ref(db, "userSettings/"+otherUser+"/mood"), snap=>{
-    latestOtherMood = snap.val()
-    renderMoodTag()
-  })
-  onValue(ref(db, "userSettings/"+username+"/mood"), snap=>{
-    latestOwnMood = snap.val()
-    const input = document.getElementById("moodInput")
-    if(input && document.activeElement !== input){
-      input.value = (latestOwnMood && !isMoodExpired(latestOwnMood)) ? latestOwnMood.text : ""
-    }
-  })
-  if(moodExpiryInterval) clearInterval(moodExpiryInterval)
-  moodExpiryInterval = setInterval(checkMoodExpiryTick, 60000)
-}
-
-function setMood(text){
-  set(ref(db, "userSettings/"+username+"/mood"), { text, time: Date.now() }).catch(()=>{})
-}
-
-window.saveMood = function(){
-  const val = document.getElementById("moodInput").value.trim()
-  if(!val) return
-  setMood(val)
-  const btn = document.getElementById("moodSaveBtn")
-  if(btn){
-    const original = btn.innerText
-    btn.innerText = "Saved ✓"
-    btn.disabled = true
-    setTimeout(()=>{ btn.innerText = original; btn.disabled = false }, 1500)
-  }
-}
-
-window.clearMood = function(){
-  document.getElementById("moodInput").value = ""
-  set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
-}
-
-function renderMoodPresets(){
-  const wrap = document.getElementById("moodPresets")
-  if(!wrap || wrap.childElementCount) return
-  MOOD_PRESETS.forEach(p=>{
-    const btn = document.createElement("button")
-    btn.className = "moodPresetBtn"
-    btn.innerText = p
-    btn.onclick = ()=>{
-      document.getElementById("moodInput").value = p
-      setMood(p)
-    }
-    wrap.appendChild(btn)
-  })
-}
-
-// ═══════════════════════════════════════════════════════
-// SETTINGS MODAL — navigation shell
-// ═══════════════════════════════════════════════════════
-window.openSettingsModal = function(){
-  closeMenuBox()
-  document.getElementById("settingsModal").classList.add("active")
-  document.getElementById("settingsMainView").style.display = "block"
-  document.getElementById("disappearingView").style.display = "none"
-  document.getElementById("settingsBackArrow").style.display = "none"
-  document.getElementById("settingsTitle").innerText = "Settings"
-  renderMoodPresets()
-}
-window.closeSettingsModal = function(){
-  document.getElementById("settingsModal").classList.remove("active")
-}
-window.openDisappearingView = function(){
-  document.getElementById("settingsMainView").style.display = "none"
-  document.getElementById("disappearingView").style.display = "block"
-  document.getElementById("settingsBackArrow").style.display = "inline"
-  document.getElementById("settingsTitle").innerText = "Disappearing Messages"
-  renderDisappearingOptions()
-}
-window.closeSettingsSubview = function(){
-  document.getElementById("settingsMainView").style.display = "block"
-  document.getElementById("disappearingView").style.display = "none"
-  document.getElementById("settingsBackArrow").style.display = "none"
-  document.getElementById("settingsTitle").innerText = "Settings"
-}
-
-// ═══════════════════════════════════════════════════════
-// DISAPPEARING MESSAGES — shared chat-wide setting
-// ═══════════════════════════════════════════════════════
-let currentDisappearing = "off"
-let disappearingPruneInterval = null
-const DISAPPEARING_OPTIONS = [
-  {val:"24", label:"24 Hours"},
-  {val:"8",  label:"8 Hours"},
-  {val:"4",  label:"4 Hours"},
-  {val:"off", label:"Disable"}
-]
-
-function listenDisappearingMessages(){
-  onValue(ref(db, "chatSettings/disappearingMessages"), snap=>{
-    const data = snap.val()
-    currentDisappearing = (data && data.duration) ? data.duration : "off"
-    const label = DISAPPEARING_OPTIONS.find(o=>o.val===currentDisappearing)
-    const lbl = document.getElementById("disappearingValueLabel")
-    if(lbl) lbl.innerText = (label ? label.label : "Disable") + " ›"
-    renderDisappearingOptions()
-
-    if(disappearingPruneInterval){ clearInterval(disappearingPruneInterval); disappearingPruneInterval=null }
-    if(currentDisappearing !== "off"){
-      pruneExpiredMessages()
-      disappearingPruneInterval = setInterval(pruneExpiredMessages, 60000)
-    }
-  })
-}
-
-function renderDisappearingOptions(){
-  const list = document.getElementById("disappearingOptionList")
-  if(!list) return
-  list.innerHTML = ""
-  DISAPPEARING_OPTIONS.forEach(opt=>{
-    const item = document.createElement("div")
-    item.className = "optionItem" + (opt.val===currentDisappearing ? " selected" : "")
-    item.innerHTML = `<div class="optionItemLabel">${opt.label}</div><div class="optionCheck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
-    item.onclick = ()=> setDisappearing(opt.val)
-    list.appendChild(item)
-  })
-}
-
-async function setDisappearing(val){
-  if(val === currentDisappearing) return
-  await set(ref(db, "chatSettings/disappearingMessages"), { duration: val, changedBy: username, time: Date.now() })
-  await push(ref(db, "messages"), { type:"system", action:"disappearing", actor:username, duration:val, time: Date.now() })
-  closeSettingsSubview()
-}
-
-async function pruneExpiredMessages(){
-  if(currentDisappearing === "off") return
-  const hours = parseInt(currentDisappearing, 10)
-  if(!hours) return
-  const cutoff = Date.now() - hours*60*60*1000
-  try{
-    const snap = await get(ref(db, "messages"))
-    const data = snap.val()
-    if(!data) return
-    const deletions = []
-    Object.entries(data).forEach(([key, msg])=>{
-      if(msg.type!=="system" && msg.time && msg.time < cutoff){
-        deletions.push(remove(ref(db, "messages/"+key)).catch(()=>{}))
-      }
-    })
-    await Promise.all(deletions)
-  } catch(e){}
-}
-
-// ═══════════════════════════════════════════════════════
-// THEME INIT (personal, this device)
-// ═══════════════════════════════════════════════════════
-function initWallpaperAndThemeUI(){
-  const savedTheme = localStorage.getItem("chatTheme")
-  if(savedTheme) applyTheme_chatGradient(savedTheme)
-  renderThemeGrid()
-}
-
-// ═══════════════════════════════════════════════════════
-// CHAT THEME / COLOR PACKS (personal, this device)
-// ═══════════════════════════════════════════════════════
-const CHAT_THEMES = [
-  { id:"default", swatch:"linear-gradient(135deg,#c8d8f8,#e8c0e0,#e0b8d8)", css:null },
-  { id:"ocean",   swatch:"linear-gradient(135deg,#a2d9f7,#7ec8f7,#5aa8e0)", css:"linear-gradient(180deg,#c8ecf8 0%,#a8e0f0 30%,#8ecfe8 60%,#7ec8f7 100%)" },
-  { id:"sunset",  swatch:"linear-gradient(135deg,#ffd39a,#ff9a8b,#e899d4)", css:"linear-gradient(180deg,#ffe8c8 0%,#ffd0b0 30%,#ffaea0 60%,#e899d4 100%)" },
-  { id:"mint",    swatch:"linear-gradient(135deg,#b8f0d0,#8fe0b8,#7ec8a0)", css:"linear-gradient(180deg,#d4f8e4 0%,#b8f0d0 30%,#9ce8c0 60%,#7ec8a0 100%)" },
-  { id:"midnight",swatch:"linear-gradient(135deg,#3a3a5a,#5a4a7a,#7a5a9a)", css:"linear-gradient(180deg,#2a2a4a 0%,#3a3a5a 30%,#4a3a6a 60%,#5a4a7a 100%)" }
-]
-
-function applyTheme_chatGradient(themeId){
-  const t = CHAT_THEMES.find(x=>x.id===themeId)
-  const chatEl = document.getElementById("chat")
-  if(!t || !t.css){ chatEl.style.background = ""; return }
-  chatEl.style.background = t.css
-}
-
-function renderThemeGrid(){
-  const grid = document.getElementById("themeGrid")
-  if(!grid) return
-  const current = localStorage.getItem("chatTheme") || "default"
-  grid.innerHTML = ""
-  CHAT_THEMES.forEach(t=>{
-    const sw = document.createElement("div")
-    sw.className = "themeSwatch" + (current===t.id ? " selected" : "")
-    sw.style.background = t.swatch
-    sw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
-    sw.onclick = ()=>{ localStorage.setItem("chatTheme", t.id); applyTheme_chatGradient(t.id); renderThemeGrid() }
-    grid.appendChild(sw)
-  })
-}
-
-// ═══════════════════════════════════════════════════════
-// KEEP NOTE — per-user, Firebase-persisted (survives refresh/logout)
-// ═══════════════════════════════════════════════════════
-let currentNoteId = null
-let notesCache = {}
-
-window.openNotesModal = async function(){
-  closeMenuBox()
-  document.getElementById("notesModal").classList.add("active")
-  document.getElementById("notesListView").style.display = "flex"
-  document.getElementById("noteEditorView").classList.remove("active")
-  await refreshNotesList()
-}
-window.closeNotesModal = function(){
-  document.getElementById("notesModal").classList.remove("active")
-}
-
-async function refreshNotesList(){
-  const wrap = document.getElementById("notesListWrap")
-  try{
-    const snap = await get(ref(db, "notes/"+username))
-    notesCache = snap.val() || {}
-  } catch(e){ notesCache = {} }
-
-  const entries = Object.entries(notesCache).sort((a,b)=> (b[1].updated||0)-(a[1].updated||0))
-  if(!entries.length){
-    wrap.innerHTML = `<div class="noteEmptyState">No notes yet. Tap + to add one.</div>`
-    return
-  }
-  wrap.innerHTML = ""
-  entries.forEach(([id, note])=>{
-    const card = document.createElement("div")
-    card.className = "noteCard"
-    const d = new Date(note.updated || Date.now())
-    const timeStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) + " · " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
-    card.innerHTML = `<div class="noteCardText">${(note.text||"").replace(/</g,"&lt;")}</div><div class="noteCardMeta"><span class="noteCardTime">${timeStr}</span></div>`
-    card.onclick = ()=> openNoteEditor(id)
-    wrap.appendChild(card)
-  })
-}
-
-window.openNoteEditor = function(noteId){
-  currentNoteId = noteId
-  const textarea = document.getElementById("noteEditorTextarea")
-  const footer = document.getElementById("noteEditorFooter")
-  const deleteBtn = document.getElementById("noteDeleteBtn")
-  if(noteId && notesCache[noteId]){
-    textarea.value = notesCache[noteId].text || ""
-    footer.innerText = "Edited " + new Date(notesCache[noteId].updated).toLocaleString()
-    deleteBtn.style.display = "inline-block"
-  } else {
-    textarea.value = ""
-    footer.innerText = ""
-    deleteBtn.style.display = "none"
-  }
-  document.getElementById("notesListView").style.display = "none"
-  document.getElementById("noteEditorView").classList.add("active")
-  setTimeout(()=> textarea.focus(), 100)
-}
-
-window.closeNoteEditor = async function(){
-  const text = document.getElementById("noteEditorTextarea").value.trim()
-  if(text){
-    const id = currentNoteId || ("note_"+Date.now())
-    await set(ref(db, "notes/"+username+"/"+id), { text, updated: Date.now() }).catch(()=>{})
-  } else if(currentNoteId){
-    // saved-but-emptied note gets removed
-    await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
-  }
-  currentNoteId = null
-  document.getElementById("notesListView").style.display = "flex"
-  document.getElementById("noteEditorView").classList.remove("active")
-  await refreshNotesList()
-}
-
-window.deleteCurrentNote = async function(){
-  if(!currentNoteId) return
-  if(!confirm("Delete this note?")) return
-  await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
-  currentNoteId = null
-  document.getElementById("notesListView").style.display = "flex"
-  document.getElementById("noteEditorView").classList.remove("active")
-  await refreshNotesList()
-}
-
-// ═══════════════════════════════════════════════════════
-// VIDEO CALL — fully separate signaling path/variables from
-// the existing audio call, so audio calling is never touched.
-// ═══════════════════════════════════════════════════════
-let vcPeerConnection = null
-let vcLocalStream = null
-let vcCurrentCallId = null
-let vcIsCallActive = false
-let vcIsMuted = false
-let vcIsCamOff = false
-let vcFacingMode = "user"
-
-function vcShowOverlay(mode){
-  document.getElementById("videoCallOverlay").classList.add("active")
-  document.getElementById("vcControlsLayer").classList.remove("hidden")
-  document.getElementById("vcName").innerText = getNick(otherUser)
-  document.getElementById("vcIncomingActions").style.display = "none"
-  document.getElementById("vcActiveActions").style.display = "none"
-
-  if(mode==="outgoing"){
-    document.getElementById("vcStatus").innerText = "Calling..."
-    document.getElementById("vcActiveActions").style.display = "flex"
-    document.getElementById("vcMuteBtn").style.display = "flex"
-    document.getElementById("vcCamBtn").style.display = "flex"
-    document.getElementById("vcSwitchBtn").style.display = "flex"
-  } else if(mode==="incoming"){
-    document.getElementById("vcStatus").innerText = "Incoming video call..."
-    document.getElementById("vcIncomingActions").style.display = "flex"
-    try{ document.getElementById("vcRingtoneAudio").play().catch(()=>{}) }catch(e){}
-  } else if(mode==="active"){
-    document.getElementById("vcStatus").innerText = "Connected"
-    document.getElementById("vcActiveActions").style.display = "flex"
-    document.getElementById("vcMuteBtn").style.display = "flex"
-    document.getElementById("vcCamBtn").style.display = "flex"
-    document.getElementById("vcSwitchBtn").style.display = "flex"
-    try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
-  }
-}
-
-// Tap anywhere on the video (not on a button) to hide/show the WhatsApp-style controls
-let vcControlsHidden = false
-document.getElementById("remoteVideoEl").addEventListener("click", ()=>{
-  vcControlsHidden = !vcControlsHidden
-  document.getElementById("vcControlsLayer").classList.toggle("hidden", vcControlsHidden)
-})
-
-function vcHideOverlay(){
-  document.getElementById("videoCallOverlay").classList.remove("active")
-  document.getElementById("vcControlsLayer").classList.remove("hidden")
-  vcControlsHidden = false
-  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
-}
-
-async function vcCreatePeerConnection(){
-  vcPeerConnection = new RTCPeerConnection(ICE_SERVERS)
-  if(vcLocalStream){
-    vcLocalStream.getTracks().forEach(track=> vcPeerConnection.addTrack(track, vcLocalStream))
-  }
-  vcPeerConnection.ontrack = e=>{
-    if(e.streams && e.streams[0]){
-      document.getElementById("remoteVideoEl").srcObject = e.streams[0]
-    }
-  }
-  vcPeerConnection.onicecandidate = e=>{
-    if(e.candidate && vcCurrentCallId){
-      push(ref(db, "videoCalls/"+vcCurrentCallId+"/candidates/"+username), e.candidate.toJSON())
-    }
-  }
-  vcPeerConnection.onconnectionstatechange = ()=>{
-    const state = vcPeerConnection.connectionState
-    if(state==="connected"){ vcShowOverlay("active"); vcIsCallActive=true }
-    else if(state==="disconnected"||state==="failed"||state==="closed"){
-      if(vcIsCallActive) endVideoCall()
-    }
-  }
-}
-
-window.initiateVideoCall = async function(){
-  if(vcIsCallActive) return
-  if(!username){ alert("Please login first"); return }
-  try{
-    vcLocalStream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:vcFacingMode},
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-    document.getElementById("localVideoEl").srcObject = vcLocalStream
-  } catch(e){ alert("Camera/Mic permission denied."); return }
-
-  vcCurrentCallId = "vc_"+username+"_"+Date.now()
-  vcIsCallActive = true
-  await vcCreatePeerConnection()
-
-  const offer = await vcPeerConnection.createOffer()
-  await vcPeerConnection.setLocalDescription(offer)
-
-  await set(ref(db, "videoCalls/"+vcCurrentCallId), {
-    caller: username, callee: otherUser, status: "ringing",
-    offer: { type: offer.type, sdp: offer.sdp }, time: Date.now()
-  })
-
-  vcShowOverlay("outgoing")
-
-  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/answer"), async snap=>{
-    const answer = snap.val()
-    if(answer && vcPeerConnection && vcPeerConnection.signalingState!=="stable"){
-      try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(answer)) }catch(e){}
-    }
-  })
-  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+otherUser), async snap=>{
-    const c = snap.val()
-    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
-  })
-  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
-    const status = snap.val()
-    if(status==="rejected"||status==="ended"){ scheduleVideoCallCleanup(vcCurrentCallId); vcCleanup() }
-  })
-}
-
-let vcPendingCallOffer = null
-function listenIncomingVideoCalls(){
-  onValue(ref(db,"videoCalls"), snap=>{
-    const calls = snap.val()
-    if(!calls) return
-    Object.entries(calls).forEach(([callId, callData])=>{
-      const isFresh = callData.time && (Date.now() - callData.time) < 45000
-      if(callData.callee===username && callData.status==="ringing" && callId!==vcCurrentCallId && isFresh){
-        if(!vcIsCallActive){ vcCurrentCallId = callId; vcPendingCallOffer = callData.offer || null; vcShowOverlay("incoming") }
-      }
-    })
-  })
-}
-
-window.acceptVideoCall = async function(){
-  if(!vcCurrentCallId) return
-  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
-  try{
-    vcLocalStream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:vcFacingMode},
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-    })
-    document.getElementById("localVideoEl").srcObject = vcLocalStream
-  } catch(e){ alert("Camera/Mic permission denied."); rejectVideoCall(); return }
-
-  await vcCreatePeerConnection()
-  document.getElementById("vcStatus").innerText = "Connecting..."
-  document.getElementById("vcIncomingActions").style.display = "none"
-
-  // Use the offer already delivered with the incoming-call payload
-  // instead of a slow re-fetch/poll loop.
-  let offer = vcPendingCallOffer
-  if(!offer){
-    const snap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/offer"))
-    offer = snap.val()
-  }
-  if(!offer){ vcCleanup(); return }
-
-  try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(offer)) }catch(e){ vcCleanup(); return }
-  const answer = await vcPeerConnection.createAnswer()
-  await vcPeerConnection.setLocalDescription(answer)
-  await update(ref(db,"videoCalls/"+vcCurrentCallId), { answer:{type:answer.type, sdp:answer.sdp}, status:"active" })
-
-  vcShowOverlay("active")
-  vcIsCallActive = true
-
-  const callerSnap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/caller"))
-  const caller = callerSnap.val() || otherUser
-  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+caller), async snap=>{
-    const c = snap.val()
-    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
-  })
-  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
-    if(snap.val()==="ended"){ scheduleVideoCallCleanup(vcCurrentCallId); vcCleanup() }
-  })
-}
-
-window.rejectVideoCall = async function(){
-  if(vcCurrentCallId){
-    await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"rejected"}).catch(()=>{})
-    scheduleVideoCallCleanup(vcCurrentCallId)
-  }
-  vcCleanup()
-}
-window.endVideoCall = async function(){
-  if(vcCurrentCallId){
-    await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"ended"}).catch(()=>{})
-    scheduleVideoCallCleanup(vcCurrentCallId)
-  }
-  vcCleanup()
-}
-function scheduleVideoCallCleanup(callId){
-  // Delete the finished call record a few seconds later (giving the
-  // other side's listener time to see the final status) so the
-  // videoCalls node never grows forever — an ever-growing node is
-  // exactly what makes future incoming-call detection slower over time.
-  setTimeout(()=>{ remove(ref(db, "videoCalls/"+callId)).catch(()=>{}) }, 8000)
-}
-function vcCleanup(){
-  vcIsCallActive = false
-  if(vcPeerConnection){ vcPeerConnection.close(); vcPeerConnection=null }
-  if(vcLocalStream){ vcLocalStream.getTracks().forEach(t=>t.stop()); vcLocalStream=null }
-  document.getElementById("remoteVideoEl").srcObject = null
-  document.getElementById("localVideoEl").srcObject = null
-  document.getElementById("localVideoEl").style.opacity = "1"
-  vcIsMuted=false; vcIsCamOff=false
-  document.getElementById("vcMuteBtn").classList.remove("active")
-  document.getElementById("vcCamBtn").classList.remove("active")
-  document.getElementById("vcMuteIcon").innerHTML = VC_ICON_MIC_ON
-  document.getElementById("vcCamIcon").innerHTML = VC_ICON_CAM_ON
-  document.getElementById("vcMutedPill").classList.remove("show")
-  vcCurrentCallId = null
-  vcPendingCallOffer = null
-  vcCachedVideoDevices = null
-  vcHideOverlay()
-}
-const VC_ICON_MIC_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`
-const VC_ICON_MIC_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5-2.24-5-5H5.29c0 3.53 2.61 6.43 6 6.92V21h2v-3.08a8.964 8.964 0 0 0 2.55-.75L20.73 21 22 19.73 4.27 3z"/></svg>`
-const VC_ICON_CAM_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>`
-const VC_ICON_CAM_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 2 2 3.27 4.73 6H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2zM6.83 8 15 16.17V17H5V8h1.83zM21 7l-4 4v-.34l-2-2V7l1.55 1.55L21 17v-6.5l-1.09-1.09L21 7z"/></svg>`
-
-window.toggleVideoCallMute = function(){
-  if(!vcLocalStream) return
-  vcIsMuted = !vcIsMuted
-  vcLocalStream.getAudioTracks().forEach(t=> t.enabled = !vcIsMuted)
-  document.getElementById("vcMuteBtn").classList.toggle("active", vcIsMuted)
-  document.getElementById("vcMuteLabel").innerText = vcIsMuted ? "Unmute" : "Mute"
-  document.getElementById("vcMuteIcon").innerHTML = vcIsMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
-  const pill = document.getElementById("vcMutedPill")
-  document.getElementById("vcMutedPillText").innerText = getNick(username) + " is muted."
-  pill.classList.toggle("show", vcIsMuted)
-}
-window.toggleVideoCallCam = function(){
-  if(!vcLocalStream) return
-  vcIsCamOff = !vcIsCamOff
-  vcLocalStream.getVideoTracks().forEach(t=> t.enabled = !vcIsCamOff)
-  document.getElementById("vcCamBtn").classList.toggle("active", vcIsCamOff)
-  document.getElementById("vcCamLabel").innerText = vcIsCamOff ? "Cam On" : "Camera"
-  document.getElementById("vcCamIcon").innerHTML = vcIsCamOff ? VC_ICON_CAM_OFF : VC_ICON_CAM_ON
-  document.getElementById("localVideoEl").style.opacity = vcIsCamOff ? "0.15" : "1"
-}
-let vcCachedVideoDevices = null
-
-async function vcGetVideoDevices(){
-  // Cache the device list per call — device labels/ids only become
-  // available (non-empty) after a getUserMedia permission was granted,
-  // which is already true by the time this is called mid-call.
-  try{
-    const devices = await navigator.mediaDevices.enumerateDevices()
-    vcCachedVideoDevices = devices.filter(d=> d.kind === "videoinput")
-  } catch(e){
-    vcCachedVideoDevices = []
-  }
-  return vcCachedVideoDevices
-}
-
-window.switchVideoCallCamera = async function(){
-  if(!vcLocalStream || !vcPeerConnection){ console.warn("Flip camera: no active call/stream"); return }
-
-  const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
-  const oldSettings = oldVideoTrack ? oldVideoTrack.getSettings() : {}
-
-  // Free the current camera BEFORE requesting the next one — on many
-  // Android/Chrome builds a second camera stays "busy" and silently
-  // fails to open if the first track hasn't been stopped yet, which is
-  // the most common reason camera flip does nothing.
-  if(oldVideoTrack) oldVideoTrack.stop()
-
-  const devices = vcCachedVideoDevices || await vcGetVideoDevices()
-  let newVideoTrack = null
-
-  try{
-    if(devices.length >= 2){
-      // Prefer explicit deviceId cycling — far more reliable across
-      // devices than relying on the facingMode constraint alone.
-      const currentId = oldSettings.deviceId
-      const currentIdx = devices.findIndex(d=> d.deviceId === currentId)
-      const nextDevice = devices[(currentIdx + 1 + devices.length) % devices.length]
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: nextDevice.deviceId } }
-      })
-      newVideoTrack = stream.getVideoTracks()[0]
-    } else {
-      // Fallback: only one enumerable camera, or enumeration failed —
-      // fall back to the facingMode constraint.
-      const nextFacing = vcFacingMode==="user" ? "environment" : "user"
-      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:nextFacing } } })
-      newVideoTrack = stream.getVideoTracks()[0]
-      vcFacingMode = nextFacing
-    }
-    if(!newVideoTrack) throw new Error("No video track from switched camera")
-
-    const sender = vcPeerConnection.getSenders().find(s=> s.track && s.track.kind==="video")
-    if(sender) await sender.replaceTrack(newVideoTrack)
-
-    // Rebuild the local stream fresh so the preview element reliably
-    // reflects the new camera (some Android/Chrome versions don't
-    // re-render in place when a track is swapped on the same
-    // MediaStream object that's already attached via srcObject).
-    const audioTracks = vcLocalStream.getAudioTracks()
-    vcLocalStream = new MediaStream([newVideoTrack, ...audioTracks])
-
-    const localEl = document.getElementById("localVideoEl")
-    localEl.srcObject = null
-    localEl.srcObject = vcLocalStream
-  } catch(e){
-    console.warn("Flip camera failed:", e)
-    alert("Camera flip failed — this device may not support switching cameras mid-call.")
-  }
-}
-
-// ─────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────
 window.unlock=async function(){
@@ -4065,20 +2556,7 @@ window.unlock=async function(){
     if(!data.ok){ window.location.href="closed.html"; return }
   } catch(e){ accessLoader.style.display="none"; window.location.href="closed.html"; return }
   document.getElementById("access").style.display="none"
-
-  const savedUser = localStorage.getItem("savedUser")
-  const savedPassEnc = localStorage.getItem("savedPassEnc")
-  if(savedUser && savedPassEnc){
-    // Returning device — access code alone unlocks the chat,
-    // no username/password prompt.
-    document.getElementById("name").value = savedUser
-    document.getElementById("code").value = decodeSavedPass(savedPassEnc)
-    accessLoader.style.display="flex"
-    await start()
-    accessLoader.style.display="none"
-  } else {
-    document.getElementById("login").style.display="block"
-  }
+  document.getElementById("login").style.display="block"
 }
 
 window.start=async function(){
@@ -4101,8 +2579,6 @@ window.start=async function(){
   if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
 
   localStorage.setItem("chatUser",username)
-  localStorage.setItem("savedUser", username)
-  localStorage.setItem("savedPassEnc", encodeSavedPass(password))
   otherUser = username==="katis1" ? "kittyis0001" : "katis1"
 
   document.getElementById("login").style.display="none"
@@ -4121,13 +2597,8 @@ window.start=async function(){
 
   onValue(ref(db,"typing/"+otherUser),snap=>{
     const isTyping=snap.val()
-    if(isTyping){
-      typingIndicator.style.display="flex"
-      typingIndicator.innerHTML = `<img class="typingAvatar" src="${getAvatar(otherUser)}"><div class="typingBubble"><span class="typingDot"></span><span class="typingDot"></span><span class="typingDot"></span></div>`
-    } else {
-      typingIndicator.style.display="none"
-      typingIndicator.innerHTML=""
-    }
+    typingIndicator.style.display=isTyping?"block":"none"
+    typingIndicator.innerText=isTyping?getNick(otherUser)+" is typing...":""
   })
 
   listenNickNames()
@@ -4135,31 +2606,8 @@ window.start=async function(){
   listenProfilePics()
   markSeenMessages()
   listenIncomingCalls()
-  listenIncomingVideoCalls()
   listenTheme()
   listenGifSuggestions()
-  setupActiveViewerTracking()
-  setupConnectionBadge()
-  listenMoodTag()
-  listenDisappearingMessages()
-  initWallpaperAndThemeUI()
-
-  // Lightweight per-device record (device login list) — does not
-  // affect chat, purely for future "known devices" visibility.
-  set(ref(db, "devices/"+username+"/"+getDeviceId()), {
-    lastLogin: Date.now(),
-    ua: navigator.userAgent.slice(0,120)
-  }).catch(()=>{})
-
-  await initPushNotifications()
-  listenNotifPreference()
-
-  if(navigator.setAppBadge && typeof window.listenUnseenMessageCount === "function"){
-    window.listenUnseenMessageCount(count=>{
-      if(count>0) navigator.setAppBadge(count).catch(()=>{})
-      else if(navigator.clearAppBadge) navigator.clearAppBadge().catch(()=>{})
-    })
-  }
 
   if(typeof showStoryBar === "function") {
     showStoryBar()
@@ -4167,14 +2615,6 @@ window.start=async function(){
 
   if(typeof showShortsFeed === "function") {
     showShortsFeed()
-  }
-
-  // Deep link from a tapped notification: jump straight to that message.
-  const _urlParams = new URLSearchParams(window.location.search)
-  const _openMsgKey = _urlParams.get("openMsg")
-  if(_openMsgKey){
-    setTimeout(()=>{ if(typeof scrollToMsg==="function") scrollToMsg(_openMsgKey) }, 1200)
-    history.replaceState({}, "", window.location.pathname)
   }
 }
 
@@ -4302,12 +2742,6 @@ function createMessage(message,key){
     const timeStr=formatBlockTime(message.time)
     if(message.action==="block") div.innerHTML=`🚫 ${actorNick} blocked. ${timeStr}`
     else if(message.action==="unblock") div.innerHTML=`✅ ${actorNick} unblocked. ${timeStr}`
-    else if(message.action==="disappearing"){
-      const d = message.duration
-      div.innerHTML = d==="off"
-        ? `⏱ ${actorNick} turned off disappearing messages.`
-        : `⏱ ${actorNick} set disappearing messages to ${d} hours.`
-    }
     messagesEl.appendChild(div)
     scrollToBottom()
     return
@@ -4458,38 +2892,22 @@ function createMessage(message,key){
   scrollToBottom()
 }
 
-// ── Mirror the message to your Telegram bot (existing /notify route
-//    on the backend — unchanged format, exact same behavior as before) ──
-async function sendTelegramMirror(message){
-  let notifText = message.text
-  if(message.text.startsWith("__voice__")) notifText = " Voice message"
-  else if(message.text.startsWith("__gif__")) notifText = " GIF"
-  else if(message.type === "image") notifText = " Photo"
-  else if(message.type === "video") notifText = " Video"
-
-  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-
-  try{
-    await fetch(BACKEND+"/notify", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ text: notifText, time, fromUser: username })
-    })
-  } catch(e){ /* fail silently — never blocks chat delivery */ }
-}
-
 onChildAdded(ref(db,"messages"),data=>{
   createMessage(data.val(),data.key)
   const message=data.val()
-  if(message.time>appStartTime && message.name===username && message.type!=="system"){
-    sendPushNotification(message, data.key, otherUser)
-    sendTelegramMirror(message)
+  if(message.time>appStartTime&&message.name==="kittyis0001"&&message.type!=="system"){
+    const now=new Date()
+    const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    let notifText = message.text
+    if(message.text.startsWith("__voice__")) notifText = " Voice message"
+    else if(message.text.startsWith("__gif__")) notifText = " GIF"
+    else if(message.type === "image") notifText = " Photo"
+    else if(message.type === "video") notifText = " Video"
+    fetch(BACKEND+"/notify",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:notifText,time})
+    }).catch(()=>{})
   }
-})
-
-onChildRemoved(ref(db,"messages"),data=>{
-  const row=document.getElementById(data.key)
-  if(row) row.remove()
 })
 
 onChildChanged(ref(db,"messages"),data=>{
@@ -4988,7 +3406,6 @@ window.initiateCall = async function(){
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
     if(status==="rejected"||status==="ended"){
-      scheduleAudioCallCleanup(currentCallId)
       cleanupCall()
     }
   })
@@ -4999,8 +3416,7 @@ function listenIncomingCalls(){
     const calls=snap.val()
     if(!calls) return
     Object.entries(calls).forEach(([callId, callData])=>{
-      const isFresh = callData.time && (Date.now() - callData.time) < 45000
-      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId && isFresh){
+      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId){
         if(!isCallActive){
           currentCallId=callId
           showIncomingCall(callData)
@@ -5010,9 +3426,7 @@ function listenIncomingCalls(){
   })
 }
 
-let pendingCallOffer = null
 function showIncomingCall(callData){
-  pendingCallOffer = callData.offer || null
   showCallOverlay("incoming")
 }
 
@@ -5035,13 +3449,12 @@ window.acceptCall = async function(){
   callStatusEl.innerText = "Connecting..."
   document.getElementById("incomingActions").style.display = "none"
 
-  // The offer is already delivered as part of the incoming-call payload
-  // (listenIncomingCalls), so use it immediately instead of a slow
-  // re-fetch/poll loop — this is what was adding delay to accepting.
-  let offer = pendingCallOffer
-  if(!offer){
+  let offer = null
+  for(let i = 0; i < 10; i++){
     const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
     offer = snap.val()
+    if(offer) break
+    await new Promise(r => setTimeout(r, 400))
   }
 
   if(!offer){ cleanupCall(); return }
@@ -5072,14 +3485,13 @@ window.acceptCall = async function(){
 
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
-    if(status==="ended"){ scheduleAudioCallCleanup(currentCallId); cleanupCall() }
+    if(status==="ended"){ cleanupCall() }
   })
 }
 
 window.rejectCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
-    scheduleAudioCallCleanup(currentCallId)
   }
   cleanupCall()
 }
@@ -5087,15 +3499,8 @@ window.rejectCall = async function(){
 window.endCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"ended"})
-    scheduleAudioCallCleanup(currentCallId)
   }
   cleanupCall()
-}
-function scheduleAudioCallCleanup(callId){
-  // Delete the finished call record a few seconds later — an
-  // ever-growing "calls" node is what slows down incoming-call
-  // detection over time, since the whole node re-syncs on load.
-  setTimeout(()=>{ remove(ref(db, "calls/"+callId)).catch(()=>{}) }, 8000)
 }
 
 function cleanupCall(){
@@ -5105,14 +3510,7 @@ function cleanupCall(){
   remoteAudio.srcObject=null
   isMuted=false
   isSpeakerOn=false
-  const muteIcon=document.getElementById("acMuteIcon")
-  if(muteIcon) muteIcon.innerHTML = VC_ICON_MIC_ON
-  const muteBtn=document.getElementById("muteCallBtn")
-  if(muteBtn){ muteBtn.style.background="rgba(255,255,255,0.15)"; muteBtn.style.color="white" }
-  const spkBtn=document.getElementById("speakerBtn")
-  if(spkBtn){ spkBtn.style.background="rgba(255,255,255,0.15)"; spkBtn.style.color="white" }
   currentCallId=null
-  pendingCallOffer=null
   hideCallOverlay()
 }
 
@@ -5122,10 +3520,7 @@ window.toggleMute = function(){
   localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
   const btn=document.getElementById("muteCallBtn")
   const lbl=document.getElementById("muteLabel")
-  const icon=document.getElementById("acMuteIcon")
-  if(icon) icon.innerHTML = isMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
-  btn.style.background = isMuted ? "#ffffff" : "rgba(255,255,255,0.15)"
-  btn.style.color = isMuted ? "#ff3b30" : "white"
+  btn.innerText=isMuted?"🔇":"🎤"
   lbl.innerText=isMuted?"Unmute":"Mute"
 }
 
@@ -5133,8 +3528,7 @@ window.toggleSpeaker = function(){
   isSpeakerOn=!isSpeakerOn
   const btn=document.getElementById("speakerBtn")
   const lbl=document.getElementById("speakerLabel")
-  btn.style.background=isSpeakerOn?"#ffffff":"rgba(255,255,255,0.15)"
-  btn.style.color=isSpeakerOn?"#8060cc":"white"
+  btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
   lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
 }
 

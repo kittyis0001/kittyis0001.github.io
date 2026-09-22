@@ -1,445 +1,5252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>For You, One Last Time</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Chat</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8060cc">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <style>
-  :root {
-    --bg-deep: #14161f;
-    --bg-mid: #1d2130;
-    --line: #2e3344;
-    --ink: #e9e7e0;
-    --ink-dim: #9297ab;
-    --ember: #e3a970;
-    --ember-dim: #7a5f45;
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  html {
-    scroll-padding-top: env(safe-area-inset-top, 0px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+body{
+margin:0;
+font-family:Arial;
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+height:100vh;
+}
 
-  body {
-    background: var(--bg-deep);
-    color: var(--ink);
-    font-family: 'Public Sans', sans-serif;
-    font-weight: 300;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
+/* ═══════════════════════════════════════════════════════
+   ACCESS KEY PAGE — simple, original design
+   ═══════════════════════════════════════════════════════ */
+#access{
+position:relative;
+z-index:1;
+text-align:center;
+margin-top:120px;
+background:transparent;
+width:300px;
+margin-left:auto;
+margin-right:auto;
+padding:20px;
+border-radius:12px;
+}
 
-  ::selection { background: var(--ember-dim); color: var(--ink); }
+#access h2{
+color:white;
+text-shadow:0 2px 10px rgba(0,0,0,0.9);
+margin-bottom:16px;
+font-size:24px;
+}
 
-  /* ---------- Starfield ---------- */
-  #stars {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
+#access input{
+width:100px;
+padding:10px 14px;
+border-radius:10px;
+border:none;
+background:rgba(255,255,255,0.92);
+font-size:16px;
+outline:none;
+box-sizing:border-box;
+margin-bottom:14px;
+text-align:center;
+display:block;
+margin-left:auto;
+margin-right:auto;
+}
 
-  .glow-follow {
-    position: fixed;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(227,169,112,0.06), transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-    transform: translate(-50%, -50%);
-    transition: left 0.4s ease-out, top 0.4s ease-out;
-  }
+#access button{
+padding:10px 28px;
+background:rgba(255,255,255,0.15);
+color:white;
+border:2px solid rgba(255,255,255,0.6);
+border-radius:20px;
+font-size:15px;
+font-weight:bold;
+cursor:pointer;
+backdrop-filter:blur(4px);
+-webkit-backdrop-filter:blur(4px);
+}
 
-  main { position: relative; z-index: 1; }
+#login{
+display:none;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:75%;
+max-width:280px;
+background:transparent;
+padding:20px;
+border-radius:18px;
+text-align:center;
+z-index:10;
+}
 
-  section {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8vh 6vw;
-    text-align: center;
-  }
+#login h2{
+color:white;
+text-shadow:0 2px 10px rgba(0,0,0,0.9);
+margin-bottom:10px;
+font-size:22px;
+}
 
-  /* ---------- Hero ---------- */
-  .hero-eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    color: var(--ink-dim);
-    opacity: 0;
-    animation: rise 1.4s ease forwards 0.2s;
-  }
+.warning{
+font-size:12px;
+color:rgba(255,255,255,0.85);
+text-shadow:0 1px 4px rgba(0,0,0,0.8);
+margin-bottom:12px;
+}
 
-  h1.hero-title {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(2.6rem, 8vw, 5.4rem);
-    line-height: 1.08;
-    max-width: 14ch;
-    margin: 1.4rem 0 1.6rem;
-    color: var(--ink);
-    opacity: 0;
-    animation: rise 1.6s ease forwards 0.6s;
-  }
+.loginInput{
+width:100%;
+padding:10px 12px;
+margin-bottom:10px;
+border-radius:10px;
+border:none;
+background:rgba(255,255,255,0.92);
+font-size:14px;
+outline:none;
+box-sizing:border-box;
+}
 
-  .hero-sub {
-    max-width: 34ch;
-    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
-    color: var(--ink-dim);
-    line-height: 1.7;
-    opacity: 0;
-    animation: rise 1.6s ease forwards 1.1s;
-  }
+#loginBtn{
+width:100%;
+padding:11px;
+background:rgba(255,255,255,0.15);
+color:white;
+border:2px solid rgba(255,255,255,0.6);
+border-radius:20px;
+font-size:14px;
+font-weight:bold;
+cursor:pointer;
+backdrop-filter:blur(4px);
+-webkit-backdrop-filter:blur(4px);
+transition:opacity 0.2s;
+}
 
-  .scroll-cue {
-    position: absolute;
-    bottom: 6vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    opacity: 0;
-    animation: rise 1.6s ease forwards 1.8s;
-  }
-  .scroll-cue span {
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: var(--ink-dim);
-  }
-  .scroll-line {
-    width: 1px;
-    height: 34px;
-    background: linear-gradient(var(--ink-dim), transparent);
-    animation: pulse-line 2.4s ease-in-out infinite;
-  }
+#loginBtn:disabled{ opacity:0.5; cursor:not-allowed; }
 
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes pulse-line {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
-  }
+@keyframes spin{
+0%{transform:rotate(0deg)}
+100%{transform:rotate(360deg)}
+}
 
-  /* ---------- Letter ---------- */
-  .letter-section {
-    padding-top: 14vh;
-    padding-bottom: 14vh;
-    gap: 0;
-  }
+.spinner{
+display:inline-block;
+width:14px; height:14px;
+border:2px solid rgba(255,255,255,0.4);
+border-top-color:white;
+border-radius:50%;
+animation:spin 0.7s linear infinite;
+vertical-align:middle;
+margin-right:6px;
+}
 
-  .letter-mark {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-size: 1rem;
-    color: var(--ember);
-    margin-bottom: 3rem;
-    opacity: 0;
-  }
-  .letter-mark.in-view { animation: rise 1s ease forwards; }
+#accessLoader{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.45);
+z-index:10000;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+gap:14px;
+}
 
-  .letter-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 2.6rem;
-    max-width: 42ch;
-  }
+#accessLoader .loaderRing{
+width:48px;height:48px;
+border:4px solid rgba(255,255,255,0.25);
+border-top-color:#ffffff;
+border-radius:50%;
+animation:spin 0.8s linear infinite;
+}
 
-  .letter-line {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(1.4rem, 3.4vw, 2rem);
-    line-height: 1.5;
-    color: var(--ink);
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 1s ease, transform 1s ease;
-  }
-  .letter-line.in-view {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .letter-line em {
-    font-style: italic;
-    color: var(--ember);
-  }
+#accessLoader .loaderText{ color:white; font-size:15px; letter-spacing:0.5px; }
 
-  .letter-line.small {
-    font-family: 'Public Sans', sans-serif;
-    font-weight: 300;
-    font-size: clamp(0.95rem, 2vw, 1.1rem);
-    color: var(--ink-dim);
-    line-height: 1.8;
-  }
+#chat{
+display:none;
+height:100vh;
+flex-direction:column;
+background: linear-gradient(180deg,
+  #c8d8f8 0%,
+  #d4c8f0 20%,
+  #e8c0e0 40%,
+  #d8b8e8 55%,
+  #c0c8f0 75%,
+  #d0c0e8 90%,
+  #e0b8d8 100%
+);
+}
 
-  /* ---------- Divider ---------- */
-  .divider {
-    width: 1px;
-    height: 90px;
-    background: linear-gradient(var(--line), transparent);
-    margin: 0 auto;
-  }
+#header{
+background: rgba(255,255,255,0.55);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-bottom: 1px solid rgba(180,160,220,0.25);
+color: #3a2a6a;
+padding:10px 15px;
+display:flex;
+align-items:center;
+gap:10px;
+}
 
-  /* ---------- Closing ---------- */
-  .close-section { gap: 1.6rem; }
+#headerAvatar{
+width:40px;
+height:40px;
+border-radius:50%;
+object-fit:cover;
+flex-shrink:0;
+border:2px solid rgba(255,255,255,0.6);
+}
 
-  .close-eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    color: var(--ink-dim);
-    opacity: 0;
-  }
-  .close-eyebrow.in-view { animation: rise 1s ease forwards; }
+#headerInfo{
+flex:1;
+display:flex;
+flex-direction:column;
+justify-content:center;
+min-width:0;
+}
 
-  h2.close-title {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-size: clamp(2.4rem, 7vw, 4.2rem);
-    max-width: 16ch;
-    line-height: 1.15;
-    opacity: 0;
-  }
-  h2.close-title.in-view { animation: rise 1.4s ease forwards 0.15s; }
+#headerName{
+font-weight:bold;
+font-size:15px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+color:#3a2a6a;
+}
 
-  .close-line {
-    max-width: 30ch;
-    color: var(--ink-dim);
-    font-size: clamp(0.95rem, 1.8vw, 1.05rem);
-    line-height: 1.8;
-    opacity: 0;
-  }
-  .close-line.in-view { animation: rise 1.4s ease forwards 0.4s; }
+#statusText{
+font-size:12px;
+white-space:nowrap;
+color:#7a6aaa;
+opacity:0.9;
+}
 
-  /* ---------- Lantern ---------- */
-  .lantern-stage {
-    position: relative;
-    width: 100%;
-    height: 46vh;
-    margin-top: 4rem;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    overflow: visible;
-  }
+#callBtn{
+background:none;
+border:none;
+color:#6a5aaa;
+font-size:22px;
+cursor:pointer;
+padding:4px 8px;
+flex-shrink:0;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:transform 0.15s;
+}
+#callBtn:active{ transform:scale(0.88); }
 
-  #lantern-svg {
-    opacity: 0;
-    transform: translateY(0px);
-  }
-  #lantern-svg.drift {
-    animation: drift-up 5.5s ease-in forwards, flame-flicker 1.6s ease-in-out infinite;
-    opacity: 1;
-  }
+#menu{ cursor:pointer; font-size:22px; margin-left:4px; flex-shrink:0; color:#6a5aaa; }
 
-  @keyframes drift-up {
-    0%   { opacity: 0; transform: translateY(20px) translateX(0); }
-    12%  { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-320px) translateX(26px); }
-  }
-  @keyframes flame-flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.72; }
-  }
+/* ═══════════════════════════════════════════════════════
+   3-DOT MENU UI — Instagram / WhatsApp Style
+   ═══════════════════════════════════════════════════════ */
+#menuBox {
+  display: none;
+  position: absolute;
+  right: 12px; 
+  top: 62px;
+  width: 260px;
+  padding: 0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 12px 40px rgba(140, 100, 200, 0.22), 0 2px 8px rgba(160, 120, 220, 0.12);
+  border: 1px solid rgba(220, 200, 255, 0.45);
+  z-index: 100;
+  overflow: hidden;
+  transform-origin: top right;
+  transform: scale(0.85) translateY(-12px);
+  opacity: 0;
+  transition: transform 0.18s cubic-bezier(0.2,0.9,0.3,1.2), opacity 0.16s ease;
+}
+#menuBox.menu-open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
 
-  .signature {
-    margin-top: 4rem;
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    color: var(--ink-dim);
-    font-size: 1rem;
-    opacity: 0;
-  }
-  .signature.in-view { animation: rise 1.2s ease forwards; }
+#menuBackdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: transparent;
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+#menuBackdrop.active { opacity: 1; }
 
-  footer {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 6vh 6vw 8vh;
-    color: var(--ink-dim);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-  }
+.menuProfileSection {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+.menuAvatarContainer {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+.menuAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #8060cc;
+}
+.menuAvatarBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #8060cc;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+.menuProfileInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.menuProfileName {
+  font-weight: 700;
+  font-size: 16px;
+  color: #3a2a6a;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.menuUploadStory {
+  font-size: 13px;
+  color: #8060cc;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.menuDivider {
+  height: 1px;
+  background: rgba(128, 96, 204, 0.15);
+  margin: 0 16px;
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-  }
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.menuItem:active {
+  background: rgba(128, 96, 204, 0.1);
+}
+.menuIconBox {
+  width: 32px;
+  height: 32px;
+  background: rgba(128, 96, 204, 0.12);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8060cc;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+.menuIconBox svg {
+  width: 18px;
+  height: 18px;
+}
+.menuText {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+  color: #3a2a6a;
+}
+.menuChevron {
+  width: 16px;
+  height: 16px;
+  color: rgba(58, 42, 106, 0.4);
+  flex-shrink: 0;
+}
+
+.menuSubText{
+  font-size: 11px;
+  color: rgba(58,42,106,0.55);
+  margin-top: 1px;
+}
+body.dark-theme .menuSubText{ color: rgba(233,237,239,0.5); }
+
+.menuItem.softRed .menuIconBox {
+  background: rgba(229, 57, 53, 0.12);
+  color: #e53935;
+}
+.menuItem.softRed .menuText {
+  color: #e53935;
+}
+.menuItem.dangerRed .menuIconBox {
+  background: rgba(211, 47, 47, 0.12);
+  color: #d32f2f;
+}
+.menuItem.dangerRed .menuText {
+  color: #d32f2f;
+}
+
+/* Toggle Switch */
+.menuToggleSwitch {
+  width: 44px;
+  height: 26px;
+  background: rgba(128, 96, 204, 0.25);
+  border-radius: 13px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.menuToggleSwitch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.menuToggleSwitch.active {
+  background: #8060cc;
+}
+.menuToggleSwitch.active::after {
+  transform: translateX(18px);
+}
+
+/* Dark Theme Adjustments for Menu */
+body.dark-theme #menuBox {
+  background: rgba(31, 44, 52, 0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+body.dark-theme .menuProfileName { color: #e9edef; }
+body.dark-theme .menuText { color: #e9edef; }
+body.dark-theme .menuIconBox {
+  background: rgba(255,255,255,0.08);
+  color: #8696a0;
+}
+body.dark-theme .menuChevron { color: rgba(233, 237, 239, 0.4); }
+body.dark-theme .menuDivider { background: rgba(255,255,255,0.08); }
+body.dark-theme .menuUploadStory { color: #00a884; }
+body.dark-theme .menuAvatarBadge { background: #00a884; border-color: #1f2c34; }
+
+body.dark-theme .menuItem:active {
+  background: rgba(255,255,255,0.06);
+}
+body.dark-theme .menuToggleSwitch {
+  background: rgba(255,255,255,0.2);
+}
+body.dark-theme .menuToggleSwitch.active {
+  background: #00a884;
+}
+body.dark-theme .menuToggleSwitch::after {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#messages{ flex:1; overflow:auto; padding:10px; }
+
+.sysMsg{
+text-align:center;
+margin:8px auto;
+font-size:12px;
+color:#7a6aaa;
+background:rgba(255,255,255,0.55);
+backdrop-filter:blur(8px);
+-webkit-backdrop-filter:blur(8px);
+border-radius:12px;
+padding:6px 14px;
+max-width:85%;
+display:table;
+box-shadow:0 1px 6px rgba(140,100,200,0.1);
+}
+
+.msgRow{
+display:flex;
+align-items:flex-end;
+margin:4px 6px;
+gap:6px;
+}
+
+.msgRow.me{ flex-direction:row-reverse; }
+.msgRow.other{ flex-direction:row; }
+
+.avatar{
+width:34px;
+height:34px;
+border-radius:50%;
+object-fit:cover;
+flex-shrink:0;
+cursor:pointer;
+border:2px solid rgba(255,255,255,0.9);
+box-shadow:0 1px 8px rgba(140,100,200,0.2);
+}
+
+.msg{
+padding:10px 12px;
+max-width:65%;
+border-radius:18px;
+word-wrap:break-word;
+position:relative;
+transition:transform 0.2s ease, background 0.3s ease;
+box-shadow:0 2px 10px rgba(140,100,200,0.15);
+}
+
+/* Outgoing — blue to pink gradient like reference */
+.me .msg{
+background: linear-gradient(135deg, #7ec8f7 0%, #b09ef5 50%, #e899d4 100%);
+color: white;
+border-bottom-right-radius: 5px;
+}
+
+/* Incoming — white soft glass */
+.other .msg{
+background: rgba(255,255,255,0.75);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+color: #3a2a5a;
+border: 1px solid rgba(200,180,240,0.3);
+border-bottom-left-radius: 5px;
+}
+
+.replyQuote{
+display: flex;
+gap: 8px;
+align-items: center;
+background: rgba(0,0,0,0.08);
+border-left: 3px solid #8060cc;
+border-radius: 6px;
+padding: 6px 8px;
+margin-bottom: 6px;
+cursor: pointer;
+max-width: 100%;
+overflow: hidden;
+}
+.me .msg .replyQuote { background: rgba(255,255,255,0.2); border-left-color: white; }
+
+.replyQuoteThumb {
+width: 36px; height: 36px;
+border-radius: 4px;
+flex-shrink: 0;
+position: relative;
+overflow: hidden;
+background: rgba(0,0,0,0.1);
+}
+.replyQuoteThumb img { width: 100%; height: 100%; object-fit: cover; }
+.replyQuotePlayIcon {
+position: absolute; top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+width: 18px; height: 18px;
+background: rgba(0,0,0,0.5);
+border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+}
+
+.replyQuoteContent {
+flex: 1;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+.replyQuoteContent .replyName { font-weight:bold; color:#075E54; font-size:12px; margin-bottom:2px; }
+.me .msg .replyQuoteContent .replyName { color: white; }
+.replyQuoteContent .replyText { font-size: 13px; opacity: 0.85; }
+
+.editedLabel{ font-size:10px; color:rgba(100,80,160,0.5); margin-left:4px; }
+.time{ font-size:11px; color:rgba(100,80,160,0.55); margin-top:3px; text-align:right; }
+.reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+
+.reactionBadge{
+background:rgba(255,255,255,0.75);
+border-radius:20px;
+padding:2px 7px;
+font-size:14px;
+cursor:pointer;
+border:1px solid rgba(180,160,220,0.3);
+}
+
+#actionMenu{
+display:none;
+position:fixed;
+background:white;
+border-radius:14px;
+padding:6px;
+box-shadow:0 4px 24px rgba(0,0,0,0.2);
+z-index:9997;
+flex-direction:column;
+min-width:150px;
+}
+
+.actionMenuItem{
+padding:10px 16px;
+font-size:14px;
+cursor:pointer;
+border-radius:8px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.actionMenuItem:hover{ background:#f5f5f5; }
+.actionMenuItem.danger{ color:#e53935; }
+
+#reactionPicker{
+display:none;
+position:fixed;
+background:white;
+border-radius:30px;
+padding:8px 12px;
+box-shadow:0 4px 20px rgba(0,0,0,0.25);
+z-index:9999;
+gap:6px;
+flex-direction:row;
+}
+
+.reactionOption{ font-size:24px; cursor:pointer; padding:4px; border-radius:50%; transition:transform 0.1s; }
+.reactionOption:active{ transform:scale(1.3); }
+
+#replyBar{
+display:none;
+background:rgba(240,235,255,0.85);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
+padding:8px 14px;
+border-top:2px solid rgba(180,160,220,0.3);
+align-items:center;
+gap:8px;
+}
+
+#replyBar .replyBarContent{ flex:1; display:flex; gap:8px; align-items:center; overflow:hidden; }
+#replyBar .replyBarName{ font-weight:bold; color:#8060cc; font-size:11px; }
+#replyBar .replyBarText{ font-size:12px; color:#5a4a8a; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#replyBar .replyQuoteThumb { width: 32px; height: 32px; }
+#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#9a8aba; padding:0; }
+
+#editBar{
+display:none;
+background:rgba(255,248,230,0.85);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
+padding:8px 14px;
+border-top:2px solid rgba(220,180,100,0.3);
+align-items:center;
+gap:8px;
+font-size:12px;
+color:#7a6040;
+}
+
+#editBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; margin-left:auto; }
+
+#blockedBanner{
+display:none;
+background:rgba(255,235,235,0.85);
+padding:10px 14px;
+text-align:center;
+font-size:13px;
+color:#c62828;
+font-weight:bold;
+border-top:1px solid rgba(200,80,80,0.15);
+}
+
+#nickModal{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.5);
+z-index:9999;
+justify-content:center;
+align-items:center;
+}
+
+#nickModalBox{
+background:white;
+border-radius:16px;
+padding:24px;
+width:80%;
+max-width:300px;
+box-shadow:0 8px 30px rgba(0,0,0,0.2);
+}
+
+#nickModalBox h3{ margin:0 0 16px 0; font-size:16px; color:#075E54; }
+#nickModalBox label{ font-size:12px; color:#555; display:block; margin-bottom:4px; }
+
+#nickModalBox input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1.5px solid #ddd;
+font-size:14px;
+box-sizing:border-box;
+margin-bottom:12px;
+outline:none;
+}
+
+#nickModalBox input:focus{ border-color:#075E54; }
+.nickModalBtns{ display:flex; gap:8px; justify-content:flex-end; }
+.nickModalBtns button{ padding:8px 18px; border:none; border-radius:8px; font-size:13px; cursor:pointer; }
+#nickCancelBtn{ background:#f0f0f0; color:#333; }
+#nickSaveBtn{ background:#075E54; color:white; }
+
+.voiceMsg{ display:flex; align-items:center; gap:8px; min-width:180px; }
+
+.voicePlayBtn{
+background:#075E54; border:none; border-radius:50%;
+width:36px; height:36px; color:white; font-size:16px;
+cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+}
+
+.voiceWave{ flex:1; height:3px; background:rgba(0,0,0,0.15); border-radius:3px; overflow:hidden; }
+.voiceWaveFill{ height:100%; background:#075E54; width:0%; border-radius:3px; transition:width 0.1s linear; }
+.voiceDuration{ font-size:12px; color:gray; min-width:32px; }
+
+#voiceRecordBar{
+display:none; position:fixed; bottom:0;left:0; width:100%;
+background:#075E54; padding:14px 20px; box-sizing:border-box;
+align-items:center; justify-content:space-between; z-index:500;
+}
+
+#voiceRecordBar .recLeft{ display:flex; align-items:center; gap:10px; color:white; }
+
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.3} }
+.recDot{ width:12px; height:12px; background:#ff4444; border-radius:50%; animation:pulse 1s infinite; }
+#recTimer{ color:white; font-size:16px; font-weight:bold; }
+#voiceRecordBar .recRight{ display:flex; gap:16px; align-items:center; }
+
+#voicePreviewBar{
+display:none; background:#f0f0f0; padding:10px 14px;
+align-items:center; gap:10px; border-top:1px solid #ddd;
+}
+
+#voicePreviewBar button{
+border:none; border-radius:50%; width:36px; height:36px;
+font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+
+#previewPlayBtn{ background:#075E54; color:white; }
+#previewDeleteBtn{ background:#ff4444; color:white; }
+#previewSendBtn{ background:#075E54; color:white; }
+
+#gifPanel{
+display:none;
+position:fixed;
+bottom:70px;
+left:0;
+width:100%;
+background:white;
+max-height:160px;
+overflow-x:auto;
+overflow-y:hidden;
+box-shadow:0 -2px 10px rgba(0,0,0,0.2);
+z-index:400;
+white-space:nowrap;
+padding:6px 8px;
+box-sizing:border-box;
+}
+
+#gifPanel .gifLoading{
+font-size:13px;
+color:#888;
+padding:10px;
+display:inline-block;
+}
+
+.gifItem{
+display:inline-block;
+height:120px;
+width:auto;
+margin-right:6px;
+border-radius:8px;
+cursor:pointer;
+object-fit:cover;
+vertical-align:middle;
+background:#f0f0f0;
+transition:transform 0.1s;
+}
+.gifItem:active{ transform:scale(0.95); }
+
+#callOverlay{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:#000;
+z-index:10000;
+flex-direction:column;
+align-items:center;
+justify-content:space-between;
+padding:60px 20px 60px;
+box-sizing:border-box;
+}
+
+#callOverlay .callTop{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:16px;
+}
+
+#callAvatar{
+width:110px;height:110px;
+border-radius:50%;
+object-fit:cover;
+border:3px solid rgba(255,255,255,0.3);
+box-shadow:0 0 30px rgba(255,255,255,0.1);
+}
+
+#callName{
+color:white;
+font-size:24px;
+font-weight:bold;
+}
+
+#callStatus{
+color:rgba(255,255,255,0.7);
+font-size:15px;
+margin-top:4px;
+}
+
+#callTimer{
+color:white;
+font-size:18px;
+font-weight:bold;
+display:none;
+}
+
+@keyframes ringPulse{
+0%{ box-shadow:0 0 0 0 rgba(255,255,255,0.3); }
+70%{ box-shadow:0 0 0 20px rgba(255,255,255,0); }
+100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
+}
+
+#callAvatar.ringing{
+animation:ringPulse 1.4s infinite;
+}
+
+#callOverlay .callActions{
+display:flex;
+gap:40px;
+align-items:center;
+justify-content:center;
+}
+
+.callActionBtn{
+width:64px;height:64px;
+border-radius:50%;
+border:none;
+font-size:26px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:transform 0.15s;
+}
+.callActionBtn svg{ width:26px; height:26px; }
+
+.callActionBtn:active{ transform:scale(0.88); }
+
+#endCallBtn{ background:#ff3b30; color:white; }
+#acceptCallBtn{ background:#34c759; color:white; }
+#rejectCallBtn{ background:#ff3b30; color:white; }
+#muteCallBtn{ background:rgba(255,255,255,0.15); color:white; }
+#speakerBtn{ background:rgba(255,255,255,0.15); color:white; }
+
+#callOverlay .callLabel{
+color:rgba(255,255,255,0.6);
+font-size:11px;
+text-align:center;
+margin-top:6px;
+}
+
+.callBtnWrap{
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+#incomingActions{ display:none; gap:60px; justify-content:center; }
+#activeActions{ display:none; gap:30px; justify-content:center; flex-wrap:wrap; }
+
+#inputArea{
+display:flex; padding:8px 10px;
+background: rgba(255,255,255,0.6);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-top: 1px solid rgba(180,160,220,0.2);
+align-items:flex-end;
+}
+
+#msg{
+flex:1; padding:10px 14px; border-radius:20px;
+border:1.5px solid rgba(180,160,220,0.35);
+background: rgba(255,255,255,0.85);
+color: #3a2a5a;
+resize:none; overflow:hidden; min-height:40px; max-height:120px;
+font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:border-box;
+}
+
+#msg::placeholder{ color:rgba(140,120,180,0.5); }
+
+#msg:focus{
+border-color: rgba(140,110,220,0.55);
+background: rgba(255,255,255,0.95);
+}
+
+#msg:disabled{ background:rgba(220,210,240,0.4); color:rgba(140,120,180,0.5); border-color:rgba(180,160,220,0.2); cursor:not-allowed; }
+
+#sendBtn{
+background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+border:none; margin-left:8px; padding:10px 14px; border-radius:50%;
+color:white; font-size:18px; flex-shrink:0;
+box-shadow: 0 4px 14px rgba(160,120,230,0.3);
+transition: transform 0.15s, box-shadow 0.15s;
+}
+#sendBtn:active{ transform:scale(0.92); box-shadow:0 2px 6px rgba(160,120,230,0.2); }
+#sendBtn:disabled{ background:rgba(180,160,220,0.3); box-shadow:none; cursor:not-allowed; }
+#micBtn{
+  background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+  border:none; margin-left:8px; border-radius:50%;
+  color:white; flex-shrink:0; cursor:pointer;
+  width:44px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(160,120,230,0.3);
+  transition:transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color:transparent;
+  padding:0;
+}
+#micBtn:active{ transform:scale(0.92); }
+
+#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#9a8aba; font-style:italic; }
+
+
+/* ════════════════════════
+   DARK THEME — WhatsApp style
+   Applied via body.dark-theme class
+   ════════════════════════ */
+body.dark-theme #chat {
+  background: #0b141a !important;
+}
+body.dark-theme #header {
+  background: #1f2c34 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #headerName { color: #e9edef !important; }
+body.dark-theme #statusText  { color: #8696a0 !important; }
+body.dark-theme #callBtn     { color: #8696a0 !important; }
+body.dark-theme #menu        { color: #8696a0 !important; }
+
+/* Bubbles */
+body.dark-theme .me .msg {
+  background: #005c4b !important;
+  color: #e9edef !important;
+}
+body.dark-theme .other .msg {
+  background: #202c33 !important;
+  color: #e9edef !important;
+  border: none !important;
+}
+body.dark-theme .time {
+  color: #8696a0 !important;
+}
+
+/* Message background / scroll area */
+body.dark-theme #messages {
+  background: transparent !important;
+}
+
+/* Input area */
+body.dark-theme #inputArea {
+  background: #1f2c34 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #msg {
+  background: #2a3942 !important;
+  color: #e9edef !important;
+  border-color: transparent !important;
+}
+body.dark-theme #msg::placeholder { color: #8696a0 !important; }
+
+/* System messages */
+body.dark-theme .sysMsg {
+  background: rgba(17,27,33,0.85) !important;
+  color: #8696a0 !important;
+}
+
+/* Reply bar */
+body.dark-theme #replyBar {
+  background: #1f2c34 !important;
+  border-top-color: #00a884 !important;
+}
+body.dark-theme #replyBar .replyBarContent { color: #e9edef !important; }
+body.dark-theme #replyBar .replyBarName    { color: #00a884 !important; }
+body.dark-theme #replyBarClose             { color: #8696a0 !important; }
+
+/* Edit bar */
+body.dark-theme #editBar {
+  background: #1f2c34 !important;
+  color: #8696a0 !important;
+  border-top-color: #ffd54f !important;
+}
+
+/* Emoji box */
+body.dark-theme #emojiBox {
+  background: #233138 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* Voice record bar */
+body.dark-theme #voiceRecordBar {
+  background: #1f2c34 !important;
+}
+
+/* Typing indicator */
+body.dark-theme #typingIndicator { color: #8696a0 !important; }
+
+/* Blocked banner */
+body.dark-theme #blockedBanner {
+  background: rgba(40,20,20,0.9) !important;
+  color: #ef9a9a !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   CAMERA ICON + MEDIA FEATURES (WhatsApp-style)
+   ═══════════════════════════════════════════════════════ */
+
+/* Input wrapper to contain camera icon */
+#inputWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Right padding so text doesn't overlap camera icon */
+#msg { padding-right: 42px; }
+
+#cameraBtn {
+  position: absolute;
+  right: 8px;
+  bottom: 9px;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8060cc;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+#cameraBtn:active { transform: scale(0.88); }
+body.dark-theme #cameraBtn { color: #8696a0; }
+
+/* ── Media Bottom Sheet ── */
+#mediaSheetBackdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+#mediaSheetBackdrop.active { opacity: 1; }
+
+#mediaSheet {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  z-index: 9999;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  padding: 8px 0 16px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+}
+#mediaSheet.active { transform: translateY(0); }
+body.dark-theme #mediaSheet {
+  background: #1f2c34;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+}
+
+.mediaSheetHandle {
+  width: 40px; height: 4px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 2px;
+  margin: 8px auto 16px;
+}
+body.dark-theme .mediaSheetHandle { background: rgba(255,255,255,0.2); }
+
+.mediaSheetTitle {
+  color: #667781;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+body.dark-theme .mediaSheetTitle { color: #8696a0; }
+
+.mediaSheetItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mediaSheetItem:active { background: rgba(0,0,0,0.05); }
+body.dark-theme .mediaSheetItem:active { background: rgba(255,255,255,0.06); }
+
+.mediaSheetIcon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(7, 94, 84, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #075E54;
+  flex-shrink: 0;
+}
+body.dark-theme .mediaSheetIcon {
+  background: rgba(0, 168, 132, 0.12);
+  color: #00a884;
+}
+
+.mediaSheetItem span {
+  color: #111b21;
+  font-size: 16px;
+  font-weight: 500;
+}
+body.dark-theme .mediaSheetItem span { color: #e9edef; }
+
+/* ── Upload Progress Bubble ── */
+.uploadPlaceholder {
+  width: 220px; height: 220px;
+  background: rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+.uploadCircle {
+  position: relative;
+  width: 56px; height: 56px;
+}
+.uploadCircle svg {
+  width: 56px; height: 56px;
+  transform: rotate(-90deg);
+}
+.uploadPct {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* ── WhatsApp-style Media Bubbles ── */
+.msg.mediaBubble {
+  padding: 3px !important;
+  overflow: hidden;
+  position: relative;
+}
+.msg.mediaBubble .time {
+  position: absolute !important;
+  bottom: 6px;
+  right: 8px;
+  background: rgba(0,0,0,0.45);
+  color: white !important;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 0;
+  z-index: 3;
+  font-size: 11px;
+  text-align: right;
+}
+.msg.mediaBubble .reactionBar {
+  position: absolute;
+  bottom: 30px;
+  left: 6px;
+  z-index: 3;
+}
+
+.mediaImage {
+  display: block;
+  max-width: 240px;
+  max-height: 300px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.mediaVideoWrap {
+  position: relative;
+  display: inline-block;
+  max-width: 240px;
+  max-height: 300px;
+}
+.mediaVideoEl {
+  display: block;
+  max-width: 240px;
+  max-height: 300px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.mediaPlayBtn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px; height: 56px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.mediaDuration {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  z-index: 2;
+}
+.mediaHdBadge {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* ── Full-screen Video Viewer ── */
+#videoViewer {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #000;
+  z-index: 10001;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+#videoViewer.active { display: flex; }
+#fullVideo {
+  max-width: 100%;
+  max-height: 100%;
+  transform-origin: center center;
+  transition: transform 0.2s;
+}
+#videoCloseBtn {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s;
+}
+#videoCloseBtn:active { background: rgba(255,255,255,0.3); }
+
+
+/* ── Premium Image Zoom Viewer ── */
+#imgViewer {
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: opacity 0.25s, background 0.25s;
+}
+#imgViewer.hidden { opacity: 0; pointer-events: none; }
+#imgCloseBtn {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.2);
+  border: none; border-radius: 50%;
+  color: white; font-size: 20px; cursor: pointer; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+}
+#fullImg {
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Highlight effect for scrolled-to messages */
+@keyframes highlightMsg {
+  0% { background-color: rgba(255, 235, 59, 0.4); }
+  100% { background-color: transparent; }
+}
+.msg.highlighted {
+  animation: highlightMsg 1.5s ease;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOOD / STATUS TAG (header)
+   ═══════════════════════════════════════════════════════ */
+#moodTag{
+  font-size: 11px;
+  color: #8a7aca;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+  display: none;
+}
+body.dark-theme #moodTag{ color: #7a9ab0; }
+
+/* ═══════════════════════════════════════════════════════
+   CONNECTION STATUS BADGE
+   ═══════════════════════════════════════════════════════ */
+#connectionBadge{
+  display: none;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #e0483a, #c8362a);
+  padding: 6px 10px;
+  letter-spacing: 0.3px;
+  transition: background 0.25s;
+}
+#connectionBadge.connected{ background: linear-gradient(135deg, #3ec26a, #2ea858); }
+#connectionBadge.show{ display: block; }
+#connectionBadge .connDot{
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: white;
+  margin-right: 6px;
+  animation: pulse 1s infinite;
+  vertical-align: middle;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PREMIUM VECTOR CALL ICONS
+   ═══════════════════════════════════════════════════════ */
+#callBtn, #videoCallBtn{
+  background:none;
+  border:none;
+  color:#6a5aaa;
+  cursor:pointer;
+  padding:6px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform 0.15s;
+}
+#callBtn:active, #videoCallBtn:active{ transform:scale(0.88); }
+#callBtn svg, #videoCallBtn svg{ width:22px; height:22px; }
+body.dark-theme #callBtn, body.dark-theme #videoCallBtn{ color:#8696a0; }
+
+/* ═══════════════════════════════════════════════════════
+   TYPING INDICATOR — PREMIUM AVATAR BUBBLE
+   ═══════════════════════════════════════════════════════ */
+#typingIndicator{
+  display:none;
+  padding: 4px 10px 8px;
+  align-items: flex-end;
+  gap: 6px;
+}
+#typingIndicator .typingAvatar{
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.8);
+}
+#typingIndicator .typingBubble{
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(200,180,240,0.3);
+  border-radius: 16px;
+  border-bottom-left-radius: 5px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 10px rgba(140,100,200,0.15);
+}
+body.dark-theme #typingIndicator .typingBubble{
+  background: #202c33;
+  border: none;
+}
+@keyframes typingDotBounce{
+  0%, 60%, 100% { transform: translateY(0); opacity:0.5; }
+  30% { transform: translateY(-5px); opacity:1; }
+}
+#typingIndicator .typingDot{
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #8060cc;
+  animation: typingDotBounce 1.2s infinite;
+}
+body.dark-theme #typingIndicator .typingDot{ background: #00a884; }
+#typingIndicator .typingDot:nth-child(2){ animation-delay: 0.15s; }
+#typingIndicator .typingDot:nth-child(3){ animation-delay: 0.3s; }
+
+/* ═══════════════════════════════════════════════════════
+   DISAPPEARING MESSAGE SYSTEM LABEL (chat)
+   ═══════════════════════════════════════════════════════ */
+.disappearIcon{ display:inline-block; vertical-align:middle; margin-right:3px; }
+
+/* ═══════════════════════════════════════════════════════
+   SETTINGS MODAL — premium sheet
+   ═══════════════════════════════════════════════════════ */
+#settingsModal, #notesModal{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  z-index:9999;
+  justify-content:center;
+  align-items:flex-end;
+}
+#settingsModal.active, #notesModal.active{ display:flex; }
+
+.settingsSheet{
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width:100%;
+  max-width:480px;
+  max-height:88vh;
+  border-radius:24px 24px 0 0;
+  padding:16px 0 20px;
+  overflow-y:auto;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
+}
+@keyframes sheetUp{ from{ transform:translateY(100%);} to{ transform:translateY(0);} }
+body.dark-theme .settingsSheet{ background: rgba(31,44,52,0.97); }
+
+.settingsHandle{
+  width:40px; height:4px;
+  background: rgba(0,0,0,0.15);
+  border-radius:2px;
+  margin: 0 auto 12px;
+}
+body.dark-theme .settingsHandle{ background: rgba(255,255,255,0.2); }
+
+.settingsHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 20px 14px;
+  border-bottom: 1px solid rgba(128,96,204,0.12);
+  margin-bottom: 6px;
+}
+.settingsHeader h2{
+  margin:0; font-size:18px; color:#3a2a6a;
+}
+body.dark-theme .settingsHeader h2{ color:#e9edef; }
+.settingsHeader h2 .backArrow{ display:none; cursor:pointer; margin-right:8px; }
+.settingsCloseBtn{
+  background:none; border:none; font-size:22px; color:#8a7aba; cursor:pointer; padding:4px;
+}
+
+.settingsSection{
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(128,96,204,0.08);
+}
+.settingsSection:last-child{ border-bottom:none; }
+.settingsSectionTitle{
+  font-size:13px; font-weight:700; color:#8060cc; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
+}
+body.dark-theme .settingsSectionTitle{ color:#00a884; }
+
+.settingsRow{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0;
+  cursor:pointer;
+}
+.settingsRowLabel{ font-size:14.5px; color:#3a2a5a; font-weight:600; }
+body.dark-theme .settingsRowLabel{ color:#e9edef; }
+.settingsRowValue{ font-size:13px; color:#8a7aba; }
+body.dark-theme .settingsRowValue{ color:#8696a0; }
+
+.optionList{ display:flex; flex-direction:column; gap:2px; }
+.optionItem{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:background 0.15s;
+}
+.optionItem:active{ background:rgba(128,96,204,0.1); }
+.optionItem.selected{ background:rgba(128,96,204,0.12); }
+body.dark-theme .optionItem.selected{ background:rgba(0,168,132,0.12); }
+.optionItemLabel{ font-size:14.5px; color:#3a2a5a; }
+body.dark-theme .optionItemLabel{ color:#e9edef; }
+.optionCheck{
+  width:20px; height:20px;
+  border-radius:50%;
+  border:2px solid rgba(128,96,204,0.35);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.optionItem.selected .optionCheck{ background:#8060cc; border-color:#8060cc; }
+body.dark-theme .optionItem.selected .optionCheck{ background:#00a884; border-color:#00a884; }
+.optionCheck svg{ width:12px; height:12px; color:white; display:none; }
+.optionItem.selected .optionCheck svg{ display:block; }
+
+.themeGrid{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+  margin-top:8px;
+}
+.themeSwatch{
+  aspect-ratio: 1;
+  border-radius:14px;
+  cursor:pointer;
+  border: 2.5px solid transparent;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.themeSwatch.selected{ border-color:#8060cc; }
+body.dark-theme .themeSwatch.selected{ border-color:#00a884; }
+.themeSwatch .swCheck{
+  position:absolute; bottom:4px; right:4px;
+  width:18px; height:18px; border-radius:50%;
+  background:#8060cc; color:white;
+  display:none; align-items:center; justify-content:center;
+}
+.themeSwatch.selected .swCheck{ display:flex; }
+.themeSwatch .swCheck svg{ width:11px; height:11px; }
+
+.moodInputRow{ display:flex; gap:8px; margin-top:8px; }
+.moodInputRow input{
+  flex:1; padding:10px 12px; border-radius:12px; border:1.5px solid rgba(128,96,204,0.25);
+  font-size:14px; outline:none; background:rgba(255,255,255,0.9);
+}
+.moodInputRow button{
+  padding:10px 16px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,#7ec8f7,#b09ef5,#e899d4); color:white; font-weight:600; cursor:pointer;
+}
+.moodPresets{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.moodPresetBtn{
+  font-size:18px; background:rgba(128,96,204,0.08); border:none; border-radius:10px;
+  padding:6px 10px; cursor:pointer;
+}
+.moodClearBtn{
+  margin-top:8px; font-size:12.5px; color:#c62828; background:none; border:none; cursor:pointer; padding:0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   KEEP NOTE — premium note-taking UI
+   ═══════════════════════════════════════════════════════ */
+.notesSheet{
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width:100%; max-width:480px; height:85vh;
+  border-radius:24px 24px 0 0;
+  display:flex; flex-direction:column;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  animation: sheetUp 0.25s cubic-bezier(0.25,0.8,0.3,1);
+}
+body.dark-theme .notesSheet{ background: rgba(31,44,52,0.97); }
+
+.notesHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(128,96,204,0.12);
+}
+.notesHeader h2{ margin:0; font-size:18px; color:#3a2a6a; display:flex; align-items:center; gap:8px; }
+body.dark-theme .notesHeader h2{ color:#e9edef; }
+
+.notesListWrap{ flex:1; overflow-y:auto; padding:14px 16px; }
+.noteEmptyState{ text-align:center; color:#9a8aba; font-size:13px; margin-top:60px; }
+.noteCard{
+  background: linear-gradient(135deg, rgba(126,200,247,0.15), rgba(232,153,212,0.15));
+  border: 1px solid rgba(128,96,204,0.15);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition: transform 0.12s;
+  position:relative;
+}
+.noteCard:active{ transform:scale(0.98); }
+body.dark-theme .noteCard{ background: rgba(0,168,132,0.08); border-color: rgba(0,168,132,0.15); }
+.noteCardText{
+  font-size:14px; color:#3a2a5a; white-space:pre-wrap; word-break:break-word;
+  max-height: 90px; overflow:hidden; line-height:1.4;
+}
+body.dark-theme .noteCardText{ color:#e9edef; }
+.noteCardMeta{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.noteCardTime{ font-size:10.5px; color:#9a8aba; }
+.noteCardDelete{
+  background:none; border:none; color:#c62828; cursor:pointer; padding:2px 6px; font-size:15px;
+}
+
+.notesFab{
+  position:absolute; bottom:20px; right:20px;
+  width:52px; height:52px; border-radius:50%;
+  background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+  color:white; border:none; box-shadow:0 4px 16px rgba(160,120,230,0.4);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  font-size:24px;
+}
+
+#noteEditorView{ display:none; flex-direction:column; height:100%; }
+#noteEditorView.active{ display:flex; }
+.noteEditorTextarea{
+  flex:1; border:none; outline:none; resize:none; padding:16px 18px;
+  font-size:15px; line-height:1.5; background:transparent; color:#3a2a5a; font-family:Arial;
+}
+body.dark-theme .noteEditorTextarea{ color:#e9edef; }
+.noteEditorFooter{
+  padding:10px 16px; font-size:11px; color:#9a8aba; text-align:right; border-top:1px solid rgba(128,96,204,0.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIDEO CALL — separate overlay, does not touch audio call
+   ═══════════════════════════════════════════════════════ */
+#videoCallOverlay{
+  display:none;
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:#000; z-index:10000;
+  flex-direction:column;
+}
+#videoCallOverlay.active{ display:flex; }
+#remoteVideoEl{
+  position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; background:#111;
+}
+#localVideoEl{
+  position:absolute; top:16px; right:16px; width:110px; height:150px;
+  border-radius:14px; object-fit:cover; border:2px solid rgba(255,255,255,0.4);
+  box-shadow:0 4px 14px rgba(0,0,0,0.4); z-index:2; background:#222;
+  transition: opacity 0.25s;
+}
+.vcControlsLayer{
+  position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
+  pointer-events:none;
+  transition: opacity 0.25s ease;
+}
+.vcControlsLayer > *{ pointer-events:auto; }
+.vcControlsLayer.hidden{ opacity:0; }
+.vcControlsLayer.hidden .videoCallActions,
+.vcControlsLayer.hidden .videoCallTopBar{ pointer-events:none; }
+.videoCallTopBar{
+  position:relative; padding:20px; color:white; text-align:center;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
+}
+.videoCallTopBar .vcName{ font-size:19px; font-weight:bold; }
+.videoCallTopBar .vcStatus{ font-size:13px; opacity:0.85; margin-top:2px; }
+.videoCallActions{
+  position:absolute; bottom:36px; left:0; width:100%;
+  display:flex; gap:22px; justify-content:center; flex-wrap:wrap; padding:0 20px; box-sizing:border-box;
+}
+.vcActionBtn{
+  width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:transform 0.15s, background 0.15s;
+  background: rgba(30,30,30,0.55);
+  color:white;
+}
+.vcActionBtn:active{ transform:scale(0.88); }
+.vcActionBtn svg{ width:24px; height:24px; }
+#vcEndBtn{ background:#ff3b30 !important; color:white !important; }
+/* WhatsApp-style: OFF state = translucent dark w/ white icon.
+   ON/active-toggled state = solid white circle w/ colored icon. */
+#vcMuteBtn.active, #vcCamBtn.active{ background:#ffffff !important; color:#ff3b30 !important; }
+#vcIncomingActions{ display:none; }
+#vcActiveActions{ display:none; }
+.vcBtnWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.75); font-size:11px; }
+.vcMutedPill{
+  position:absolute; top:76px; left:16px; z-index:2;
+  background:rgba(0,0,0,0.55); color:white; font-size:12.5px;
+  padding:6px 12px; border-radius:16px; display:none;
+}
+.vcMutedPill.show{ display:block; }
+.vcBtnWrap .vcLabel{ color:rgba(255,255,255,0.7); font-size:11px; }
+
 </style>
+<link rel="stylesheet" href="story.css">
+<link rel="stylesheet" href="shorts.css">
 </head>
+
 <body>
 
-<div id="stars"></div>
-<div class="glow-follow" id="glow"></div>
+<div id="access">
+<h2 id="accessTitle">Enter Access Key</h2>
+<input id="key" type="password" pattern="[0-9]*" placeholder="Key" maxlength="6" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" data-lpignore="true" data-1p-ignore="true" data-form-type="other" data-bwignore="true" data-dashlane-ignore="true">
+<button id="enterAccessBtn" onclick="unlock()">Enter</button>
+</div>
 
-<main>
+<div id="accessLoader">
+  <div class="loaderRing"></div>
+  <div class="loaderText">Please wait...</div>
+</div>
 
-  <section class="hero">
-    <div class="hero-eyebrow">A letter, sent quietly</div>
-    <h1 class="hero-title">For you,<br>one last time</h1>
-    <p class="hero-sub">Some things are easier to say into the dark. This is one of those.</p>
-    <div class="scroll-cue">
-      <span>SCROLL</span>
-      <div class="scroll-line"></div>
-    </div>
-  </section>
+<div id="login">
+<h2>Login</h2>
+<div class="warning">⚠️ Always use incognito mode ⚠️</div>
+<input id="name" class="loginInput" placeholder="Username">
+<input id="code" type="password" class="loginInput" placeholder="Password">
+<button id="loginBtn" onclick="start()">Enter Chat</button>
+</div>
 
-  <section class="letter-section">
-    <div class="letter-mark reveal">— what I never got to finish saying</div>
-    <div class="letter-wrap">
-      <p class="letter-line reveal">I treated you the <em>best way</em> I knew how. I crushed my own ego, for you.</p>
-      <p class="letter-line reveal">It's okay that you want someone else — and I deserve better too. You're free now.</p>
-      <p class="letter-line small reveal">I knew this might happen. My brother told me so, before it did.</p>
-      <p class="letter-line reveal">I won't break, because I was never obsessed with losing you — only with loving you. <em>Stay happy.</em></p>
-      <p class="letter-line reveal">And I promise you this — I'll find better than you.</p>
-    </div>
-  </section>
+<div id="chat">
 
-  <div class="divider"></div>
+<div id="header">
+  <img id="headerAvatar" src="" alt="Profile">
+  <div id="headerInfo">
+    <div id="headerName">Private Chat</div>
+    <div id="statusText">Offline</div>
+    <div id="moodTag"></div>
+  </div>
+  <button id="callBtn" onclick="initiateCall()" title="Voice Call">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+  </button>
+  <button id="videoCallBtn" onclick="initiateVideoCall()" title="Video Call">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>
+  </button>
+  <div id="menu" onclick="toggleMenu()">⋮</div>
+</div>
 
-  <section class="close-section">
-    <div class="close-eyebrow reveal">LAST LIGHT</div>
-    <h2 class="close-title reveal">Go on. Be free.</h2>
-    <p class="close-line reveal">I'm letting this go now — the way you let go of me. No hard feelings held in the hand that opens.</p>
+<div id="connectionBadge"><span class="connDot"></span><span id="connectionBadgeText">Reconnecting…</span></div>
 
-    <div class="lantern-stage">
-      <svg id="lantern-svg" width="90" height="120" viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="45" cy="100" rx="14" ry="4" fill="#000" opacity="0.15"/>
-        <path d="M20 40 Q45 20 70 40 L64 90 Q45 100 26 90 Z" fill="none" stroke="#e3a970" stroke-width="1.4" opacity="0.9"/>
-        <line x1="20" y1="40" x2="70" y2="40" stroke="#e3a970" stroke-width="1" opacity="0.6"/>
-        <line x1="26" y1="90" x2="64" y2="90" stroke="#e3a970" stroke-width="1" opacity="0.6"/>
-        <ellipse cx="45" cy="65" rx="16" ry="22" fill="#e3a970" opacity="0.16"/>
-        <path d="M45 52 C40 62 40 70 45 76 C50 70 50 62 45 52 Z" fill="#f4c896"/>
+<!-- ✅ 3-DOT MENU UI — Instagram / WhatsApp Style -->
+<div id="menuBackdrop"></div>
+<div id="menuBox">
+  <div class="menuDivider"></div>
+
+  <div class="menuItem" onclick="openNickModal()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
       </svg>
     </div>
+    <span class="menuText">Change Nick Name</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
 
-    <div class="signature reveal">— written by someone who meant it</div>
-  </section>
+  <div class="menuItem" onclick="changeProfilePic()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+        <polyline points="21 15 16 10 5 21"></polyline>
+      </svg>
+    </div>
+    <span class="menuText">Change Profile Pic</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
 
-</main>
+  <div class="menuItem" id="notifToggleItem" onclick="toggleNotifications()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+    </div>
+    <div style="flex:1;overflow:hidden;">
+      <div class="menuText" style="margin-bottom:1px;">Notification</div>
+      <div class="menuSubText">Receive message notifications</div>
+    </div>
+    <div class="menuToggleSwitch" id="notifToggleSwitch"></div>
+  </div>
 
-<footer>made quietly, meant sincerely</footer>
+  <div class="menuItem" id="darkThemeItem" onclick="toggleDarkTheme(event)">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </div>
+    <span class="menuText">Dark Theme</span>
+    <div class="menuToggleSwitch" id="darkThemeSwitch"></div>
+  </div>
 
-<script>
-  // Starfield
-  (function () {
-    const container = document.getElementById('stars');
-    const count = window.innerWidth < 600 ? 70 : 140;
-    let html = '';
-    for (let i = 0; i < count; i++) {
-      const x = Math.random() * 100;
-      const y = Math.random() * 100;
-      const size = Math.random() * 1.6 + 0.4;
-      const delay = (Math.random() * 5).toFixed(2);
-      const dur = (Math.random() * 3 + 2.5).toFixed(2);
-      html += `<div style="position:absolute;left:${x}%;top:${y}%;width:${size}px;height:${size}px;border-radius:50%;background:#e9e7e0;opacity:${(Math.random()*0.5+0.2).toFixed(2)};animation:twinkle ${dur}s ease-in-out ${delay}s infinite;"></div>`;
-    }
-    container.innerHTML = html;
-    const styleTag = document.createElement('style');
-    styleTag.textContent = `@keyframes twinkle {0%,100%{opacity:0.15;}50%{opacity:0.9;}}`;
-    document.head.appendChild(styleTag);
-  })();
+  <div class="menuItem" id="keepNoteItem" onclick="openNotesModal()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11H3v10h18V11h-6"></path>
+        <path d="M15 3l6 6-9 9H6v-6z"></path>
+      </svg>
+    </div>
+    <span class="menuText">Keep Note</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
 
-  // Cursor-following glow (desktop only, subtle)
-  (function () {
-    const glow = document.getElementById('glow');
-    if (window.matchMedia('(pointer: fine)').matches) {
-      window.addEventListener('mousemove', (e) => {
-        glow.style.left = e.clientX + 'px';
-        glow.style.top = e.clientY + 'px';
-      });
+  <div class="menuItem softRed" onclick="deleteAll()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+      </svg>
+    </div>
+    <span class="menuText">Delete All Chat</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
+  <div class="menuItem dangerRed" id="blockBtn" onclick="toggleBlock()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+      </svg>
+    </div>
+    <span class="menuText" id="blockBtnText">Block User</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
+  <div class="menuItem dangerRed" id="logoutBtn" onclick="logoutDevice()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+    </div>
+    <span class="menuText">Logout</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+
+  <div class="menuItem" id="settingsMenuItem" onclick="openSettingsModal()">
+    <div class="menuIconBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </div>
+    <span class="menuText">Settings</span>
+    <svg class="menuChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </div>
+</div>
+
+<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
+<input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
+<input type="file" id="photoInput" accept="image/*" style="display:none">
+<input type="file" id="videoInput" accept="video/*" style="display:none">
+
+<div id="typingIndicator"></div>
+<div id="messages"></div>
+
+<div id="gifPanel"></div>
+
+<div id="voicePreviewBar">
+  <button id="previewDeleteBtn">🗑️</button>
+  <button id="previewPlayBtn">▶️</button>
+  <span id="previewDuration" style="font-size:13px;color:#555;flex:1;">0:00</span>
+  <button id="previewSendBtn">➤</button>
+  <audio id="previewAudio"></audio>
+</div>
+
+<div id="replyBar">
+  <div class="replyBarContent" id="replyBarContent">
+    <div class="replyBarName" id="replyBarName"></div>
+    <div class="replyBarText" id="replyBarText"></div>
+  </div>
+  <button id="replyBarClose">✕</button>
+</div>
+
+<div id="editBar">
+  ✏️ Editing message
+  <button id="editBarClose">✕</button>
+</div>
+
+<div id="blockedBanner"></div>
+
+<div id="inputArea">
+<button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
+<div id="inputWrapper">
+<textarea id="msg" placeholder="Type message..." rows="1"></textarea>
+<button id="cameraBtn" onclick="openMediaSheet()" title="Camera">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <circle cx="12" cy="12" r="3.2"/>
+    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+  </svg>
+</button>
+</div>
+<button id="micBtn" onclick="triggerVoiceRecord()" title="Voice message">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20" height="20">
+    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+  </svg>
+</button>
+<button id="sendBtn" onclick="send()" style="display:none;">➤</button>
+</div>
+
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 16px rgba(140,100,200,0.12);border-top:1px solid rgba(180,160,220,0.2);"></div>
+
+<div id="voiceRecordBar">
+  <div class="recLeft">
+    <div class="recDot"></div>
+    <span id="recTimer">0:00</span>
+    <span style="color:rgba(255,255,255,0.8);font-size:13px;">Recording...</span>
+  </div>
+  <div class="recRight">
+    <span style="color:white;font-size:22px;cursor:pointer;" id="recCancelBtn">✕</span>
+  </div>
+</div>
+</div>
+
+<div id="actionMenu">
+  <div class="actionMenuItem" id="actionReact">😊 React</div>
+  <div class="actionMenuItem" id="actionReply">↩️ Reply</div>
+  <div class="actionMenuItem" id="actionEdit">✏️ Edit</div>
+  <div class="actionMenuItem danger" id="actionDelete">🗑️ Delete</div>
+</div>
+
+<div id="reactionPicker">
+  <span class="reactionOption">❤️</span>
+  <span class="reactionOption">😂</span>
+  <span class="reactionOption">😮</span>
+  <span class="reactionOption">😢</span>
+  <span class="reactionOption">👍</span>
+  <span class="reactionOption">🔥</span>
+</div>
+
+<div id="nickModal">
+  <div id="nickModalBox">
+    <h3>✏️ Change Nick Name</h3>
+    <label id="myNickLabel">Your Nick Name</label>
+    <input id="myNickInput" placeholder="Your nick name">
+    <label id="otherNickLabel">Other's Nick Name</label>
+    <input id="otherNickInput" placeholder="Other's nick name">
+    <div class="nickModalBtns">
+      <button id="nickCancelBtn" onclick="closeNickModal()">Cancel</button>
+      <button id="nickSaveBtn" onclick="saveNickNames()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SETTINGS MODAL — Disappearing Messages, Wallpaper, Theme, Mood
+     ═══════════════════════════════════════════════════════ -->
+<div id="settingsModal">
+  <div class="settingsSheet">
+    <div class="settingsHandle"></div>
+    <div class="settingsHeader">
+      <h2><span class="backArrow" id="settingsBackArrow" onclick="closeSettingsSubview()">←</span><span id="settingsTitle">Settings</span></h2>
+      <button class="settingsCloseBtn" onclick="closeSettingsModal()">✕</button>
+    </div>
+
+    <div id="settingsMainView">
+      <div class="settingsSection">
+        <div class="settingsSectionTitle">Chat</div>
+        <div class="settingsRow" onclick="openDisappearingView()">
+          <div class="settingsRowLabel">⏱ Disappearing Messages</div>
+          <div class="settingsRowValue" id="disappearingValueLabel">Disable ›</div>
+        </div>
+        <div class="settingsRow" onclick="toggleGifSuggestions()" style="cursor:pointer;">
+          <div class="settingsRowLabel">🎞 GIF Suggestions</div>
+          <div class="menuToggleSwitch" id="gifToggleSwitch"></div>
+        </div>
+      </div>
+
+      <div class="settingsSection">
+        <div class="settingsRowLabel" style="margin-bottom:2px;">🎨 Chat Theme</div>
+        <div class="themeGrid" id="themeGrid"></div>
+      </div>
+
+      <div class="settingsSection">
+        <div class="settingsSectionTitle">Status</div>
+        <div class="settingsRowLabel" style="margin-bottom:2px;">😴 Your Mood / Status</div>
+        <div class="moodInputRow">
+          <input id="moodInput" placeholder="What's on your mind?" maxlength="30">
+          <button id="moodSaveBtn" onclick="saveMood()">Save</button>
+        </div>
+        <div class="moodPresets" id="moodPresets"></div>
+        <button class="moodClearBtn" onclick="clearMood()">Clear status</button>
+      </div>
+    </div>
+
+    <div id="disappearingView" style="display:none;">
+      <div class="settingsSection">
+        <div class="settingsRowLabel" style="margin-bottom:10px;">Messages will disappear from this chat after the selected time.</div>
+        <div class="optionList" id="disappearingOptionList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     KEEP NOTE MODAL
+     ═══════════════════════════════════════════════════════ -->
+<div id="notesModal">
+  <div class="notesSheet" style="position:relative;">
+    <div id="notesListView" style="display:flex; flex-direction:column; height:100%;">
+      <div class="notesHeader">
+        <h2>📝 Keep Note</h2>
+        <button class="settingsCloseBtn" onclick="closeNotesModal()">✕</button>
+      </div>
+      <div class="notesListWrap" id="notesListWrap">
+        <div class="noteEmptyState">No notes yet. Tap + to add one.</div>
+      </div>
+      <button class="notesFab" onclick="openNoteEditor(null)">＋</button>
+    </div>
+
+    <div id="noteEditorView">
+      <div class="notesHeader">
+        <h2><span class="backArrow" style="display:inline;cursor:pointer;" onclick="closeNoteEditor()">←</span> Note</h2>
+        <button class="settingsCloseBtn" id="noteDeleteBtn" onclick="deleteCurrentNote()" title="Delete">🗑️</button>
+      </div>
+      <textarea class="noteEditorTextarea" id="noteEditorTextarea" placeholder="Write your note..."></textarea>
+      <div class="noteEditorFooter" id="noteEditorFooter"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     VIDEO CALL OVERLAY — separate from the existing audio call
+     ═══════════════════════════════════════════════════════ -->
+<div id="videoCallOverlay">
+  <video id="remoteVideoEl" autoplay playsinline></video>
+
+  <div class="vcControlsLayer" id="vcControlsLayer">
+    <div class="videoCallTopBar">
+      <div class="vcName" id="vcName">Kitty</div>
+      <div class="vcStatus" id="vcStatus">Calling...</div>
+    </div>
+
+    <div class="vcMutedPill" id="vcMutedPill"><span id="vcMutedPillText"></span></div>
+
+    <div class="videoCallActions" id="vcIncomingActions">
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcRejectBtn" onclick="rejectVideoCall()" style="background:#ff3b30;color:white;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+        </button>
+        <div class="vcLabel">Decline</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcAcceptBtn" onclick="acceptVideoCall()" style="background:#34c759;color:white;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+        </button>
+        <div class="vcLabel">Accept</div>
+      </div>
+    </div>
+
+    <div class="videoCallActions" id="vcActiveActions">
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcMuteBtn" onclick="toggleVideoCallMute()">
+          <span id="vcMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
+        </button>
+        <div class="vcLabel" id="vcMuteLabel">Mute</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcCamBtn" onclick="toggleVideoCallCam()">
+          <span id="vcCamIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></span>
+        </button>
+        <div class="vcLabel" id="vcCamLabel">Camera</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcSwitchBtn" onclick="switchVideoCallCamera()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <div class="vcLabel">Flip</div>
+      </div>
+      <div class="vcBtnWrap">
+        <button class="vcActionBtn" id="vcEndBtn" onclick="endVideoCall()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+        </button>
+        <div class="vcLabel">End</div>
+      </div>
+    </div>
+  </div>
+
+  <video id="localVideoEl" autoplay playsinline muted></video>
+</div>
+
+<audio id="vcRingtoneAudio" loop>
+  <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
+</audio>
+
+<div id="callOverlay">
+  <div class="callTop">
+    <img id="callAvatar" src="" alt="">
+    <div id="callName">Kitty</div>
+    <div id="callStatus">Calling...</div>
+    <div id="callTimer">0:00</div>
+  </div>
+
+  <div id="incomingActions" class="callActions">
+    <div class="callBtnWrap">
+      <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+      </button>
+      <div class="callLabel">Decline</div>
+    </div>
+    <div class="callBtnWrap">
+      <button class="callActionBtn" id="acceptCallBtn" onclick="acceptCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg>
+      </button>
+      <div class="callLabel">Accept</div>
+    </div>
+  </div>
+
+  <div id="activeActions" class="callActions">
+    <div class="callBtnWrap">
+      <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">
+        <span id="acMuteIcon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>
+      </button>
+      <div class="callLabel" id="muteLabel">Mute</div>
+    </div>
+    <div class="callBtnWrap">
+      <button class="callActionBtn" id="endCallBtn" onclick="endCall()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08C.11 12.91 0 12.66 0 12.38c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+      </button>
+      <div class="callLabel">End</div>
+    </div>
+    <div class="callBtnWrap">
+      <button class="callActionBtn" id="speakerBtn" onclick="toggleSpeaker()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/><path d="M14 3.23v2.06a7 7 0 0 1 0 13.42v2.06A9 9 0 0 0 14 3.23z"/></svg>
+      </button>
+      <div class="callLabel" id="speakerLabel">Speaker</div>
+    </div>
+  </div>
+</div>
+
+<audio id="remoteAudio" autoplay playsinline></audio>
+<audio id="ringtoneAudio" loop>
+  <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ✅ story.js loads first — before module script -->
+<script src="story.js"></script>
+<script src="story-editor.js"></script>
+<script src="shorts.js"></script>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
+import { getDatabase, ref, push, onChildAdded, onChildChanged, onChildRemoved, remove, set, onValue, onDisconnect, update, get, off }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4U3FPOVILcqPpWERz6aUtOwsqHgbSCEk",
+  authDomain: "private-chat-318a6.firebaseapp.com",
+  databaseURL: "https://private-chat-318a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "private-chat-318a6",
+  storageBucket: "private-chat-318a6.appspot.com",
+  messagingSenderId: "1082000480834",
+  appId: "1:1082000480834:web:1f6871c095821e865a2bdb"
+}
+
+const app = initializeApp(firebaseConfig)
+const db = getDatabase(app)
+
+const BACKEND = "https://chat-backend-myvs.onrender.com"
+fetch(BACKEND).catch(()=>{})
+
+const bgCount = 59
+const bgIndex = Math.floor(Math.random() * bgCount) + 1
+document.body.style.backgroundImage = `url('https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/bg${bgIndex}.jpg')`
+
+// Register the FCM service worker as early as possible so it's ready
+// before the person logs in (registration itself needs no username).
+let swRegistration = null
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    .then(reg=>{ swRegistration = reg })
+    .catch(err=>console.warn("SW registration failed", err))
+}
+
+// ─────────────────────────────────────────────
+// APP LOCK — device stays logged in after the first
+// successful login; only the access code is asked again.
+// ─────────────────────────────────────────────
+function encodeSavedPass(p){ try{ return btoa(unescape(encodeURIComponent(p))) }catch(e){ return p } }
+function decodeSavedPass(p){ try{ return decodeURIComponent(escape(atob(p))) }catch(e){ return p } }
+
+const hasSavedDeviceLogin = !!(localStorage.getItem("savedUser") && localStorage.getItem("savedPassEnc"))
+if(hasSavedDeviceLogin){
+  const t = document.getElementById("accessTitle")
+  if(t) t.innerText = "🔒 Enter Access Code"
+}
+
+let username = ""
+let otherUser = ""
+const appStartTime = Date.now()
+const statusText = document.getElementById("statusText")
+const accessLoader = document.getElementById("accessLoader")
+const messagesEl = document.getElementById("messages")
+const msgBox = document.getElementById("msg")
+const sendBtn = document.getElementById("sendBtn")
+const blockedBanner = document.getElementById("blockedBanner")
+const blockBtn = document.getElementById("blockBtn")
+const headerAvatar = document.getElementById("headerAvatar")
+const headerName = document.getElementById("headerName")
+let seenListener = null
+
+// ─────────────────────────────────────────────
+// GIF ON/OFF TOGGLE (Per User - Firebase)
+// ─────────────────────────────────────────────
+let gifEnabled = false
+let _gifRef = null
+
+function updateGifToggleLabel(){
+  const sw = document.getElementById("gifToggleSwitch")
+  if(!sw) return
+  if(gifEnabled) sw.classList.add("active")
+  else sw.classList.remove("active")
+}
+
+function listenGifSuggestions(){
+  _gifRef = ref(db, "userSettings/" + username + "/gifSuggestions")
+  onValue(_gifRef, snap => {
+    const val = snap.val()
+
+    if (val === null) {
+      gifEnabled = false
+      set(ref(db, "userSettings/" + username + "/gifSuggestions"), "off").catch(()=>{})
     } else {
-      glow.style.display = 'none';
-    }
-  })();
-
-  // Scroll reveal
-  (function () {
-    const items = document.querySelectorAll('.reveal');
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.4 });
-    items.forEach((el) => io.observe(el));
-
-    // Lantern drift, triggered once close section is well in view
-    const lantern = document.getElementById('lantern-svg');
-    const closeSection = document.querySelector('.close-section');
-    const lanternIo = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => lantern.classList.add('drift'), 900);
-          lanternIo.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.6 });
-    lanternIo.observe(closeSection);
-  })();
-
-  // Slow auto-scroll, like credits rising — pause on touch/hold, resume gently on release
-  (function () {
-    const SPEED = 22; // pixels per second, slow and readable
-    const RESUME_DELAY = 700; // ms after release before auto-scroll resumes
-    let paused = false;
-    let lastTime = null;
-    let resumeTimer = null;
-
-    function maxScroll() {
-      return document.documentElement.scrollHeight - window.innerHeight;
+      gifEnabled = val === "on"
     }
 
-    function step(timestamp) {
-      if (lastTime === null) lastTime = timestamp;
-      const delta = (timestamp - lastTime) / 1000;
-      lastTime = timestamp;
+    updateGifToggleLabel()
+    if(!gifEnabled) hideGifPanel()
+  })
+}
 
-      if (!paused && window.scrollY < maxScroll() - 1) {
-        window.scrollBy(0, SPEED * delta);
+window.toggleGifSuggestions = function(){
+  const newVal = !gifEnabled
+  gifEnabled = newVal
+  updateGifToggleLabel()
+  if(!gifEnabled) hideGifPanel()
+  set(ref(db, "userSettings/" + username + "/gifSuggestions"), newVal ? "on" : "off").catch(()=>{})
+}
+
+updateGifToggleLabel()
+
+// ─────────────────────────────────────────────
+// PROFILE PICS
+// ─────────────────────────────────────────────
+let profilePics = {}
+
+const DEFAULT_PIC = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwNzVFNTQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE1IiByPSI3IiBmaWxsPSJ3aGl0ZSIvPjxlbGxpcHNlIGN4PSIyMCIgY3k9IjM0IiByeD0iMTIiIHJ5PSI4IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg=="
+
+function getAvatar(user){
+  return profilePics[user] || DEFAULT_PIC
+}
+
+window.getAvatar  = getAvatar
+window.DEFAULT_PIC = DEFAULT_PIC
+
+function updateHeader(){
+  headerAvatar.src = getAvatar(otherUser) || DEFAULT_PIC
+  headerName.innerText = getNick(otherUser)
+}
+
+function listenProfilePics(){
+  onValue(ref(db, "profilePics"), snap=>{
+    const data = snap.val() || {}
+    profilePics = data
+    updateHeader()
+    document.querySelectorAll(".avatar[data-user]").forEach(img=>{
+      const u = img.dataset.user
+      if(u) img.src = getAvatar(u)
+    })
+    const menuAv = document.getElementById('menuProfileAvatar')
+    if(menuAv) menuAv.src = getAvatar(username)
+    if(typeof window.refreshStoryBar === 'function') window.refreshStoryBar()
+  })
+}
+
+window.changeProfilePic = function(){
+  closeMenuBox()
+  document.getElementById("profilePicInput").click()
+}
+
+window.uploadProfilePic = async function(input){
+  const file = input.files[0]
+  if(!file) return
+  input.value = ""
+  const formData = new FormData()
+  formData.append("file", file)
+  try {
+    const res = await fetch(BACKEND + "/upload", {method:"POST", body:formData})
+    const data = await res.json()
+    if(!data.url){ alert("Upload failed ⚠️"); return }
+    const urlWithCache = data.url + "?t=" + Date.now()
+    await set(ref(db, "profilePics/" + username), urlWithCache)
+  } catch(e){
+    alert("Profile pic upload failed ⚠️")
+  }
+}
+
+// ─────────────────────────────────────────────
+// NICKNAMES
+// ─────────────────────────────────────────────
+let nicknames = {}
+
+function getNick(user){
+  if(!user) return ""
+  return nicknames[user] || (user==="katis1" ? "Kat" : "Kitty")
+}
+
+window.getNick = getNick
+
+function refreshAllDisplayNames(){
+  updateHeader()
+  document.querySelectorAll(".msgSenderName").forEach(el=>{
+    const u = el.dataset.user
+    if(u) el.innerText = getNick(u)
+  })
+}
+
+// ════════════════════════
+// DARK THEME — Firebase sync (Per User)
+// ════════════════════════
+let _themeRef = null
+
+function listenTheme() {
+  _themeRef = ref(db, "userSettings/" + username + "/theme")
+  onValue(_themeRef, snap => {
+    const isDark = snap.val() === "dark"
+    applyTheme(isDark)
+    const sw = document.getElementById("darkThemeSwitch")
+    if (sw) {
+      if(isDark) sw.classList.add("active")
+      else sw.classList.remove("active")
+    }
+  })
+}
+
+function applyTheme(isDark) {
+  if (isDark) {
+    document.body.classList.add("dark-theme")
+  } else {
+    document.body.classList.remove("dark-theme")
+  }
+}
+
+window.listenOtherUserOnlineStatus = function(callback) {
+  if (!otherUser) { callback(false); return }
+  onValue(ref(db, "status/" + otherUser), snap => {
+    const data = snap.val()
+    if (!data) { callback(false); return }
+    callback((Date.now() - data.last) < 12000)
+  })
+}
+
+window.listenUnseenMessageCount = function(callback) {
+  if (!otherUser) { callback(0); return }
+  onValue(ref(db, "messages"), snap => {
+    const data = snap.val()
+    if (!data) { callback(0); return }
+    let count = 0
+    Object.values(data).forEach(msg => {
+      if (msg.name === otherUser && !msg.seen && !msg.deleted && msg.type !== "system") count++
+    })
+    callback(count)
+  })
+}
+
+window.toggleDarkTheme = function(e) {
+  if (e) e.stopPropagation()
+
+  const isDark = document.body.classList.contains("dark-theme")
+  const newTheme = isDark ? "light" : "dark"
+
+  applyTheme(!isDark)
+  
+  const sw = document.getElementById("darkThemeSwitch")
+  if (sw) {
+    if(!isDark) sw.classList.add("active")
+    else sw.classList.remove("active")
+  }
+
+  set(ref(db, "userSettings/" + username + "/theme"), newTheme)
+    .then(() => console.log("[Theme] Saved to Firebase:", newTheme))
+    .catch(err => console.error("[Theme] Firebase write FAILED:", err))
+}
+
+function listenNickNames(){
+  onValue(ref(db, "nicknames"), snap=>{
+    const data = snap.val() || {}
+    nicknames = data
+    refreshAllDisplayNames()
+    const menuName = document.getElementById('menuProfileName')
+    if(menuName && username) {
+      const nick = getNick(username)
+      if(nick) menuName.innerText = nick
+    }
+  })
+}
+
+window.openNickModal = function(){
+  closeMenuBox()
+  document.getElementById("myNickLabel").innerText = "Your Nick Name"
+  document.getElementById("otherNickLabel").innerText = "Other's Nick Name"
+  document.getElementById("myNickInput").value = getNick(username)
+  document.getElementById("otherNickInput").value = getNick(otherUser)
+  document.getElementById("nickModal").style.display = "flex"
+}
+
+window.closeNickModal = function(){
+  document.getElementById("nickModal").style.display = "none"
+}
+
+window.saveNickNames = async function(){
+  const myNick = document.getElementById("myNickInput").value.trim()
+  const otherNick = document.getElementById("otherNickInput").value.trim()
+  if(!myNick || !otherNick){ alert("Nick names cannot be empty"); return }
+  await update(ref(db, "nicknames"), { [username]: myNick, [otherUser]: otherNick })
+  closeNickModal()
+}
+
+// ─────────────────────────────────────────────
+// BLOCK SYSTEM
+// ─────────────────────────────────────────────
+let iBlockedOther = false
+let otherBlockedMe = false
+
+function isBlocked(){ return iBlockedOther || otherBlockedMe }
+
+function formatBlockTime(ts){
+  if(!ts) return ""
+  const d = new Date(ts)
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) +
+    " at " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
+}
+
+function updateBlockUI(){
+  const blockBtnText = document.getElementById("blockBtnText")
+  if(blockBtnText) blockBtnText.innerText = iBlockedOther ? "Unblock User" : "Block User"
+  const blocked = isBlocked()
+  msgBox.disabled = blocked
+  sendBtn.disabled = blocked
+  const cameraBtn = document.getElementById("cameraBtn")
+  if(cameraBtn){
+    cameraBtn.style.opacity = blocked ? "0.4" : "1"
+    cameraBtn.style.pointerEvents = blocked ? "none" : "auto"
+  }
+  msgBox.placeholder = blocked ? "🚫 Messaging is blocked" : "Type message..."
+
+  if(iBlockedOther){
+    blockedBanner.style.display = "block"
+    blockedBanner.innerHTML = `🚫 You blocked this person. <span style="color:#075E54;cursor:pointer;text-decoration:underline;" onclick="toggleBlock()">Tap to unblock.</span>`
+  } else if(otherBlockedMe){
+    blockedBanner.style.display = "block"
+    blockedBanner.innerHTML = `🚫 You are blocked. You cannot send messages.`
+  } else {
+    blockedBanner.style.display = "none"
+  }
+}
+
+function listenBlockStatus(){
+  onValue(ref(db, "blocks/"+username+"/"+otherUser), snap=>{
+    iBlockedOther = snap.exists() && snap.val() && snap.val().blocked === true
+    updateBlockUI()
+  })
+  onValue(ref(db, "blocks/"+otherUser+"/"+username), snap=>{
+    otherBlockedMe = snap.exists() && snap.val() && snap.val().blocked === true
+    updateBlockUI()
+  })
+}
+
+window.toggleBlock = async function(){
+  closeMenuBox()
+  const t = Date.now()
+  if(iBlockedOther){
+    await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: false, time: t })
+    await push(ref(db, "messages"), { type:"system", action:"unblock", actor:username, time:t })
+  } else {
+    if(!confirm("Block this user?")) return
+    await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: true, time: t })
+    await push(ref(db, "messages"), { type:"system", action:"block", actor:username, time:t })
+  }
+}
+
+// ─────────────────────────────────────────────
+// VOICE RECORDING
+// ─────────────────────────────────────────────
+let mediaRecorder=null, audioChunks=[], recordedBlob=null
+let recTimerInterval=null, recSeconds=0, isRecording=false
+
+const voiceRecordBar = document.getElementById("voiceRecordBar")
+const voicePreviewBar = document.getElementById("voicePreviewBar")
+const recTimer = document.getElementById("recTimer")
+const recCancelBtn = document.getElementById("recCancelBtn")
+const previewAudio = document.getElementById("previewAudio")
+const previewPlayBtn = document.getElementById("previewPlayBtn")
+const previewDeleteBtn = document.getElementById("previewDeleteBtn")
+const previewSendBtn = document.getElementById("previewSendBtn")
+const previewDuration = document.getElementById("previewDuration")
+
+function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
+
+window.triggerVoiceRecord = async function(){
+  closeMenuBox()
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+  await startRecording()
+}
+
+async function startRecording(){
+  if(isBlocked()) return
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true})
+    audioChunks=[]
+    mediaRecorder = new MediaRecorder(stream)
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) audioChunks.push(e.data) }
+    mediaRecorder.onstop = ()=>{
+      recordedBlob = new Blob(audioChunks,{type:"audio/webm"})
+      previewAudio.src = URL.createObjectURL(recordedBlob)
+      previewDuration.innerText = formatRecTime(recSeconds)
+      voiceRecordBar.style.display="none"
+      voicePreviewBar.style.display="flex"
+      stream.getTracks().forEach(t=>t.stop())
+    }
+    mediaRecorder.start()
+    isRecording=true; recSeconds=0; recTimer.innerText="0:00"
+    voiceRecordBar.style.display="flex"
+    recTimerInterval = setInterval(()=>{ recSeconds++; recTimer.innerText=formatRecTime(recSeconds) },1000)
+  } catch(e){ alert("Microphone permission denied") }
+}
+
+function stopRecording(){
+  if(mediaRecorder&&isRecording){ clearInterval(recTimerInterval); isRecording=false; mediaRecorder.stop() }
+}
+
+function cancelRecording(){
+  if(mediaRecorder&&isRecording){
+    clearInterval(recTimerInterval); isRecording=false
+    mediaRecorder.stream.getTracks().forEach(t=>t.stop())
+    mediaRecorder.stop(); recordedBlob=null
+    voiceRecordBar.style.display="none"
+  }
+}
+
+recCancelBtn.addEventListener("click",()=>cancelRecording())
+
+let isPlaying=false
+previewPlayBtn.addEventListener("click",()=>{
+  if(isPlaying){previewAudio.pause();previewPlayBtn.innerText="▶️";isPlaying=false}
+  else{previewAudio.play();previewPlayBtn.innerText="⏸️";isPlaying=true}
+})
+previewAudio.addEventListener("ended",()=>{previewPlayBtn.innerText="▶️";isPlaying=false})
+previewDeleteBtn.addEventListener("click",()=>{
+  recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
+})
+previewSendBtn.addEventListener("click",async()=>{
+  if(isBlocked()||!recordedBlob) return
+  previewSendBtn.disabled=true; previewSendBtn.innerText="⏳"
+  try {
+    const formData=new FormData()
+    formData.append("file",recordedBlob,"voice.webm")
+    const res=await fetch(BACKEND+"/voice",{method:"POST",body:formData})
+    const data=await res.json()
+    if(!data.url) throw new Error()
+    push(ref(db,"messages"),{name:username,text:"__voice__"+data.url,time:Date.now(),seen:false})
+    recordedBlob=null;previewAudio.src="";voicePreviewBar.style.display="none";isPlaying=false
+  } catch(e){alert("Voice send failed ⚠️")}
+  previewSendBtn.disabled=false;previewSendBtn.innerText="➤"
+})
+
+// ═══════════════════════════════════════════════════════
+// CAMERA ICON + MEDIA UPLOAD (WhatsApp-style)
+// ═══════════════════════════════════════════════════════
+
+// ── Media Bottom Sheet ──
+window.openMediaSheet = function(){
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+  const backdrop = document.getElementById("mediaSheetBackdrop")
+  const sheet = document.getElementById("mediaSheet")
+  backdrop.style.display = "block"
+  sheet.style.display = "block"
+  void backdrop.offsetWidth
+  backdrop.classList.add("active")
+  sheet.classList.add("active")
+}
+
+window.closeMediaSheet = function(){
+  const backdrop = document.getElementById("mediaSheetBackdrop")
+  const sheet = document.getElementById("mediaSheet")
+  backdrop.classList.remove("active")
+  sheet.classList.remove("active")
+  setTimeout(()=>{
+    backdrop.style.display = "none"
+    sheet.style.display = "none"
+  }, 300)
+}
+
+document.getElementById("mediaSheetBackdrop").addEventListener("click", ()=>{ closeMediaSheet() })
+
+window.openPhotoPicker = function(){
+  closeMediaSheet()
+  document.getElementById("photoInput").click()
+}
+
+window.openVideoPicker = function(){
+  closeMediaSheet()
+  document.getElementById("videoInput").click()
+}
+
+// ── Reuse existing Cloudinary upload configuration/endpoint with XHR for progress ──
+function uploadMediaWithProgress(file, onProgress){
+  return new Promise((resolve, reject)=>{
+    const xhr = new XMLHttpRequest()
+    const formData = new FormData()
+    formData.append("file", file)
+
+    xhr.upload.addEventListener("progress", e=>{
+      if(e.lengthComputable && onProgress){
+        onProgress(Math.round((e.loaded / e.total) * 100))
       }
-      requestAnimationFrame(step);
+    })
+
+    xhr.addEventListener("load", ()=>{
+      try {
+        const data = JSON.parse(xhr.responseText)
+        if(data.url) resolve(data.url)
+        else reject(new Error("No URL in response"))
+      } catch(e){ reject(e) }
+    })
+
+    xhr.addEventListener("error", ()=>reject(new Error("Upload failed")))
+
+    xhr.open("POST", BACKEND + "/upload")
+    xhr.send(formData)
+  })
+}
+
+// ── Get video duration from file ──
+function getVideoDuration(file){
+  return new Promise((resolve)=>{
+    const video = document.createElement("video")
+    video.preload = "metadata"
+    video.onloadedmetadata = ()=>{
+      URL.revokeObjectURL(video.src)
+      resolve(video.duration || 0)
     }
-    requestAnimationFrame(step);
+    video.onerror = ()=>resolve(0)
+    video.src = URL.createObjectURL(file)
+  })
+}
 
-    function pause() {
-      paused = true;
-      lastTime = null;
-      if (resumeTimer) clearTimeout(resumeTimer);
+function formatVideoDuration(seconds){
+  if(!seconds || !isFinite(seconds)) return "0:00"
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return m + ":" + ("0" + s).slice(-2)
+}
+
+// ── Construct video thumbnail from Cloudinary URL ──
+function getVideoThumbnail(videoUrl){
+  if(videoUrl.includes("res.cloudinary.com") && videoUrl.includes("/video/upload/")){
+    return videoUrl.replace("/video/upload/", "/video/upload/so_2,f_jpg/")
+  }
+  return videoUrl.replace(/\.(mp4|webm|mov|avi|mkv)(\?.*)?$/i, ".jpg")
+}
+
+// ── Create temporary upload progress bubble ──
+function createUploadBubble(){
+  const row = document.createElement("div")
+  row.className = "msgRow me"
+  row.id = "tempUploadBubble"
+
+  const div = document.createElement("div")
+  div.className = "msg mediaBubble"
+  div.style.background = "linear-gradient(135deg, #7ec8f7 0%, #b09ef5 50%, #e899d4 100%)"
+  div.style.padding = "3px"
+
+  const placeholder = document.createElement("div")
+  placeholder.className = "uploadPlaceholder"
+
+  const circle = document.createElement("div")
+  circle.className = "uploadCircle"
+  circle.innerHTML = `
+    <svg viewBox="0 0 56 56">
+      <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
+      <circle class="uploadRingProg" cx="28" cy="28" r="24" fill="none" stroke="white" stroke-width="4" stroke-dasharray="150.8" stroke-dashoffset="150.8" stroke-linecap="round"/>
+    </svg>
+    <span class="uploadPct">0%</span>
+  `
+
+  placeholder.appendChild(circle)
+  div.appendChild(placeholder)
+  row.appendChild(div)
+  messagesEl.appendChild(row)
+  scrollToBottom()
+
+  return {
+    row,
+    setProgress: (pct)=>{
+      const ring = circle.querySelector(".uploadRingProg")
+      const pctEl = circle.querySelector(".uploadPct")
+      const circumference = 150.8
+      ring.style.strokeDashoffset = circumference - (circumference * pct / 100)
+      pctEl.innerText = pct + "%"
+    },
+    remove: ()=>{ row.remove() }
+  }
+}
+
+// ── Handle photo selection ──
+async function handlePhotoSelect(input){
+  const file = input.files[0]
+  if(!file) return
+  input.value = ""
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+
+  const bubble = createUploadBubble()
+
+  try {
+    const url = await uploadMediaWithProgress(file, pct=>bubble.setProgress(pct))
+    await push(ref(db, "messages"), {
+      name: username,
+      type: "image",
+      text: url,
+      time: Date.now(),
+      seen: false
+    })
+    bubble.remove()
+  } catch(e){
+    bubble.remove()
+    alert("Photo upload failed ⚠️")
+  }
+}
+
+// ── Handle video selection ──
+async function handleVideoSelect(input){
+  const file = input.files[0]
+  if(!file) return
+  input.value = ""
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+
+  const bubble = createUploadBubble()
+
+  try {
+    const duration = await getVideoDuration(file)
+    const url = await uploadMediaWithProgress(file, pct=>bubble.setProgress(pct))
+    await push(ref(db, "messages"), {
+      name: username,
+      type: "video",
+      text: url,
+      duration: duration,
+      time: Date.now(),
+      seen: false
+    })
+    bubble.remove()
+  } catch(e){
+    bubble.remove()
+    alert("Video upload failed ⚠️")
+  }
+}
+
+document.getElementById("photoInput").addEventListener("change", function(){ handlePhotoSelect(this) })
+document.getElementById("videoInput").addEventListener("change", function(){ handleVideoSelect(this) })
+
+// ── Full-screen Video Viewer ──
+window.showVideo = function(src){
+  const viewer = document.getElementById("videoViewer")
+  const video = document.getElementById("fullVideo")
+  video.src = src
+  video.style.transform = "scale(1)"
+  videoScale = 1
+  viewer.classList.add("active")
+  video.play().catch(()=>{})
+}
+
+document.getElementById("videoCloseBtn").addEventListener("click", ()=>{
+  const viewer = document.getElementById("videoViewer")
+  const video = document.getElementById("fullVideo")
+  video.pause()
+  video.src = ""
+  video.style.transform = "scale(1)"
+  videoScale = 1
+  viewer.classList.remove("active")
+})
+
+let videoScale = 1, videoStartDist = 0, videoStartScale = 1
+const videoViewerEl = document.getElementById("videoViewer")
+const fullVideoEl = document.getElementById("fullVideo")
+
+videoViewerEl.addEventListener("touchstart", e=>{
+  if(e.touches.length === 2){
+    videoStartDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    videoStartScale = videoScale
+  }
+}, {passive:true})
+
+videoViewerEl.addEventListener("touchmove", e=>{
+  if(e.touches.length === 2){
+    e.preventDefault()
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    )
+    videoScale = Math.min(Math.max(videoStartScale * (dist / videoStartDist), 1), 4)
+    fullVideoEl.style.transform = "scale(" + videoScale + ")"
+  }
+}, {passive:false})
+
+// ─────────────────────────────────────────────
+// TYPING INDICATOR + GIF
+// ─────────────────────────────────────────────
+const typingIndicator = document.getElementById("typingIndicator")
+let typingTimeout=null
+let gifDebounceTimer = null
+const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
+const gifPanel = document.getElementById("gifPanel")
+
+function hideGifPanel() {
+  gifPanel.style.display = "none"
+  gifPanel.innerHTML = ""
+}
+
+msgBox.addEventListener("blur", () => { hideGifPanel() })
+
+window.visualViewport?.addEventListener("resize", () => {
+  if (document.activeElement !== msgBox) { hideGifPanel() }
+})
+
+document.addEventListener("touchstart", e => {
+  if (!gifPanel.contains(e.target) && e.target !== msgBox) { hideGifPanel() }
+})
+
+msgBox.addEventListener("input", function () {
+  this.style.height = "auto"
+  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+  // WhatsApp-style: swap mic↔send + camera visibility instantly
+  const _hasText = this.value.length > 0
+  const _mic = document.getElementById("micBtn")
+  const _snd = document.getElementById("sendBtn")
+  const _cam = document.getElementById("cameraBtn")
+  if(_mic) _mic.style.display = _hasText ? "none" : "flex"
+  if(_snd) _snd.style.display = _hasText ? "" : "none"
+  if(_cam) _cam.style.display = _hasText ? "none" : "flex"
+
+  if (username && !isBlocked()) {
+    set(ref(db, "typing/" + username), true)
+    clearTimeout(typingTimeout)
+    typingTimeout = setTimeout(() => { set(ref(db, "typing/" + username), false) }, 2000)
+  }
+
+  if (!gifEnabled) { hideGifPanel(); return }
+
+  const val = this.value.trim()
+  clearTimeout(gifDebounceTimer)
+
+  if (!val) { hideGifPanel(); return }
+  if (val.endsWith(".") || val.endsWith("?") || val.endsWith("!")) { hideGifPanel(); return }
+  const sentenceCount = (val.match(/[.!?]/g) || []).length
+  if (sentenceCount >= 1) { hideGifPanel(); return }
+
+  gifDebounceTimer = setTimeout(() => { searchGifs(val) }, 350)
+})
+
+async function searchGifs(query) {
+  if (!gifEnabled) { hideGifPanel(); return }
+  if (query.split(" ").length > 4) { hideGifPanel(); return }
+
+  gifPanel.style.display = "flex"
+  try {
+    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
+    const res = await fetch(url)
+    const data = await res.json()
+    let items = data?.data?.data || []
+
+    const usedUrls = new Set()
+    items = items.filter(item => {
+      const url = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      if (!url || usedUrls.has(url)) return false
+      usedUrls.add(url); return true
+    })
+
+    items = items.sort(() => Math.random() - 0.5)
+    if (!items.length || items.length < 2) { hideGifPanel(); return }
+
+    gifPanel.innerHTML = ""
+    items.forEach(item => {
+      const gifUrl = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      const previewUrl = item?.file?.sm?.gif?.url || item?.file?.md?.gif?.url || gifUrl
+      if (!gifUrl) return
+
+      const img = document.createElement("img")
+      img.className = "gifItem"
+      img.src = previewUrl
+      img.loading = "lazy"
+      img.alt = "GIF"
+      img.style.width = "72px"
+      img.style.height = "72px"
+      img.style.objectFit = "cover"
+      img.style.borderRadius = "10px"
+      img.style.margin = "4px"
+      img.style.cursor = "pointer"
+      img.style.flexShrink = "0"
+      img.style.transition = "0.2s"
+
+      let touchMoved = false
+      img.addEventListener("touchmove", () => { touchMoved = true }, { passive:true })
+      img.addEventListener("touchstart", () => { touchMoved = false }, { passive:true })
+      img.addEventListener("touchend", async (e) => {
+        if (touchMoved) return
+        e.preventDefault(); e.stopPropagation()
+        if (isBlocked()) return
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
+      }, { passive:false })
+
+      img.addEventListener("click", async (e) => {
+        e.preventDefault(); e.stopPropagation()
+        if (isBlocked()) return
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
+      })
+
+      gifPanel.appendChild(img)
+    })
+  } catch (e) { console.error(e); hideGifPanel() }
+}
+
+msgBox.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() }
+})
+
+// ─────────────────────────────────────────────
+// REPLY
+// ─────────────────────────────────────────────
+let replyingTo = null
+const replyBar = document.getElementById("replyBar")
+const replyBarName = document.getElementById("replyBarName")
+const replyBarText = document.getElementById("replyBarText")
+const replyBarContent = document.getElementById("replyBarContent")
+const replyBarClose = document.getElementById("replyBarClose")
+
+replyBarClose.addEventListener("click",()=>{ replyingTo=null; replyBar.style.display="none" })
+
+window.scrollToMsg = function(key) {
+  const el = document.getElementById(key);
+  if(el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.querySelector('.msg').classList.add('highlighted');
+    setTimeout(() => el.querySelector('.msg').classList.remove('highlighted'), 1500);
+  }
+}
+
+function startReply(key, name, text, type, duration){
+  let thumb = null;
+  if (type === "image") {
+    thumb = text;
+  } else if (type === "video") {
+    thumb = getVideoThumbnail(text);
+  } else if (text && text.startsWith("__gif__")) {
+    thumb = text.replace("__gif__", "");
+  } else if (text && isImageUrl(text)) {
+    thumb = text;
+  }
+
+  replyingTo = {key, name, text, type, thumb, duration};
+
+  replyBarName.innerText = getNick(name);
+  let preview = text ? text.substring(0,60) : "";
+  if(text && text.startsWith("__voice__")) preview = " Voice message";
+  else if(text && text.startsWith("__gif__")) preview = " GIF";
+  else if(type === "image" || (text && isImageUrl(text))) preview = " Photo";
+  else if(type === "video") preview = " Video";
+  replyBarText.innerText = preview;
+
+  let thumbHtml = "";
+  if (thumb) {
+    thumbHtml = `<div class="replyQuoteThumb"><img src="${thumb}">`;
+    if (type === "video") {
+      thumbHtml += `<div class="replyQuotePlayIcon"><svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M8 5v14l11-7z"/></svg></div>`;
     }
-    function scheduleResume() {
-      if (resumeTimer) clearTimeout(resumeTimer);
-      resumeTimer = setTimeout(() => {
-        paused = false;
-        lastTime = null;
-      }, RESUME_DELAY);
+    thumbHtml += `</div>`;
+  }
+
+  replyBarContent.innerHTML = `${thumbHtml}<div style="overflow:hidden;flex:1;"><div class="replyBarName">${getNick(name)}</div><div class="replyBarText">${preview}</div></div>`;
+
+  replyBar.style.display = "flex";
+  msgBox.focus();
+}
+
+function addSwipeReply(div, key, message){
+  let startX=0, moved=false
+  div.addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; moved=false },{passive:true})
+  div.addEventListener("touchmove",e=>{
+    const dx=e.touches[0].clientX-startX
+    if(Math.abs(dx)>10){ moved=true; const clamp=Math.min(Math.max(dx,-60),60); div.style.transform=`translateX(${clamp}px)` }
+  },{passive:true})
+  div.addEventListener("touchend",e=>{
+    const dx=e.changedTouches[0].clientX-startX
+    div.style.transform=""
+    if(Math.abs(dx)>50&&moved) startReply(key,message.name,message.text,message.type,message.duration)
+  },{passive:true})
+}
+
+// ─────────────────────────────────────────────
+// EDIT
+// ─────────────────────────────────────────────
+let editingKey = null
+const editBar = document.getElementById("editBar")
+const editBarClose = document.getElementById("editBarClose")
+
+editBarClose.addEventListener("click",()=>{
+  editingKey=null; editBar.style.display="none"
+  msgBox.value=""; msgBox.style.height="auto"
+  sendBtn.innerText="➤"
+  const _cam=document.getElementById("cameraBtn"); if(_cam)_cam.style.display="flex"
+  const _mic=document.getElementById("micBtn"); if(_mic)_mic.style.display="flex"
+  sendBtn.style.display="none"
+})
+
+function startEdit(key, currentText){
+  editingKey=key
+  msgBox.value=currentText
+  msgBox.style.height="auto"
+  msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
+  editBar.style.display="flex"
+  sendBtn.innerText="✓"
+  const _cam=document.getElementById("cameraBtn"); if(_cam)_cam.style.display="none"
+  msgBox.focus()
+}
+
+// ─────────────────────────────────────────────
+// ACTION MENU
+// ─────────────────────────────────────────────
+const actionMenu = document.getElementById("actionMenu")
+const reactionPicker = document.getElementById("reactionPicker")
+let currentMsgKey=null, currentMsgIsMe=false, currentMsgData=null
+let longPressTimer=null
+
+function showActionMenu(msgDiv, key, isMe, message){
+  currentMsgKey=key; currentMsgIsMe=isMe; currentMsgData=message
+  document.getElementById("actionEdit").style.display=(isMe&&!message.text.startsWith("__voice__")&&!message.text.startsWith("__gif__")&&message.type!=="image"&&message.type!=="video")?"flex":"none"
+  document.getElementById("actionDelete").style.display=isMe?"flex":"none"
+  actionMenu.style.display="flex"
+  const rect=msgDiv.getBoundingClientRect()
+  let top=rect.top-10, left=isMe?rect.right-160:rect.left
+  if(top+200>window.innerHeight) top=rect.bottom-200
+  if(top<10) top=10
+  if(left+160>window.innerWidth) left=window.innerWidth-165
+  if(left<5) left=5
+  actionMenu.style.top=top+"px"
+  actionMenu.style.left=left+"px"
+}
+
+document.addEventListener("click",e=>{
+  if(!actionMenu.contains(e.target)&&!reactionPicker.contains(e.target)){
+    actionMenu.style.display="none"
+    reactionPicker.style.display="none"
+    currentMsgKey=null
+  }
+})
+
+document.getElementById("actionReact").addEventListener("click",e=>{
+  e.stopPropagation()
+  if(!currentMsgKey) return
+  const am=actionMenu.getBoundingClientRect()
+  let rTop=am.top-55, rLeft=am.left
+  if(rTop<10) rTop=am.bottom+8
+  if(rLeft+300>window.innerWidth) rLeft=window.innerWidth-310
+  if(rLeft<5) rLeft=5
+  actionMenu.style.display="none"
+  reactionPicker.style.display="flex"
+  reactionPicker.style.top=rTop+"px"
+  reactionPicker.style.left=rLeft+"px"
+})
+
+document.getElementById("actionReply").addEventListener("click",e=>{
+  e.stopPropagation()
+  if(!currentMsgData) return
+  actionMenu.style.display="none"
+  startReply(currentMsgKey,currentMsgData.name,currentMsgData.text,currentMsgData.type,currentMsgData.duration)
+})
+
+document.getElementById("actionEdit").addEventListener("click",e=>{
+  e.stopPropagation()
+  if(!currentMsgKey||!currentMsgIsMe) return
+  actionMenu.style.display="none"
+  startEdit(currentMsgKey,currentMsgData.text)
+})
+
+document.getElementById("actionDelete").addEventListener("click",async e=>{
+  e.stopPropagation()
+  if(!currentMsgKey||!currentMsgIsMe) return
+  actionMenu.style.display="none"
+  if(confirm("Delete this message?")){
+    await update(ref(db,"messages/"+currentMsgKey),{text:"__deleted__",deleted:true})
+  }
+})
+
+document.querySelectorAll(".reactionOption").forEach(el=>{
+  el.addEventListener("click",async function(e){
+    e.stopPropagation()
+    if(!currentMsgKey) return
+    await update(ref(db,"messages/"+currentMsgKey+"/reactions"),{[username]:this.innerText})
+    reactionPicker.style.display="none"
+    currentMsgKey=null
+  })
+})
+
+function renderReactions(reactions,msgKey){
+  if(!reactions) return ""
+  const counts={}
+  Object.values(reactions).forEach(e=>{counts[e]=(counts[e]||0)+1})
+  const myReaction=reactions[username]||null
+  let html='<div class="reactionBar">'
+  Object.entries(counts).forEach(([emoji,count])=>{
+    const active=myReaction===emoji?"border:1.5px solid #075E54;":""
+    html+=`<span class="reactionBadge" style="${active}" onclick="toggleReaction('${msgKey}','${emoji}')">${emoji}${count>1?" "+count:""}</span>`
+  })
+  return html+"</div>"
+}
+
+window.toggleReaction=async function(msgKey,emoji){
+  const snap=await get(ref(db,"messages/"+msgKey+"/reactions"))
+  const reactions=snap.val()||{}
+  await update(ref(db,"messages/"+msgKey+"/reactions"),{
+    [username]:reactions[username]===emoji?null:emoji
+  })
+}
+
+// ─────────────────────────────────────────────
+// PUSH NOTIFICATIONS — Firebase Cloud Messaging
+// ─────────────────────────────────────────────
+const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+
+let messagingInstance = null
+let pushInitialized = false
+let onMessageBound = false
+
+function getDeviceId(){
+  let id = localStorage.getItem("deviceId")
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : "dev_"+Date.now()+"_"+Math.random().toString(36).slice(2))
+    localStorage.setItem("deviceId", id)
+  }
+  return id
+}
+
+async function initPushNotifications(){
+  if(pushInitialized) return
+  pushInitialized = true
+
+  if(!("Notification" in window) || !("serviceWorker" in navigator)) return
+
+  try{
+    const supported = await isMessagingSupported().catch(()=>false)
+    if(!supported) return
+  } catch(e){ return }
+
+  try{
+    if(!swRegistration){
+      swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    }
+    messagingInstance = getMessaging(app)
+
+    // Ask for permission exactly once, ever.
+    const askedBefore = localStorage.getItem("notifPermissionAsked")
+    if(Notification.permission === "default" && !askedBefore){
+      localStorage.setItem("notifPermissionAsked","1")
+      await Notification.requestPermission()
     }
 
-    // Touch: pause the moment a finger lands, resume shortly after it lifts
-    window.addEventListener('touchstart', pause, { passive: true });
-    window.addEventListener('touchend', scheduleResume, { passive: true });
-    window.addEventListener('touchcancel', scheduleResume, { passive: true });
+    if(!onMessageBound){
+      onMessageBound = true
+      onMessage(messagingInstance, ()=>{
+        // Foreground messages: the Realtime Database listener above
+        // already updates the UI live, so no separate OS notification
+        // is shown here — this prevents duplicate/ghost alerts.
+      })
+    }
+  } catch(e){
+    console.warn("Push notification setup failed", e)
+  }
+}
 
-    // Mouse / trackpad, so it behaves the same on desktop
-    window.addEventListener('mousedown', pause);
-    window.addEventListener('mouseup', scheduleResume);
-    window.addEventListener('wheel', () => { pause(); scheduleResume(); }, { passive: true });
+async function refreshFcmToken(){
+  if(!messagingInstance || Notification.permission!=="granted") return
+  if(!VAPID_KEY || VAPID_KEY.length < 50 || VAPID_KEY.includes("PASTE")){
+    console.warn("⚠️ VAPID_KEY সঠিকভাবে বসানো নেই — Firebase Console → Cloud Messaging থেকে key নিয়ে VAPID_KEY-তে বসান।")
+    return
+  }
+  try{
+    const token = await getToken(messagingInstance, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: swRegistration
+    })
+    if(token){
+      await set(ref(db, "fcmTokens/"+username+"/"+getDeviceId()), {
+        token,
+        updated: Date.now(),
+        ua: navigator.userAgent.slice(0,120)
+      })
+      console.log("✅ FCM token saved for this device")
+    } else {
+      console.warn("⚠️ getToken() returned no token — check notification permission & VAPID key")
+    }
+  } catch(e){
+    console.warn("FCM token fetch failed", e)
+  }
+}
 
-    // Pause while the tab isn't visible, resume cleanly when it comes back
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { pause(); } else { scheduleResume(); }
-    });
-  })();
+let tokenRefreshInterval = null
+
+function enablePushToken(){
+  if(Notification.permission !== "granted"){
+    // Ask now — this is an explicit user action (toggled ON), so it's
+    // fine to prompt even if we stayed quiet earlier. If the user has
+    // already denied it at the browser level we can't override that;
+    // the toggle will simply have no effect until they re-enable it
+    // from the browser's own site settings.
+    if(Notification.permission === "denied"){
+      alert("⚠️ Notification permission blocked আছে ব্রাউজারে। Browser address bar-এর lock/site-info icon → Permissions → Notifications → Allow করে আবার চেষ্টা করুন।")
+      return
+    }
+    Notification.requestPermission().then(()=>{
+      if(Notification.permission==="granted") enablePushToken()
+    })
+    return
+  }
+  refreshFcmToken()
+  if(!tokenRefreshInterval) tokenRefreshInterval = setInterval(refreshFcmToken, 60*60*1000)
+}
+
+function disablePushToken(){
+  if(tokenRefreshInterval){ clearInterval(tokenRefreshInterval); tokenRefreshInterval=null }
+  remove(ref(db, "fcmTokens/"+username+"/"+getDeviceId())).catch(()=>{})
+}
+
+// ── Notification ON/OFF toggle — saved per ACCOUNT (username), so it
+//    stays the same across logout/login and every device on this account ──
+let notifEnabled = true
+let _notifRef = null
+
+function updateNotifToggleLabel(){
+  const sw = document.getElementById("notifToggleSwitch")
+  if(!sw) return
+  if(notifEnabled) sw.classList.add("active")
+  else sw.classList.remove("active")
+}
+
+function listenNotifPreference(){
+  // Instant local restore — no waiting on the network round trip —
+  // then Firebase (source of truth) confirms/corrects it right after.
+  const cached = localStorage.getItem("notifEnabled")
+  if(cached !== null){
+    notifEnabled = cached === "on"
+    updateNotifToggleLabel()
+  }
+
+  _notifRef = ref(db, "userSettings/"+username+"/notifications")
+  onValue(_notifRef, snap=>{
+    const val = snap.val()
+    if(val === null){
+      notifEnabled = cached !== null ? (cached === "on") : true
+      set(_notifRef, notifEnabled ? "on" : "off").catch(()=>{})
+    } else {
+      notifEnabled = val === "on"
+    }
+    localStorage.setItem("notifEnabled", notifEnabled ? "on" : "off")
+    updateNotifToggleLabel()
+    if(notifEnabled) enablePushToken()
+    else disablePushToken()
+  })
+}
+
+window.toggleNotifications = function(){
+  if(!_notifRef) return
+  const newVal = !notifEnabled
+  notifEnabled = newVal
+  updateNotifToggleLabel()
+  localStorage.setItem("notifEnabled", newVal ? "on" : "off")
+  set(_notifRef, newVal ? "on" : "off").catch(()=>{})
+  if(newVal) enablePushToken()
+  else disablePushToken()
+}
+
+// ── Logout — clears ONLY this device's saved login/session.
+//    Notification preference and the FCM token are left untouched, so
+//    notifications keep working (and stay in the same ON/OFF state)
+//    the next time this device logs back in. ──
+window.logoutDevice = async function(){
+  closeMenuBox()
+  if(!confirm("Logout from this device? You will need username & password again next time.")) return
+  try{
+    await set(ref(db, "activeViewers/"+username), {active:false, last:Date.now()})
+    await set(ref(db, "status/"+username), {online:false,last:Date.now()})
+  }catch(e){}
+  localStorage.removeItem("savedUser")
+  localStorage.removeItem("savedPassEnc")
+  localStorage.removeItem("chatUser")
+  location.reload()
+}
+
+// ── Active-viewer tracking — lets the backend skip the push when the
+//    recipient already has this chat open & focused. Uses a heartbeat
+//    (active + last-updated timestamp) instead of a plain boolean, so a
+//    missed "went to background" event can never leave it stuck "true"
+//    forever and silently block every future notification. ──
+let activeHeartbeatInterval = null
+function setupActiveViewerTracking(){
+  const activeRef = ref(db, "activeViewers/"+username)
+  const isChatVisible = ()=> document.visibilityState==="visible" && document.hasFocus()
+
+  function setActive(state){
+    set(activeRef, { active: state, last: Date.now() }).catch(()=>{})
+  }
+
+  function onResume(){
+    setActive(isChatVisible())
+    // Re-check the FCM token every time the app is brought back to the
+    // foreground (opened from background/closed/locked). getToken() is
+    // cheap and returns the same token if it's still valid — but if
+    // Android/Chrome silently rotated or expired it while the app sat
+    // in the background, this is what re-registers a fresh one instead
+    // of leaving a dead token in fcmTokens forever.
+    if(isChatVisible() && notifEnabled) refreshFcmToken()
+  }
+
+  setActive(isChatVisible())
+  onDisconnect(activeRef).set({ active:false, last:Date.now() })
+
+  if(activeHeartbeatInterval) clearInterval(activeHeartbeatInterval)
+  activeHeartbeatInterval = setInterval(()=>{ setActive(isChatVisible()) }, 10000)
+
+  document.addEventListener("visibilitychange", onResume)
+  window.addEventListener("focus", onResume)
+  window.addEventListener("pageshow", onResume)
+  window.addEventListener("blur", ()=> setActive(isChatVisible()))
+  window.addEventListener("pagehide", ()=> setActive(false))
+}
+
+// ── Ask the backend to push a notification to the other user ──
+async function sendPushNotification(message, key, toUser){
+  let preview = message.text || ""
+  let type = message.type || "text"
+  if(preview.startsWith("__voice__")){ preview="Voice message"; type="voice" }
+  else if(preview.startsWith("__gif__")){ preview="GIF"; type="gif" }
+  else if(type==="image") preview="Photo"
+  else if(type==="video") preview="Video"
+  else preview = preview.slice(0,100)
+
+  const replyPreview = (message.replyTo && message.replyTo.text) ? message.replyTo.text : ""
+
+  try{
+    const res = await fetch(BACKEND+"/send-notification", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        toUser,
+        fromUser: username,
+        fromNick: getNick(username),
+        avatar: getAvatar(username),
+        type,
+        preview,
+        replyPreview,
+        msgKey: key
+      })
+    })
+    const result = await res.json().catch(()=>null)
+    console.log("send-notification result:", result)
+  } catch(e){ /* chat still works fine without push */ }
+}
+
+// ═══════════════════════════════════════════════════════
+// CONNECTION STATUS BADGE
+// ═══════════════════════════════════════════════════════
+function setupConnectionBadge(){
+  const badge = document.getElementById("connectionBadge")
+  const badgeText = document.getElementById("connectionBadgeText")
+  let firstCheck = true
+  onValue(ref(db, ".info/connected"), snap=>{
+    const connected = snap.val() === true
+    if(firstCheck){ firstCheck = false; return } // don't flash on initial load
+    if(connected){
+      if(badge.classList.contains("show")){
+        badgeText.innerText = "Connected"
+        badge.classList.add("connected")
+        setTimeout(()=>{ badge.classList.remove("show"); badge.classList.remove("connected") }, 1500)
+      }
+    } else {
+      badgeText.innerText = "Reconnecting…"
+      badge.classList.remove("connected")
+      badge.classList.add("show")
+    }
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// MOOD / STATUS TAG
+// ═══════════════════════════════════════════════════════
+const MOOD_PRESETS = ["😴 Sleeping","📚 Studying","💻 Working","🍽 Eating","🎮 Gaming","🚌 Traveling","😌 Chilling","❤️ Thinking of you"]
+const MOOD_TTL_MS = 24*60*60*1000 // status auto-expires after 24 hours
+
+let latestOtherMood = null
+let latestOwnMood = null
+
+function isMoodExpired(moodObj){
+  if(!moodObj || !moodObj.time) return true
+  return (Date.now() - moodObj.time) >= MOOD_TTL_MS
+}
+
+function renderMoodTag(){
+  const tag = document.getElementById("moodTag")
+  if(!tag) return
+  if(latestOtherMood && !isMoodExpired(latestOtherMood)){
+    tag.innerText = latestOtherMood.text
+    tag.style.display = "block"
+  } else {
+    tag.innerText = ""
+    tag.style.display = "none"
+  }
+}
+
+function checkMoodExpiryTick(){
+  // Re-render (hides an other-user status the instant it crosses 24h,
+  // even with no new Firebase write in between).
+  renderMoodTag()
+  // Self-clean my own expired status so it doesn't linger forever.
+  if(latestOwnMood && isMoodExpired(latestOwnMood)){
+    set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
+  }
+}
+
+let moodExpiryInterval = null
+function listenMoodTag(){
+  onValue(ref(db, "userSettings/"+otherUser+"/mood"), snap=>{
+    latestOtherMood = snap.val()
+    renderMoodTag()
+  })
+  onValue(ref(db, "userSettings/"+username+"/mood"), snap=>{
+    latestOwnMood = snap.val()
+    const input = document.getElementById("moodInput")
+    if(input && document.activeElement !== input){
+      input.value = (latestOwnMood && !isMoodExpired(latestOwnMood)) ? latestOwnMood.text : ""
+    }
+  })
+  if(moodExpiryInterval) clearInterval(moodExpiryInterval)
+  moodExpiryInterval = setInterval(checkMoodExpiryTick, 60000)
+}
+
+function setMood(text){
+  set(ref(db, "userSettings/"+username+"/mood"), { text, time: Date.now() }).catch(()=>{})
+}
+
+window.saveMood = function(){
+  const val = document.getElementById("moodInput").value.trim()
+  if(!val) return
+  setMood(val)
+  const btn = document.getElementById("moodSaveBtn")
+  if(btn){
+    const original = btn.innerText
+    btn.innerText = "Saved ✓"
+    btn.disabled = true
+    setTimeout(()=>{ btn.innerText = original; btn.disabled = false }, 1500)
+  }
+}
+
+window.clearMood = function(){
+  document.getElementById("moodInput").value = ""
+  set(ref(db, "userSettings/"+username+"/mood"), null).catch(()=>{})
+}
+
+function renderMoodPresets(){
+  const wrap = document.getElementById("moodPresets")
+  if(!wrap || wrap.childElementCount) return
+  MOOD_PRESETS.forEach(p=>{
+    const btn = document.createElement("button")
+    btn.className = "moodPresetBtn"
+    btn.innerText = p
+    btn.onclick = ()=>{
+      document.getElementById("moodInput").value = p
+      setMood(p)
+    }
+    wrap.appendChild(btn)
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// SETTINGS MODAL — navigation shell
+// ═══════════════════════════════════════════════════════
+window.openSettingsModal = function(){
+  closeMenuBox()
+  document.getElementById("settingsModal").classList.add("active")
+  document.getElementById("settingsMainView").style.display = "block"
+  document.getElementById("disappearingView").style.display = "none"
+  document.getElementById("settingsBackArrow").style.display = "none"
+  document.getElementById("settingsTitle").innerText = "Settings"
+  renderMoodPresets()
+}
+window.closeSettingsModal = function(){
+  document.getElementById("settingsModal").classList.remove("active")
+}
+window.openDisappearingView = function(){
+  document.getElementById("settingsMainView").style.display = "none"
+  document.getElementById("disappearingView").style.display = "block"
+  document.getElementById("settingsBackArrow").style.display = "inline"
+  document.getElementById("settingsTitle").innerText = "Disappearing Messages"
+  renderDisappearingOptions()
+}
+window.closeSettingsSubview = function(){
+  document.getElementById("settingsMainView").style.display = "block"
+  document.getElementById("disappearingView").style.display = "none"
+  document.getElementById("settingsBackArrow").style.display = "none"
+  document.getElementById("settingsTitle").innerText = "Settings"
+}
+
+// ═══════════════════════════════════════════════════════
+// DISAPPEARING MESSAGES — shared chat-wide setting
+// ═══════════════════════════════════════════════════════
+let currentDisappearing = "off"
+let disappearingPruneInterval = null
+const DISAPPEARING_OPTIONS = [
+  {val:"24", label:"24 Hours"},
+  {val:"8",  label:"8 Hours"},
+  {val:"4",  label:"4 Hours"},
+  {val:"off", label:"Disable"}
+]
+
+function listenDisappearingMessages(){
+  onValue(ref(db, "chatSettings/disappearingMessages"), snap=>{
+    const data = snap.val()
+    currentDisappearing = (data && data.duration) ? data.duration : "off"
+    const label = DISAPPEARING_OPTIONS.find(o=>o.val===currentDisappearing)
+    const lbl = document.getElementById("disappearingValueLabel")
+    if(lbl) lbl.innerText = (label ? label.label : "Disable") + " ›"
+    renderDisappearingOptions()
+
+    if(disappearingPruneInterval){ clearInterval(disappearingPruneInterval); disappearingPruneInterval=null }
+    if(currentDisappearing !== "off"){
+      pruneExpiredMessages()
+      disappearingPruneInterval = setInterval(pruneExpiredMessages, 60000)
+    }
+  })
+}
+
+function renderDisappearingOptions(){
+  const list = document.getElementById("disappearingOptionList")
+  if(!list) return
+  list.innerHTML = ""
+  DISAPPEARING_OPTIONS.forEach(opt=>{
+    const item = document.createElement("div")
+    item.className = "optionItem" + (opt.val===currentDisappearing ? " selected" : "")
+    item.innerHTML = `<div class="optionItemLabel">${opt.label}</div><div class="optionCheck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+    item.onclick = ()=> setDisappearing(opt.val)
+    list.appendChild(item)
+  })
+}
+
+async function setDisappearing(val){
+  if(val === currentDisappearing) return
+  await set(ref(db, "chatSettings/disappearingMessages"), { duration: val, changedBy: username, time: Date.now() })
+  await push(ref(db, "messages"), { type:"system", action:"disappearing", actor:username, duration:val, time: Date.now() })
+  closeSettingsSubview()
+}
+
+async function pruneExpiredMessages(){
+  if(currentDisappearing === "off") return
+  const hours = parseInt(currentDisappearing, 10)
+  if(!hours) return
+  const cutoff = Date.now() - hours*60*60*1000
+  try{
+    const snap = await get(ref(db, "messages"))
+    const data = snap.val()
+    if(!data) return
+    const deletions = []
+    Object.entries(data).forEach(([key, msg])=>{
+      if(msg.type!=="system" && msg.time && msg.time < cutoff){
+        deletions.push(remove(ref(db, "messages/"+key)).catch(()=>{}))
+      }
+    })
+    await Promise.all(deletions)
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+// THEME INIT (personal, this device)
+// ═══════════════════════════════════════════════════════
+function initWallpaperAndThemeUI(){
+  const savedTheme = localStorage.getItem("chatTheme")
+  if(savedTheme) applyTheme_chatGradient(savedTheme)
+  renderThemeGrid()
+}
+
+// ═══════════════════════════════════════════════════════
+// CHAT THEME / COLOR PACKS (personal, this device)
+// ═══════════════════════════════════════════════════════
+const CHAT_THEMES = [
+  { id:"default", swatch:"linear-gradient(135deg,#c8d8f8,#e8c0e0,#e0b8d8)", css:null },
+  { id:"ocean",   swatch:"linear-gradient(135deg,#a2d9f7,#7ec8f7,#5aa8e0)", css:"linear-gradient(180deg,#c8ecf8 0%,#a8e0f0 30%,#8ecfe8 60%,#7ec8f7 100%)" },
+  { id:"sunset",  swatch:"linear-gradient(135deg,#ffd39a,#ff9a8b,#e899d4)", css:"linear-gradient(180deg,#ffe8c8 0%,#ffd0b0 30%,#ffaea0 60%,#e899d4 100%)" },
+  { id:"mint",    swatch:"linear-gradient(135deg,#b8f0d0,#8fe0b8,#7ec8a0)", css:"linear-gradient(180deg,#d4f8e4 0%,#b8f0d0 30%,#9ce8c0 60%,#7ec8a0 100%)" },
+  { id:"midnight",swatch:"linear-gradient(135deg,#3a3a5a,#5a4a7a,#7a5a9a)", css:"linear-gradient(180deg,#2a2a4a 0%,#3a3a5a 30%,#4a3a6a 60%,#5a4a7a 100%)" }
+]
+
+function applyTheme_chatGradient(themeId){
+  const t = CHAT_THEMES.find(x=>x.id===themeId)
+  const chatEl = document.getElementById("chat")
+  if(!t || !t.css){ chatEl.style.background = ""; return }
+  chatEl.style.background = t.css
+}
+
+function renderThemeGrid(){
+  const grid = document.getElementById("themeGrid")
+  if(!grid) return
+  const current = localStorage.getItem("chatTheme") || "default"
+  grid.innerHTML = ""
+  CHAT_THEMES.forEach(t=>{
+    const sw = document.createElement("div")
+    sw.className = "themeSwatch" + (current===t.id ? " selected" : "")
+    sw.style.background = t.swatch
+    sw.innerHTML = `<div class="swCheck"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`
+    sw.onclick = ()=>{ localStorage.setItem("chatTheme", t.id); applyTheme_chatGradient(t.id); renderThemeGrid() }
+    grid.appendChild(sw)
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// KEEP NOTE — per-user, Firebase-persisted (survives refresh/logout)
+// ═══════════════════════════════════════════════════════
+let currentNoteId = null
+let notesCache = {}
+
+window.openNotesModal = async function(){
+  closeMenuBox()
+  document.getElementById("notesModal").classList.add("active")
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+window.closeNotesModal = function(){
+  document.getElementById("notesModal").classList.remove("active")
+}
+
+async function refreshNotesList(){
+  const wrap = document.getElementById("notesListWrap")
+  try{
+    const snap = await get(ref(db, "notes/"+username))
+    notesCache = snap.val() || {}
+  } catch(e){ notesCache = {} }
+
+  const entries = Object.entries(notesCache).sort((a,b)=> (b[1].updated||0)-(a[1].updated||0))
+  if(!entries.length){
+    wrap.innerHTML = `<div class="noteEmptyState">No notes yet. Tap + to add one.</div>`
+    return
+  }
+  wrap.innerHTML = ""
+  entries.forEach(([id, note])=>{
+    const card = document.createElement("div")
+    card.className = "noteCard"
+    const d = new Date(note.updated || Date.now())
+    const timeStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) + " · " + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+    card.innerHTML = `<div class="noteCardText">${(note.text||"").replace(/</g,"&lt;")}</div><div class="noteCardMeta"><span class="noteCardTime">${timeStr}</span></div>`
+    card.onclick = ()=> openNoteEditor(id)
+    wrap.appendChild(card)
+  })
+}
+
+window.openNoteEditor = function(noteId){
+  currentNoteId = noteId
+  const textarea = document.getElementById("noteEditorTextarea")
+  const footer = document.getElementById("noteEditorFooter")
+  const deleteBtn = document.getElementById("noteDeleteBtn")
+  if(noteId && notesCache[noteId]){
+    textarea.value = notesCache[noteId].text || ""
+    footer.innerText = "Edited " + new Date(notesCache[noteId].updated).toLocaleString()
+    deleteBtn.style.display = "inline-block"
+  } else {
+    textarea.value = ""
+    footer.innerText = ""
+    deleteBtn.style.display = "none"
+  }
+  document.getElementById("notesListView").style.display = "none"
+  document.getElementById("noteEditorView").classList.add("active")
+  setTimeout(()=> textarea.focus(), 100)
+}
+
+window.closeNoteEditor = async function(){
+  const text = document.getElementById("noteEditorTextarea").value.trim()
+  if(text){
+    const id = currentNoteId || ("note_"+Date.now())
+    await set(ref(db, "notes/"+username+"/"+id), { text, updated: Date.now() }).catch(()=>{})
+  } else if(currentNoteId){
+    // saved-but-emptied note gets removed
+    await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
+  }
+  currentNoteId = null
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+
+window.deleteCurrentNote = async function(){
+  if(!currentNoteId) return
+  if(!confirm("Delete this note?")) return
+  await remove(ref(db, "notes/"+username+"/"+currentNoteId)).catch(()=>{})
+  currentNoteId = null
+  document.getElementById("notesListView").style.display = "flex"
+  document.getElementById("noteEditorView").classList.remove("active")
+  await refreshNotesList()
+}
+
+// ═══════════════════════════════════════════════════════
+// VIDEO CALL — fully separate signaling path/variables from
+// the existing audio call, so audio calling is never touched.
+// ═══════════════════════════════════════════════════════
+let vcPeerConnection = null
+let vcLocalStream = null
+let vcCurrentCallId = null
+let vcIsCallActive = false
+let vcIsMuted = false
+let vcIsCamOff = false
+let vcFacingMode = "user"
+
+function vcShowOverlay(mode){
+  document.getElementById("videoCallOverlay").classList.add("active")
+  document.getElementById("vcControlsLayer").classList.remove("hidden")
+  document.getElementById("vcName").innerText = getNick(otherUser)
+  document.getElementById("vcIncomingActions").style.display = "none"
+  document.getElementById("vcActiveActions").style.display = "none"
+
+  if(mode==="outgoing"){
+    document.getElementById("vcStatus").innerText = "Calling..."
+    document.getElementById("vcActiveActions").style.display = "flex"
+    document.getElementById("vcMuteBtn").style.display = "flex"
+    document.getElementById("vcCamBtn").style.display = "flex"
+    document.getElementById("vcSwitchBtn").style.display = "flex"
+  } else if(mode==="incoming"){
+    document.getElementById("vcStatus").innerText = "Incoming video call..."
+    document.getElementById("vcIncomingActions").style.display = "flex"
+    try{ document.getElementById("vcRingtoneAudio").play().catch(()=>{}) }catch(e){}
+  } else if(mode==="active"){
+    document.getElementById("vcStatus").innerText = "Connected"
+    document.getElementById("vcActiveActions").style.display = "flex"
+    document.getElementById("vcMuteBtn").style.display = "flex"
+    document.getElementById("vcCamBtn").style.display = "flex"
+    document.getElementById("vcSwitchBtn").style.display = "flex"
+    try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+  }
+}
+
+// Tap anywhere on the video (not on a button) to hide/show the WhatsApp-style controls
+let vcControlsHidden = false
+document.getElementById("remoteVideoEl").addEventListener("click", ()=>{
+  vcControlsHidden = !vcControlsHidden
+  document.getElementById("vcControlsLayer").classList.toggle("hidden", vcControlsHidden)
+})
+
+function vcHideOverlay(){
+  document.getElementById("videoCallOverlay").classList.remove("active")
+  document.getElementById("vcControlsLayer").classList.remove("hidden")
+  vcControlsHidden = false
+  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+}
+
+async function vcCreatePeerConnection(){
+  vcPeerConnection = new RTCPeerConnection(ICE_SERVERS)
+  if(vcLocalStream){
+    vcLocalStream.getTracks().forEach(track=> vcPeerConnection.addTrack(track, vcLocalStream))
+  }
+  vcPeerConnection.ontrack = e=>{
+    if(e.streams && e.streams[0]){
+      document.getElementById("remoteVideoEl").srcObject = e.streams[0]
+    }
+  }
+  vcPeerConnection.onicecandidate = e=>{
+    if(e.candidate && vcCurrentCallId){
+      push(ref(db, "videoCalls/"+vcCurrentCallId+"/candidates/"+username), e.candidate.toJSON())
+    }
+  }
+  vcPeerConnection.onconnectionstatechange = ()=>{
+    const state = vcPeerConnection.connectionState
+    if(state==="connected"){ vcShowOverlay("active"); vcIsCallActive=true }
+    else if(state==="disconnected"||state==="failed"||state==="closed"){
+      if(vcIsCallActive) endVideoCall()
+    }
+  }
+}
+
+window.initiateVideoCall = async function(){
+  if(vcIsCallActive) return
+  if(!username){ alert("Please login first"); return }
+  try{
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:vcFacingMode},
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+    document.getElementById("localVideoEl").srcObject = vcLocalStream
+  } catch(e){ alert("Camera/Mic permission denied."); return }
+
+  vcCurrentCallId = "vc_"+username+"_"+Date.now()
+  vcIsCallActive = true
+  await vcCreatePeerConnection()
+
+  const offer = await vcPeerConnection.createOffer()
+  await vcPeerConnection.setLocalDescription(offer)
+
+  await set(ref(db, "videoCalls/"+vcCurrentCallId), {
+    caller: username, callee: otherUser, status: "ringing",
+    offer: { type: offer.type, sdp: offer.sdp }, time: Date.now()
+  })
+
+  vcShowOverlay("outgoing")
+
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/answer"), async snap=>{
+    const answer = snap.val()
+    if(answer && vcPeerConnection && vcPeerConnection.signalingState!=="stable"){
+      try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(answer)) }catch(e){}
+    }
+  })
+  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+otherUser), async snap=>{
+    const c = snap.val()
+    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
+  })
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
+    const status = snap.val()
+    if(status==="rejected"||status==="ended"){ scheduleVideoCallCleanup(vcCurrentCallId); vcCleanup() }
+  })
+}
+
+let vcPendingCallOffer = null
+function listenIncomingVideoCalls(){
+  onValue(ref(db,"videoCalls"), snap=>{
+    const calls = snap.val()
+    if(!calls) return
+    Object.entries(calls).forEach(([callId, callData])=>{
+      const isFresh = callData.time && (Date.now() - callData.time) < 45000
+      if(callData.callee===username && callData.status==="ringing" && callId!==vcCurrentCallId && isFresh){
+        if(!vcIsCallActive){ vcCurrentCallId = callId; vcPendingCallOffer = callData.offer || null; vcShowOverlay("incoming") }
+      }
+    })
+  })
+}
+
+window.acceptVideoCall = async function(){
+  if(!vcCurrentCallId) return
+  try{ document.getElementById("vcRingtoneAudio").pause() }catch(e){}
+  try{
+    vcLocalStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:vcFacingMode},
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+    document.getElementById("localVideoEl").srcObject = vcLocalStream
+  } catch(e){ alert("Camera/Mic permission denied."); rejectVideoCall(); return }
+
+  await vcCreatePeerConnection()
+  document.getElementById("vcStatus").innerText = "Connecting..."
+  document.getElementById("vcIncomingActions").style.display = "none"
+
+  // Use the offer already delivered with the incoming-call payload
+  // instead of a slow re-fetch/poll loop.
+  let offer = vcPendingCallOffer
+  if(!offer){
+    const snap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/offer"))
+    offer = snap.val()
+  }
+  if(!offer){ vcCleanup(); return }
+
+  try{ await vcPeerConnection.setRemoteDescription(new RTCSessionDescription(offer)) }catch(e){ vcCleanup(); return }
+  const answer = await vcPeerConnection.createAnswer()
+  await vcPeerConnection.setLocalDescription(answer)
+  await update(ref(db,"videoCalls/"+vcCurrentCallId), { answer:{type:answer.type, sdp:answer.sdp}, status:"active" })
+
+  vcShowOverlay("active")
+  vcIsCallActive = true
+
+  const callerSnap = await get(ref(db,"videoCalls/"+vcCurrentCallId+"/caller"))
+  const caller = callerSnap.val() || otherUser
+  onChildAdded(ref(db,"videoCalls/"+vcCurrentCallId+"/candidates/"+caller), async snap=>{
+    const c = snap.val()
+    if(c && vcPeerConnection){ try{ await vcPeerConnection.addIceCandidate(new RTCIceCandidate(c)) }catch(e){} }
+  })
+  onValue(ref(db,"videoCalls/"+vcCurrentCallId+"/status"), snap=>{
+    if(snap.val()==="ended"){ scheduleVideoCallCleanup(vcCurrentCallId); vcCleanup() }
+  })
+}
+
+window.rejectVideoCall = async function(){
+  if(vcCurrentCallId){
+    await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"rejected"}).catch(()=>{})
+    scheduleVideoCallCleanup(vcCurrentCallId)
+  }
+  vcCleanup()
+}
+window.endVideoCall = async function(){
+  if(vcCurrentCallId){
+    await update(ref(db,"videoCalls/"+vcCurrentCallId),{status:"ended"}).catch(()=>{})
+    scheduleVideoCallCleanup(vcCurrentCallId)
+  }
+  vcCleanup()
+}
+function scheduleVideoCallCleanup(callId){
+  // Delete the finished call record a few seconds later (giving the
+  // other side's listener time to see the final status) so the
+  // videoCalls node never grows forever — an ever-growing node is
+  // exactly what makes future incoming-call detection slower over time.
+  setTimeout(()=>{ remove(ref(db, "videoCalls/"+callId)).catch(()=>{}) }, 8000)
+}
+function vcCleanup(){
+  vcIsCallActive = false
+  if(vcPeerConnection){ vcPeerConnection.close(); vcPeerConnection=null }
+  if(vcLocalStream){ vcLocalStream.getTracks().forEach(t=>t.stop()); vcLocalStream=null }
+  document.getElementById("remoteVideoEl").srcObject = null
+  document.getElementById("localVideoEl").srcObject = null
+  document.getElementById("localVideoEl").style.opacity = "1"
+  vcIsMuted=false; vcIsCamOff=false
+  document.getElementById("vcMuteBtn").classList.remove("active")
+  document.getElementById("vcCamBtn").classList.remove("active")
+  document.getElementById("vcMuteIcon").innerHTML = VC_ICON_MIC_ON
+  document.getElementById("vcCamIcon").innerHTML = VC_ICON_CAM_ON
+  document.getElementById("vcMutedPill").classList.remove("show")
+  vcCurrentCallId = null
+  vcPendingCallOffer = null
+  vcCachedVideoDevices = null
+  vcHideOverlay()
+}
+const VC_ICON_MIC_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`
+const VC_ICON_MIC_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5-2.24-5-5H5.29c0 3.53 2.61 6.43 6 6.92V21h2v-3.08a8.964 8.964 0 0 0 2.55-.75L20.73 21 22 19.73 4.27 3z"/></svg>`
+const VC_ICON_CAM_ON  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>`
+const VC_ICON_CAM_OFF = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 2 2 3.27 4.73 6H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2zM6.83 8 15 16.17V17H5V8h1.83zM21 7l-4 4v-.34l-2-2V7l1.55 1.55L21 17v-6.5l-1.09-1.09L21 7z"/></svg>`
+
+window.toggleVideoCallMute = function(){
+  if(!vcLocalStream) return
+  vcIsMuted = !vcIsMuted
+  vcLocalStream.getAudioTracks().forEach(t=> t.enabled = !vcIsMuted)
+  document.getElementById("vcMuteBtn").classList.toggle("active", vcIsMuted)
+  document.getElementById("vcMuteLabel").innerText = vcIsMuted ? "Unmute" : "Mute"
+  document.getElementById("vcMuteIcon").innerHTML = vcIsMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
+  const pill = document.getElementById("vcMutedPill")
+  document.getElementById("vcMutedPillText").innerText = getNick(username) + " is muted."
+  pill.classList.toggle("show", vcIsMuted)
+}
+window.toggleVideoCallCam = function(){
+  if(!vcLocalStream) return
+  vcIsCamOff = !vcIsCamOff
+  vcLocalStream.getVideoTracks().forEach(t=> t.enabled = !vcIsCamOff)
+  document.getElementById("vcCamBtn").classList.toggle("active", vcIsCamOff)
+  document.getElementById("vcCamLabel").innerText = vcIsCamOff ? "Cam On" : "Camera"
+  document.getElementById("vcCamIcon").innerHTML = vcIsCamOff ? VC_ICON_CAM_OFF : VC_ICON_CAM_ON
+  document.getElementById("localVideoEl").style.opacity = vcIsCamOff ? "0.15" : "1"
+}
+let vcCachedVideoDevices = null
+
+async function vcGetVideoDevices(){
+  // Cache the device list per call — device labels/ids only become
+  // available (non-empty) after a getUserMedia permission was granted,
+  // which is already true by the time this is called mid-call.
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    vcCachedVideoDevices = devices.filter(d=> d.kind === "videoinput")
+  } catch(e){
+    vcCachedVideoDevices = []
+  }
+  return vcCachedVideoDevices
+}
+
+window.switchVideoCallCamera = async function(){
+  if(!vcLocalStream || !vcPeerConnection){ console.warn("Flip camera: no active call/stream"); return }
+
+  const oldVideoTrack = vcLocalStream.getVideoTracks()[0]
+  const oldSettings = oldVideoTrack ? oldVideoTrack.getSettings() : {}
+
+  // Free the current camera BEFORE requesting the next one — on many
+  // Android/Chrome builds a second camera stays "busy" and silently
+  // fails to open if the first track hasn't been stopped yet, which is
+  // the most common reason camera flip does nothing.
+  if(oldVideoTrack) oldVideoTrack.stop()
+
+  const devices = vcCachedVideoDevices || await vcGetVideoDevices()
+  let newVideoTrack = null
+
+  try{
+    if(devices.length >= 2){
+      // Prefer explicit deviceId cycling — far more reliable across
+      // devices than relying on the facingMode constraint alone.
+      const currentId = oldSettings.deviceId
+      const currentIdx = devices.findIndex(d=> d.deviceId === currentId)
+      const nextDevice = devices[(currentIdx + 1 + devices.length) % devices.length]
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: nextDevice.deviceId } }
+      })
+      newVideoTrack = stream.getVideoTracks()[0]
+    } else {
+      // Fallback: only one enumerable camera, or enumeration failed —
+      // fall back to the facingMode constraint.
+      const nextFacing = vcFacingMode==="user" ? "environment" : "user"
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:nextFacing } } })
+      newVideoTrack = stream.getVideoTracks()[0]
+      vcFacingMode = nextFacing
+    }
+    if(!newVideoTrack) throw new Error("No video track from switched camera")
+
+    const sender = vcPeerConnection.getSenders().find(s=> s.track && s.track.kind==="video")
+    if(sender) await sender.replaceTrack(newVideoTrack)
+
+    // Rebuild the local stream fresh so the preview element reliably
+    // reflects the new camera (some Android/Chrome versions don't
+    // re-render in place when a track is swapped on the same
+    // MediaStream object that's already attached via srcObject).
+    const audioTracks = vcLocalStream.getAudioTracks()
+    vcLocalStream = new MediaStream([newVideoTrack, ...audioTracks])
+
+    const localEl = document.getElementById("localVideoEl")
+    localEl.srcObject = null
+    localEl.srcObject = vcLocalStream
+  } catch(e){
+    console.warn("Flip camera failed:", e)
+    alert("Camera flip failed — this device may not support switching cameras mid-call.")
+  }
+}
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+let accessValidateTimer = null
+let accessValidateInFlight = false
+let accessValidateRequestId = 0
+
+async function performAccessCheck(key){
+  const res = await fetch(BACKEND+"/check-access", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ key })
+  })
+  const data = await res.json()
+  return !!(data && data.ok === true)
+}
+
+window.unlock = function(){
+  // Debounce + in-flight guard: coalesce rapid repeated taps into a
+  // single validation pass and ignore extra taps while one is already
+  // running. Overlapping requests racing each other (an earlier, slower
+  // request resolving after a later one) is what caused a correct code
+  // to occasionally flash "Wrong Code" before working.
+  if(accessValidateInFlight) return
+  if(accessValidateTimer) clearTimeout(accessValidateTimer)
+  accessValidateTimer = setTimeout(runAccessValidation, 400)
+}
+
+async function runAccessValidation(){
+  if(accessValidateInFlight) return
+  accessValidateInFlight = true
+
+  const myRequestId = ++accessValidateRequestId
+  const keyInput = document.getElementById("key")
+  const enterBtn = document.getElementById("enterAccessBtn")
+  // Sanitize: trim + strip any accidental whitespace/newlines (mobile
+  // keyboards/autofill can sometimes inject these).
+  const key = (keyInput.value || "").replace(/[\r\n]/g, "").trim()
+
+  if(!key){
+    accessValidateInFlight = false
+    return
+  }
+
+  if(enterBtn){ enterBtn.disabled = true; enterBtn.innerText = "Checking..." }
+  accessLoader.style.display = "flex"
+
+  let ok = false
+  try{
+    ok = await performAccessCheck(key)
+  } catch(e){
+    ok = false
+  }
+
+  if(!ok){
+    // Before concluding the code is genuinely wrong, re-check once more
+    // after a short pause — this runs whether the first attempt came
+    // back as "wrong" OR failed outright (network hiccup, backend
+    // waking from sleep, etc.), since both look the same to the user.
+    if(enterBtn) enterBtn.innerText = "Verifying..."
+    await new Promise(r=>setTimeout(r, 500))
+    try{
+      ok = await performAccessCheck(key)
+    } catch(e){
+      ok = false
+    }
+  }
+
+  // Safety net: if a newer validation somehow started after this one,
+  // ignore this now-stale result rather than acting on it.
+  if(myRequestId !== accessValidateRequestId){ return }
+
+  accessValidateInFlight = false
+  if(enterBtn){ enterBtn.disabled = false; enterBtn.innerText = "Enter" }
+  accessLoader.style.display = "none"
+
+  if(!ok){
+    window.location.href = "closed.html"
+    return
+  }
+
+  document.getElementById("access").style.display="none"
+
+  const savedUser = localStorage.getItem("savedUser")
+  const savedPassEnc = localStorage.getItem("savedPassEnc")
+  if(savedUser && savedPassEnc){
+    // Returning device — access code alone unlocks the chat,
+    // no username/password prompt.
+    document.getElementById("name").value = savedUser
+    document.getElementById("code").value = decodeSavedPass(savedPassEnc)
+    accessLoader.style.display="flex"
+    await start()
+    accessLoader.style.display="none"
+  } else {
+    document.getElementById("login").style.display="block"
+  }
+}
+
+window.start=async function(){
+  username=document.getElementById("name").value.trim()
+  let password=document.getElementById("code").value
+  if(!username||!password){alert("Enter username & password");return}
+
+  const btn=document.getElementById("loginBtn")
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Logging in...'
+
+  let battery="Unknown"
+  try{const b=await navigator.getBattery();battery=Math.round(b.level*100)+"%"+(b.charging?" ⚡ Charging":"")}catch(e){}
+
+  let data
+  try{
+    const res=await fetch(BACKEND+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password,battery})})
+    data=await res.json()
+  }catch(e){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Server waking up... try again in a moment");return}
+
+  if(!data.ok){btn.disabled=false;btn.innerHTML="Enter Chat";alert("Access denied");return}
+
+  localStorage.setItem("chatUser",username)
+  localStorage.setItem("savedUser", username)
+  localStorage.setItem("savedPassEnc", encodeSavedPass(password))
+  otherUser = username==="katis1" ? "kittyis0001" : "katis1"
+
+  document.getElementById("login").style.display="none"
+  document.getElementById("chat").style.display="flex"
+
+  const userRef=ref(db,"status/"+username)
+  set(userRef,{online:true,last:Date.now()})
+  onDisconnect(userRef).set({online:false,last:Date.now()})
+  onDisconnect(ref(db,"typing/"+username)).set(false)
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden) set(userRef,{online:false,last:Date.now()})
+    else set(userRef,{online:true,last:Date.now()})
+  })
+  setInterval(()=>set(userRef,{online:true,last:Date.now()}),10000)
+
+  onValue(ref(db,"typing/"+otherUser),snap=>{
+    const isTyping=snap.val()
+    if(isTyping){
+      typingIndicator.style.display="flex"
+      typingIndicator.innerHTML = `<img class="typingAvatar" src="${getAvatar(otherUser)}"><div class="typingBubble"><span class="typingDot"></span><span class="typingDot"></span><span class="typingDot"></span></div>`
+    } else {
+      typingIndicator.style.display="none"
+      typingIndicator.innerHTML=""
+    }
+  })
+
+  listenNickNames()
+  listenBlockStatus()
+  listenProfilePics()
+  markSeenMessages()
+  listenIncomingCalls()
+  listenIncomingVideoCalls()
+  listenTheme()
+  listenGifSuggestions()
+  setupActiveViewerTracking()
+  setupConnectionBadge()
+  listenMoodTag()
+  listenDisappearingMessages()
+  initWallpaperAndThemeUI()
+
+  // Lightweight per-device record (device login list) — does not
+  // affect chat, purely for future "known devices" visibility.
+  set(ref(db, "devices/"+username+"/"+getDeviceId()), {
+    lastLogin: Date.now(),
+    ua: navigator.userAgent.slice(0,120)
+  }).catch(()=>{})
+
+  await initPushNotifications()
+  listenNotifPreference()
+
+  if(navigator.setAppBadge && typeof window.listenUnseenMessageCount === "function"){
+    window.listenUnseenMessageCount(count=>{
+      if(count>0) navigator.setAppBadge(count).catch(()=>{})
+      else if(navigator.clearAppBadge) navigator.clearAppBadge().catch(()=>{})
+    })
+  }
+
+  if(typeof showStoryBar === "function") {
+    showStoryBar()
+  }
+
+  if(typeof showShortsFeed === "function") {
+    showShortsFeed()
+  }
+
+  // Deep link from a tapped notification: jump straight to that message.
+  const _urlParams = new URLSearchParams(window.location.search)
+  const _openMsgKey = _urlParams.get("openMsg")
+  if(_openMsgKey){
+    setTimeout(()=>{ if(typeof scrollToMsg==="function") scrollToMsg(_openMsgKey) }, 1200)
+    history.replaceState({}, "", window.location.pathname)
+  }
+}
+
+// ─────────────────────────────────────────────
+// SEND
+// ─────────────────────────────────────────────
+window.send = async function() {
+  if(isBlocked()) return;
+  const text = msgBox.value.trim();
+  if(!text) return;
+
+  if(editingKey) {
+    await update(ref(db, "messages/" + editingKey), { text: text, edited: true });
+    editingKey = null;
+    editBar.style.display = "none";
+    sendBtn.innerText = "➤";
+    msgBox.value = "";
+    msgBox.style.height = "auto";
+    const _micE = document.getElementById("micBtn"); if(_micE) _micE.style.display = "flex";
+    const _camE = document.getElementById("cameraBtn"); if(_camE) _camE.style.display = "flex";
+    sendBtn.style.display = "none";
+    return;
+  }
+
+  const msgData = {
+    name: username,
+    text: text,
+    time: Date.now(),
+    seen: false
+  };
+
+  if(replyingTo) {
+    let replyPreview = replyingTo.text ? replyingTo.text.substring(0, 80) : "";
+    if(replyingTo.text && replyingTo.text.startsWith("__voice__")) replyPreview = " Voice message";
+    else if(replyingTo.text && replyingTo.text.startsWith("__gif__")) replyPreview = " GIF";
+    else if(replyingTo.type === "image" || (replyingTo.text && isImageUrl(replyingTo.text))) replyPreview = " Photo";
+    else if(replyingTo.type === "video") replyPreview = " Video";
+
+    let replyToObj = {
+      key: replyingTo.key,
+      name: replyingTo.name,
+      text: replyPreview
+    };
+    if(replyingTo.type) replyToObj.type = replyingTo.type;
+    if(replyingTo.thumb) replyToObj.thumb = replyingTo.thumb;
+    if(replyingTo.duration) replyToObj.duration = replyingTo.duration;
+
+    msgData.replyTo = replyToObj;
+  }
+
+  try {
+    await push(ref(db, "messages"), msgData);
+    // Clear reply preview bar AFTER successful save
+    replyingTo = null;
+    replyBar.style.display = "none";
+  } catch(e) {
+    alert("Message failed to send ⚠️");
+    return;
+  }
+
+  msgBox.value = "";
+  msgBox.style.height = "auto";
+  gifPanel.style.display = "none";
+  set(ref(db, "typing/" + username), false);
+  clearTimeout(typingTimeout);
+  const _mic = document.getElementById("micBtn"); if(_mic) _mic.style.display = "flex";
+  const _cam = document.getElementById("cameraBtn"); if(_cam) _cam.style.display = "flex";
+  sendBtn.style.display = "none";
+};
+
+function scrollToBottom(){
+  setTimeout(()=>{ messagesEl.scrollTop = messagesEl.scrollHeight }, 50)
+}
+
+// ─────────────────────────────────────────────
+// CREATE MESSAGE
+// ─────────────────────────────────────────────
+function isImageUrl(text){
+  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text.split("?")[0])&&
+    !text.includes("instagram.com")&&!text.includes("youtube.com")&&
+    !text.includes("youtu.be")&&!text.includes("facebook.com")&&
+    !text.includes("twitter.com")&&!text.includes("tiktok.com")
+}
+
+function createVoicePlayer(url){
+  const audio=new Audio(url)
+  let playing=false,progressInterval=null
+  const wrapper=document.createElement("div");wrapper.className="voiceMsg"
+  const playBtn=document.createElement("button");playBtn.className="voicePlayBtn";playBtn.innerText="▶"
+  const wave=document.createElement("div");wave.className="voiceWave"
+  const fill=document.createElement("div");fill.className="voiceWaveFill";wave.appendChild(fill)
+  const dur=document.createElement("span");dur.className="voiceDuration";dur.innerText="0:00"
+  audio.addEventListener("loadedmetadata",()=>{ if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration)) })
+  playBtn.addEventListener("click",e=>{
+    e.stopPropagation()
+    if(playing){audio.pause();playBtn.innerText="▶";clearInterval(progressInterval);playing=false}
+    else{
+      audio.play();playBtn.innerText="⏸";playing=true
+      progressInterval=setInterval(()=>{
+        if(audio.duration){fill.style.width=(audio.currentTime/audio.duration*100)+"%";dur.innerText=formatRecTime(Math.round(audio.currentTime))}
+      },100)
+    }
+  })
+  audio.addEventListener("ended",()=>{
+    playBtn.innerText="▶";fill.style.width="0%";playing=false;clearInterval(progressInterval)
+    if(isFinite(audio.duration)) dur.innerText=formatRecTime(Math.round(audio.duration))
+  })
+  wrapper.appendChild(playBtn);wrapper.appendChild(wave);wrapper.appendChild(dur)
+  return wrapper
+}
+
+function buildTimeHtml(message,isMe){
+  const t=new Date(message.time).getHours()+":"+("0"+new Date(message.time).getMinutes()).slice(-2)
+  const editedLabel=message.edited?`<span class="editedLabel">(edited)</span>`:""
+  const tick=isMe?(message.seen?"<span style='color:rgba(255,255,255,0.8)'>✔✔</span>":"✔"):""
+  return `${t} ${editedLabel} ${tick}`
+}
+
+function createMessage(message,key){
+  if(message.type==="system"){
+    const div=document.createElement("div")
+    div.className="sysMsg"
+    div.id=key
+    const actorNick=getNick(message.actor)
+    const timeStr=formatBlockTime(message.time)
+    if(message.action==="block") div.innerHTML=`🚫 ${actorNick} blocked. ${timeStr}`
+    else if(message.action==="unblock") div.innerHTML=`✅ ${actorNick} unblocked. ${timeStr}`
+    else if(message.action==="disappearing"){
+      const d = message.duration
+      div.innerHTML = d==="off"
+        ? `⏱ ${actorNick} turned off disappearing messages.`
+        : `⏱ ${actorNick} set disappearing messages to ${d} hours.`
+    }
+    messagesEl.appendChild(div)
+    scrollToBottom()
+    return
+  }
+
+  if(!message.name) return
+
+  const me=localStorage.getItem("chatUser")||username
+  const isMe=message.name==me
+  const displayName=getNick(message.name)
+
+  const row=document.createElement("div")
+  row.className="msgRow "+(isMe?"me":"other")
+  row.id=key
+
+  const avatarImg=document.createElement("img")
+  avatarImg.className="avatar"
+  avatarImg.dataset.user=message.name
+  avatarImg.src=getAvatar(message.name)
+  avatarImg.alt=displayName
+  avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
+  avatarImg.addEventListener("click",e=>{
+    e.stopPropagation()
+    if(message.name===username) changeProfilePic()
+  })
+
+  const div=document.createElement("div")
+  div.classList.add("msg")
+
+  if(message.deleted){
+    div.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,isMe)}</div>`
+    row.appendChild(avatarImg)
+    row.appendChild(div)
+    messagesEl.appendChild(row)
+    scrollToBottom()
+    return
+  }
+
+  let replyHtml=""
+  if(message.replyTo){
+    const rName=getNick(message.replyTo.name)
+    let thumbHtml = ""
+    if(message.replyTo.thumb){
+      thumbHtml = `<div class="replyQuoteThumb"><img src="${message.replyTo.thumb}">`
+      if(message.replyTo.type === "video"){
+        thumbHtml += `<div class="replyQuotePlayIcon"><svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M8 5v14l11-7z"/></svg></div>`
+      }
+      thumbHtml += `</div>`
+    }
+    replyHtml=`<div class="replyQuote" onclick="event.stopPropagation(); scrollToMsg('${message.replyTo.key}')">
+      ${thumbHtml}
+      <div class="replyQuoteContent">
+        <div class="replyName">${rName}</div>
+        <div class="replyText">${message.replyTo.text || ""}</div>
+      </div>
+    </div>`
+  }
+
+  // Add mediaBubble class for image/video messages
+  if(message.type==="image"||message.type==="video"){
+    div.classList.add("mediaBubble")
+  }
+
+  div.innerHTML=`${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
+
+  const timeDiv=div.querySelector(".time")
+
+  if(message.type==="image"){
+    const img=document.createElement("img")
+    img.src=message.text
+    img.className="mediaImage"
+    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
+    div.insertBefore(img,timeDiv)
+  } else if(message.type==="video"){
+    const wrap=document.createElement("div")
+    wrap.className="mediaVideoWrap"
+
+    const thumb=getVideoThumbnail(message.text)
+    const video=document.createElement("video")
+    video.src=message.text
+    video.poster=thumb
+    video.preload="metadata"
+    video.className="mediaVideoEl"
+    video.playsInline=true
+    video.muted=true
+
+    const playBtn=document.createElement("div")
+    playBtn.className="mediaPlayBtn"
+    playBtn.innerHTML='<svg viewBox="0 0 24 24" fill="white" width="28" height="28"><path d="M8 5v14l11-7z"/></svg>'
+
+    const duration=document.createElement("div")
+    duration.className="mediaDuration"
+    duration.innerText=formatVideoDuration(message.duration||0)
+
+    video.addEventListener("loadedmetadata",()=>{
+      if(video.duration && isFinite(video.duration)){
+        duration.innerText=formatVideoDuration(video.duration)
+      }
+    })
+
+    const hdBadge=document.createElement("div")
+    hdBadge.className="mediaHdBadge"
+    hdBadge.innerText="HD"
+
+    wrap.appendChild(video)
+    wrap.appendChild(playBtn)
+    wrap.appendChild(duration)
+    wrap.appendChild(hdBadge)
+
+    wrap.onclick=e=>{ e.stopPropagation(); showVideo(message.text) }
+
+    div.insertBefore(wrap,timeDiv)
+  } else if(message.text.startsWith("__voice__")){
+    div.insertBefore(createVoicePlayer(message.text.replace("__voice__","")),timeDiv)
+  } else if(message.text.startsWith("__gif__")){
+    const gifUrl = message.text.replace("__gif__","")
+    const img=document.createElement("img")
+    img.src=gifUrl
+    img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
+    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
+    div.insertBefore(img,timeDiv)
+  } else if(isImageUrl(message.text)){
+    const img=document.createElement("img")
+    img.src=message.text
+    img.style.cssText="max-width:200px;border-radius:8px;display:block;cursor:pointer;"
+    img.onclick=e=>{ e.stopPropagation(); showImage(img.src) }
+    div.insertBefore(img,timeDiv)
+  } else {
+    const textNode=document.createElement("span")
+    textNode.className="msgText"
+    textNode.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
+    div.insertBefore(textNode,timeDiv)
+  }
+
+  div.addEventListener("touchstart",e=>{
+    longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600)
+  },{passive:true})
+  div.addEventListener("touchend",()=>clearTimeout(longPressTimer))
+  div.addEventListener("touchmove",()=>clearTimeout(longPressTimer))
+  div.addEventListener("mousedown",()=>{ longPressTimer=setTimeout(()=>showActionMenu(div,key,isMe,message),600) })
+  div.addEventListener("mouseup",()=>clearTimeout(longPressTimer))
+
+  addSwipeReply(div,key,message)
+
+  row.appendChild(avatarImg)
+  row.appendChild(div)
+  messagesEl.appendChild(row)
+  scrollToBottom()
+}
+
+// ── Mirror the message to your Telegram bot (existing /notify route
+//    on the backend — unchanged format, exact same behavior as before) ──
+async function sendTelegramMirror(message){
+  let notifText = message.text
+  if(message.text.startsWith("__voice__")) notifText = " Voice message"
+  else if(message.text.startsWith("__gif__")) notifText = " GIF"
+  else if(message.type === "image") notifText = " Photo"
+  else if(message.type === "video") notifText = " Video"
+
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+
+  try{
+    await fetch(BACKEND+"/notify", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ text: notifText, time, fromUser: username })
+    })
+  } catch(e){ /* fail silently — never blocks chat delivery */ }
+}
+
+onChildAdded(ref(db,"messages"),data=>{
+  createMessage(data.val(),data.key)
+  const message=data.val()
+  if(message.time>appStartTime && message.name===username && message.type!=="system"){
+    sendPushNotification(message, data.key, otherUser)
+    sendTelegramMirror(message)
+  }
+})
+
+onChildRemoved(ref(db,"messages"),data=>{
+  const row=document.getElementById(data.key)
+  if(row) row.remove()
+})
+
+onChildChanged(ref(db,"messages"),data=>{
+  const me=localStorage.getItem("chatUser")||username
+  const message=data.val()
+  const key=data.key
+  const row=document.getElementById(key)
+  if(!row) return
+  if(message.type==="system") return
+
+  const msgDiv=row.querySelector(".msg")
+  if(!msgDiv) return
+
+  if(message.deleted){
+    msgDiv.innerHTML=`<span style="color:#aaa;font-style:italic;font-size:13px;">🚫 Message deleted</span><div class="time">${buildTimeHtml(message,message.name==me)}</div>`
+    return
+  }
+
+  const timeDiv=msgDiv.querySelector(".time")
+  if(timeDiv) timeDiv.innerHTML=buildTimeHtml(message,message.name==me)
+
+  if(message.edited){
+    const textSpan=msgDiv.querySelector(".msgText")
+    if(textSpan){
+      textSpan.innerHTML=message.text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" style="color:#075E54;word-break:break-all;" onclick="event.stopPropagation()">$1</a>')
+    }
+  }
+
+  const reactionBar=msgDiv.querySelector(".reactionBar")
+  const newReactionHtml=renderReactions(message.reactions,key)
+  if(reactionBar) reactionBar.outerHTML=newReactionHtml||""
+  else if(newReactionHtml) msgDiv.insertAdjacentHTML("beforeend",newReactionHtml)
+})
+
+function markSeenMessages(){
+  if(seenListener) return
+  seenListener=onValue(ref(db,"messages"),snap=>{
+    const data=snap.val()
+    if(!data) return
+    Object.keys(data).forEach(key=>{
+      const msg=data[key]
+      if(msg.name&&msg.name!=username&&!msg.seen&&!msg.deleted&&msg.type!=="system"){
+        update(ref(db,"messages/"+key),{seen:true})
+      }
+    })
+  })
+}
+
+function formatTime(ts){
+  return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true})
+}
+
+onValue(ref(db,"status"),snap=>{
+  const data=snap.val()
+  if(!data) return
+  const ou=username=="katis1"?"kittyis0001":"katis1"
+  if(data[ou]){
+    const last=data[ou].last
+    const diff=Date.now()-last
+    if(diff<12000){statusText.innerText="Online";return}
+    const now=new Date(),d=new Date(last)
+    const isToday=now.toDateString()===d.toDateString()
+    const yesterday=new Date();yesterday.setDate(now.getDate()-1)
+    const isYesterday=yesterday.toDateString()===d.toDateString()
+    const time=formatTime(last)
+    if(isToday) statusText.innerText="Last seen today at "+time
+    else if(isYesterday) statusText.innerText="Last seen yesterday at "+time
+    else statusText.innerText="Last seen "+d.getDate()+" "+d.toLocaleString('default',{month:'short'})+" at "+time
+  }
+})
+
+// ✅ Global helper — opens the menu with the slide+fade animation.
+window.openMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  m.style.display="block"
+  void m.offsetWidth
+  m.classList.add("menu-open")
+  
+  const b = document.getElementById("menuBackdrop")
+  if(b) {
+    b.style.display = "block"
+    void b.offsetWidth
+    b.classList.add("active")
+  }
+  
+  if (!history.state || !history.state.menuOpen) {
+    history.pushState({ menuOpen: true }, "")
+  }
+}
+
+window.closeMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  if(!m.classList.contains("menu-open")){ 
+    m.style.display="none"
+    const b = document.getElementById("menuBackdrop")
+    if(b) b.style.display="none"
+    return 
+  }
+  m.classList.remove("menu-open")
+  const b = document.getElementById("menuBackdrop")
+  if(b) b.classList.remove("active")
+  setTimeout(()=>{ 
+    if(m) m.style.display="none"
+    if(b) b.style.display="none"
+  }, 180)
+  
+  if (history.state && history.state.menuOpen) {
+    history.back()
+  }
+}
+
+document.getElementById("menuBackdrop").addEventListener("click", ()=>{ closeMenuBox() })
+
+window.addEventListener('popstate', (event) => {
+  const m = document.getElementById("menuBox")
+  if (m && m.classList.contains("menu-open")) {
+    m.classList.remove("menu-open")
+    const b = document.getElementById("menuBackdrop")
+    if(b) b.classList.remove("active")
+    setTimeout(()=>{ 
+      if(m) m.style.display="none"
+      if(b) b.style.display="none"
+    }, 180)
+  }
+})
+
+window.toggleMenu=function(){
+  const m=document.getElementById("menuBox")
+  const isOpen = m.classList.contains("menu-open") || m.style.display==="block"
+  if(isOpen) closeMenuBox()
+  else openMenuBox()
+}
+
+window.triggerImageUpload = function(){
+  closeMenuBox()
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
+  document.getElementById("imgInput").click()
+}
+
+window.deleteAll=function(){
+  if(confirm("Delete all chat?")){
+    remove(ref(db,"messages"))
+    messagesEl.innerHTML=""
+    closeMenuBox()
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PREMIUM IMAGE ZOOM VIEWER
+// Pinch zoom, pan, double-tap, swipe down to close
+// ═══════════════════════════════════════════════════════
+const imgViewer=document.getElementById("imgViewer")
+const fullImg=document.getElementById("fullImg")
+let imgScale=1, imgLastTapTime=0, imgPanX=0, imgPanY=0
+let imgStartX=0, imgStartY=0, imgStartDist=0, imgStartScale=1
+let imgSwipeStartY=0, imgIsSwiping=false
+
+function closeImageViewer(){
+  imgViewer.classList.add("hidden")
+  setTimeout(() => {
+    imgViewer.style.display = "none"
+    imgScale = 1; imgPanX = 0; imgPanY = 0
+    fullImg.style.transform = "translate(0px, 0px) scale(1)"
+    fullImg.src = ""
+  }, 250)
+}
+
+document.getElementById("imgCloseBtn").addEventListener("click", closeImageViewer)
+
+imgViewer.addEventListener("touchstart", e=>{
+  if(e.touches.length===2){
+    imgStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    imgStartScale=imgScale
+    imgIsSwiping = false // stop swipe down if pinching
+  } else if(e.touches.length===1){
+    if(imgScale === 1){
+      imgSwipeStartY = e.touches[0].clientY
+      imgIsSwiping = false
+    } else {
+      imgStartX = e.touches[0].clientX - imgPanX
+      imgStartY = e.touches[0].clientY - imgPanY
+    }
+  }
+}, {passive:true})
+
+imgViewer.addEventListener("touchmove", e=>{
+  if(e.touches.length===2){
+    e.preventDefault()
+    const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY)
+    imgScale=Math.min(Math.max(imgStartScale*(dist/imgStartDist), 1), 4)
+    fullImg.style.transition = "none"
+    fullImg.style.transform = `translate(${imgPanX}px, ${imgPanY}px) scale(${imgScale})`
+  } else if(e.touches.length===1 && imgScale === 1 && imgSwipeStartY){
+    const dy = e.touches[0].clientY - imgSwipeStartY
+    if(dy > 0){
+      e.preventDefault()
+      imgIsSwiping = true
+      fullImg.style.transition = "none"
+      fullImg.style.transform = `translate(0px, ${dy}px) scale(1)`
+      imgViewer.style.background = `rgba(0,0,0,${Math.max(0.3, 0.85 - dy/400)})`
+    }
+  } else if(e.touches.length===1 && imgScale > 1){
+    e.preventDefault()
+    imgPanX = e.touches[0].clientX - imgStartX
+    imgPanY = e.touches[0].clientY - imgStartY
+    fullImg.style.transition = "none"
+    fullImg.style.transform = `translate(${imgPanX}px, ${imgPanY}px) scale(${imgScale})`
+  }
+}, {passive:false})
+
+imgViewer.addEventListener("touchend", e=>{
+  if(imgIsSwiping){
+    const dy = e.changedTouches[0].clientY - imgSwipeStartY
+    if(dy > 100) closeImageViewer()
+    else {
+      fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+      fullImg.style.transform = "translate(0px, 0px) scale(1)"
+      imgViewer.style.background = "rgba(0,0,0,0.85)"
+    }
+    imgIsSwiping = false
+    imgSwipeStartY = 0
+    return
+  }
+
+  if(e.changedTouches.length === 1){
+    const now = Date.now()
+    if(now - imgLastTapTime < 300){
+      imgScale = imgScale === 1 ? 2.5 : 1
+      imgPanX = 0; imgPanY = 0
+      fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+      fullImg.style.transform = `translate(0px, 0px) scale(${imgScale})`
+      imgLastTapTime = 0
+    } else {
+      imgLastTapTime = now
+    }
+  }
+})
+
+imgViewer.addEventListener("click", e=>{
+  if(e.target.id === "imgViewer" && imgScale === 1){ closeImageViewer() }
+})
+
+fullImg.addEventListener("click", e=>{
+  e.stopPropagation()
+  const now = Date.now()
+  if(now - imgLastTapTime < 300){
+    imgScale = imgScale === 1 ? 2.5 : 1
+    imgPanX = 0; imgPanY = 0
+    fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+    fullImg.style.transform = `translate(0px, 0px) scale(${imgScale})`
+    imgLastTapTime = 0
+  } else {
+    imgLastTapTime = now
+  }
+})
+
+window.showImage=function(src){
+  imgScale=1; imgPanX=0; imgPanY=0
+  fullImg.src=src
+  fullImg.style.transform = "translate(0px, 0px) scale(1)"
+  fullImg.style.transition = "transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)"
+  imgViewer.style.background = "rgba(0,0,0,0.85)"
+  imgViewer.style.display = "flex"
+  void imgViewer.offsetWidth
+  imgViewer.classList.remove("hidden")
+}
+
+const emojis="😇 😆 😅 😂 🤣 ☺️ 😊 😇 🙂 🙃 😉 😌 😛 🥰 🥰 😘 😋 😎 🤨 😏 😒 😞 😔 ☹️ 😣 😫 🥺 😭 😤 😳 😨 😰 😥 😓 🤗 🤔 🤭 🤫 😐 😑 😶 🙄 🤐 🤧 🌚 😮‍💨 🥲 🤤 🧐 🥵 🥶 😇 😴 🌞 💋 🫶 👀 🤏 🫵 👉 👈 🌹 🥀 🌝 🙈 🐼 🍒 🍎 🍉 🍑 🍌 🍆 🍫 🍦 🍧 🍨 ❤️ 💚 💙 🖤 🩷 🩵 ❌ 🆗 💖 💓 💗 💝 💞 🖤 ❤️‍🔥 👻 😹 😻 😼 😽 🙀 😿 😾".split(" ")
+
+const box=document.getElementById("emojiBox")
+emojis.forEach(e=>{
+  const span=document.createElement("span")
+  span.innerText=e;span.style.cssText="font-size:22px;padding:6px;cursor:pointer;"
+  span.onclick=()=>{
+    if(isBlocked()) return
+    msgBox.value+=e;msgBox.focus()
+    msgBox.style.height="auto"
+    msgBox.style.height=Math.min(msgBox.scrollHeight,120)+"px"
+  }
+  box.appendChild(span)
+})
+
+window.toggleEmoji=function(){
+  const b=document.getElementById("emojiBox")
+  b.style.display=b.style.display=="block"?"none":"block"
+  if(b.style.display=="block") gifPanel.style.display="none"
+}
+
+window.uploadImage=async function(input){
+  if(isBlocked()){ alert("🚫 Messaging is blocked"); input.value=""; return }
+  const file=input.files[0]
+  if(!file) return
+  const formData=new FormData()
+  formData.append("file",file)
+  try{
+    const res=await fetch(BACKEND+"/upload",{method:"POST",body:formData})
+    const data=await res.json()
+    if(!data.url){alert("Upload failed ⚠️");input.value="";return}
+    push(ref(db,"messages"),{name:username,text:data.url,time:Date.now(),seen:false})
+  }catch(e){alert("Upload failed ⚠️")}
+  input.value=""
+}
+
+// ══════════════════════════════════════════════
+// VOICE CALL — WebRTC + Firebase signaling
+// ══════════════════════════════════════════════
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelayproject",
+      credential: "openrelayproject"
+    }
+  ]
+}
+
+let peerConnection = null
+let localStream = null
+let callTimerInterval = null
+let callSeconds = 0
+let isMuted = false
+let isSpeakerOn = false
+let currentCallId = null
+let incomingCallListener = null
+let isCallActive = false
+
+const callOverlay = document.getElementById("callOverlay")
+const callAvatarEl = document.getElementById("callAvatar")
+const callNameEl = document.getElementById("callName")
+const callStatusEl = document.getElementById("callStatus")
+const callTimerEl = document.getElementById("callTimer")
+const incomingActions = document.getElementById("incomingActions")
+const activeActions = document.getElementById("activeActions")
+const remoteAudio = document.getElementById("remoteAudio")
+const ringtoneAudio = document.getElementById("ringtoneAudio")
+
+function showCallOverlay(mode){
+  callOverlay.style.display="flex"
+  callAvatarEl.src = getAvatar(otherUser)
+  callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
+  callNameEl.innerText = getNick(otherUser)
+
+  incomingActions.style.display="none"
+  activeActions.style.display="none"
+  callTimerEl.style.display="none"
+
+  if(mode==="outgoing"){
+    callStatusEl.innerText="Calling..."
+    callAvatarEl.classList.add("ringing")
+    activeActions.style.display="flex"
+    document.getElementById("muteCallBtn").style.display="none"
+    document.getElementById("speakerBtn").style.display="none"
+    document.getElementById("endCallBtn").style.display="flex"
+  } else if(mode==="incoming"){
+    callStatusEl.innerText="Incoming call..."
+    callAvatarEl.classList.add("ringing")
+    incomingActions.style.display="flex"
+    playRingtone()
+  } else if(mode==="active"){
+    callStatusEl.innerText="Connected"
+    callAvatarEl.classList.remove("ringing")
+    callTimerEl.style.display="block"
+    activeActions.style.display="flex"
+    document.getElementById("muteCallBtn").style.display="flex"
+    document.getElementById("speakerBtn").style.display="flex"
+    document.getElementById("endCallBtn").style.display="flex"
+    startCallTimer()
+    stopRingtone()
+  }
+}
+
+function hideCallOverlay(){
+  callOverlay.style.display="none"
+  callAvatarEl.classList.remove("ringing")
+  stopCallTimer()
+  stopRingtone()
+}
+
+function playRingtone(){
+  try{ ringtoneAudio.currentTime=0; ringtoneAudio.play().catch(()=>{}) }catch(e){}
+}
+function stopRingtone(){
+  try{ ringtoneAudio.pause(); ringtoneAudio.currentTime=0 }catch(e){}
+}
+
+function startCallTimer(){
+  callSeconds=0
+  callTimerEl.innerText="0:00"
+  callTimerInterval=setInterval(()=>{
+    callSeconds++
+    callTimerEl.innerText=formatRecTime(callSeconds)
+  },1000)
+}
+
+function stopCallTimer(){
+  clearInterval(callTimerInterval)
+  callTimerInterval=null
+  callSeconds=0
+}
+
+async function createPeerConnection(){
+  peerConnection = new RTCPeerConnection(ICE_SERVERS)
+
+  if(localStream){
+    localStream.getTracks().forEach(track=>{
+      peerConnection.addTrack(track, localStream)
+    })
+  }
+
+  peerConnection.ontrack = e=>{
+    if(e.streams && e.streams[0]){
+      remoteAudio.srcObject = e.streams[0]
+      remoteAudio.play().catch(()=>{})
+    }
+  }
+
+  peerConnection.onicecandidate = e=>{
+    if(e.candidate && currentCallId){
+      push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
+    }
+  }
+
+  peerConnection.onconnectionstatechange = ()=>{
+    const state = peerConnection.connectionState
+    if(state==="connected"){
+      showCallOverlay("active")
+      isCallActive=true
+    } else if(state==="disconnected"||state==="failed"||state==="closed"){
+      if(isCallActive) endCall()
+    }
+  }
+}
+
+window.initiateCall = async function(){
+  if(isCallActive){ return }
+  if(!username){ alert("Please login first"); return }
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+  } catch(e){
+    alert("Mic permission denied. Please allow microphone access.")
+    return
+  }
+
+  currentCallId = username + "_" + Date.now()
+  isCallActive=true
+
+  await createPeerConnection()
+
+  const offer = await peerConnection.createOffer()
+  await peerConnection.setLocalDescription(offer)
+
+  await set(ref(db, "calls/"+currentCallId), {
+    caller: username,
+    callee: otherUser,
+    status: "ringing",
+    offer: { type: offer.type, sdp: offer.sdp },
+    time: Date.now()
+  })
+
+  showCallOverlay("outgoing")
+
+  onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
+    const answer = snap.val()
+    if(answer && peerConnection && peerConnection.signalingState!=="stable"){
+      try{
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+      }catch(e){}
+    }
+  })
+
+  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
+    const candidate = snap.val()
+    if(candidate && peerConnection){
+      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
+    }
+  })
+
+  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
+    const status=snap.val()
+    if(status==="rejected"||status==="ended"){
+      scheduleAudioCallCleanup(currentCallId)
+      cleanupCall()
+    }
+  })
+}
+
+function listenIncomingCalls(){
+  onValue(ref(db,"calls"), snap=>{
+    const calls=snap.val()
+    if(!calls) return
+    Object.entries(calls).forEach(([callId, callData])=>{
+      const isFresh = callData.time && (Date.now() - callData.time) < 45000
+      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId && isFresh){
+        if(!isCallActive){
+          currentCallId=callId
+          showIncomingCall(callData)
+        }
+      }
+    })
+  })
+}
+
+let pendingCallOffer = null
+function showIncomingCall(callData){
+  pendingCallOffer = callData.offer || null
+  showCallOverlay("incoming")
+}
+
+window.acceptCall = async function(){
+  if(!currentCallId) return
+  stopRingtone()
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    })
+  } catch(e){
+    alert("Mic permission denied.")
+    rejectCall()
+    return
+  }
+
+  await createPeerConnection()
+
+  callStatusEl.innerText = "Connecting..."
+  document.getElementById("incomingActions").style.display = "none"
+
+  // The offer is already delivered as part of the incoming-call payload
+  // (listenIncomingCalls), so use it immediately instead of a slow
+  // re-fetch/poll loop — this is what was adding delay to accepting.
+  let offer = pendingCallOffer
+  if(!offer){
+    const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
+    offer = snap.val()
+  }
+
+  if(!offer){ cleanupCall(); return }
+
+  try{
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  }catch(e){ cleanupCall(); return }
+
+  const answer = await peerConnection.createAnswer()
+  await peerConnection.setLocalDescription(answer)
+
+  await update(ref(db,"calls/"+currentCallId),{
+    answer:{ type:answer.type, sdp:answer.sdp },
+    status:"active"
+  })
+
+  showCallOverlay("active")
+  isCallActive=true
+
+  const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
+  const caller = callerSnap.val() || otherUser
+  onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
+    const candidate=snap.val()
+    if(candidate && peerConnection){
+      try{ await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)) }catch(e){}
+    }
+  })
+
+  onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
+    const status=snap.val()
+    if(status==="ended"){ scheduleAudioCallCleanup(currentCallId); cleanupCall() }
+  })
+}
+
+window.rejectCall = async function(){
+  if(currentCallId){
+    await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
+    scheduleAudioCallCleanup(currentCallId)
+  }
+  cleanupCall()
+}
+
+window.endCall = async function(){
+  if(currentCallId){
+    await update(ref(db,"calls/"+currentCallId),{status:"ended"})
+    scheduleAudioCallCleanup(currentCallId)
+  }
+  cleanupCall()
+}
+function scheduleAudioCallCleanup(callId){
+  // Delete the finished call record a few seconds later — an
+  // ever-growing "calls" node is what slows down incoming-call
+  // detection over time, since the whole node re-syncs on load.
+  setTimeout(()=>{ remove(ref(db, "calls/"+callId)).catch(()=>{}) }, 8000)
+}
+
+function cleanupCall(){
+  isCallActive=false
+  if(peerConnection){ peerConnection.close(); peerConnection=null }
+  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null }
+  remoteAudio.srcObject=null
+  isMuted=false
+  isSpeakerOn=false
+  const muteIcon=document.getElementById("acMuteIcon")
+  if(muteIcon) muteIcon.innerHTML = VC_ICON_MIC_ON
+  const muteBtn=document.getElementById("muteCallBtn")
+  if(muteBtn){ muteBtn.style.background="rgba(255,255,255,0.15)"; muteBtn.style.color="white" }
+  const spkBtn=document.getElementById("speakerBtn")
+  if(spkBtn){ spkBtn.style.background="rgba(255,255,255,0.15)"; spkBtn.style.color="white" }
+  currentCallId=null
+  pendingCallOffer=null
+  hideCallOverlay()
+}
+
+window.toggleMute = function(){
+  if(!localStream) return
+  isMuted=!isMuted
+  localStream.getAudioTracks().forEach(t=>{ t.enabled=!isMuted })
+  const btn=document.getElementById("muteCallBtn")
+  const lbl=document.getElementById("muteLabel")
+  const icon=document.getElementById("acMuteIcon")
+  if(icon) icon.innerHTML = isMuted ? VC_ICON_MIC_OFF : VC_ICON_MIC_ON
+  btn.style.background = isMuted ? "#ffffff" : "rgba(255,255,255,0.15)"
+  btn.style.color = isMuted ? "#ff3b30" : "white"
+  lbl.innerText=isMuted?"Unmute":"Mute"
+}
+
+window.toggleSpeaker = function(){
+  isSpeakerOn=!isSpeakerOn
+  const btn=document.getElementById("speakerBtn")
+  const lbl=document.getElementById("speakerLabel")
+  btn.style.background=isSpeakerOn?"#ffffff":"rgba(255,255,255,0.15)"
+  btn.style.color=isSpeakerOn?"#8060cc":"white"
+  lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
+}
+
 </script>
+
+<!-- Image Viewer -->
+<div id="imgViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;justify-content:center;align-items:center;z-index:9999;overflow:hidden;touch-action:none;">
+  <button id="imgCloseBtn">✕</button>
+  <img id="fullImg" style="max-width:100%;max-height:100%;">
+</div>
+
+<!-- Media Bottom Sheet -->
+<div id="mediaSheetBackdrop"></div>
+<div id="mediaSheet" style="display:none;">
+  <div class="mediaSheetHandle"></div>
+  <div class="mediaSheetTitle">Share Media</div>
+  <div class="mediaSheetItem" onclick="openPhotoPicker()">
+    <div class="mediaSheetIcon">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+      </svg>
+    </div>
+    <span>Photo</span>
+  </div>
+  <div class="mediaSheetItem" onclick="openVideoPicker()">
+    <div class="mediaSheetIcon">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+      </svg>
+    </div>
+    <span>Video</span>
+  </div>
+</div>
+
+<!-- Full-screen Video Viewer -->
+<div id="videoViewer">
+  <video id="fullVideo" controls playsinline></video>
+  <button id="videoCloseBtn">
+    <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+    </svg>
+  </button>
+</div>
 
 </body>
 </html>

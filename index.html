@@ -3165,7 +3165,7 @@ window.toggleReaction=async function(msgKey,emoji){
 // ─────────────────────────────────────────────
 // PUSH NOTIFICATIONS — Firebase Cloud Messaging
 // ─────────────────────────────────────────────
-const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = "BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
 
 let messagingInstance = null
 let pushInitialized = false
@@ -4145,6 +4145,16 @@ async function runAccessValidation(){
     accessLoader.style.display="flex"
     await start()
     accessLoader.style.display="none"
+
+    // Safety net: if auto-login didn't actually succeed (start() shows
+    // its own "Access denied" / "Server waking up" alert and returns
+    // without opening the chat), the user would otherwise be stuck on a
+    // blank screen with no way to retry. Fall back to the manual login
+    // form so they can try again.
+    if(document.getElementById("chat").style.display !== "flex"){
+      document.getElementById("code").value = ""
+      document.getElementById("login").style.display="block"
+    }
   } else {
     document.getElementById("login").style.display="block"
   }

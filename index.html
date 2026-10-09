@@ -173,19 +173,44 @@ animation:spin 0.8s linear infinite;
 display:none;
 height:100vh;
 flex-direction:column;
-background: linear-gradient(180deg,
-  #c8d8f8 0%,
-  #d4c8f0 20%,
-  #e8c0e0 40%,
-  #d8b8e8 55%,
-  #c0c8f0 75%,
-  #d0c0e8 90%,
-  #e0b8d8 100%
-);
+background:
+  radial-gradient(circle at 12% 18%, rgba(255,255,255,0.55) 0 4px, transparent 5px),
+  radial-gradient(circle at 78% 10%, rgba(255,255,255,0.5) 0 3px, transparent 4px),
+  radial-gradient(circle at 35% 32%, rgba(255,214,110,0.8) 0 4px, transparent 5px),
+  radial-gradient(circle at 88% 45%, rgba(255,133,162,0.8) 0 4px, transparent 5px),
+  radial-gradient(circle at 20% 60%, rgba(126,200,247,0.8) 0 3px, transparent 4px),
+  radial-gradient(circle at 60% 72%, rgba(201,168,245,0.8) 0 4px, transparent 5px),
+  radial-gradient(circle at 92% 85%, rgba(255,214,110,0.75) 0 3px, transparent 4px),
+  radial-gradient(circle at 8% 88%, rgba(126,200,247,0.7) 0 3px, transparent 4px),
+  radial-gradient(circle at 48% 95%, rgba(255,133,162,0.7) 0 3px, transparent 4px),
+  linear-gradient(135deg,
+    #ff9ec4 0%,
+    #ffb199 16%,
+    #ffd36e 32%,
+    #c9f0a0 48%,
+    #7ec8f7 64%,
+    #c9a8f5 80%,
+    #ff9ec4 100%
+  );
+background-size: 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 220px 220px, 340% 340%;
+animation: birthdayDrift 22s ease-in-out infinite;
+}
+@keyframes birthdayDrift{
+  0%{ background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0% 30%; }
+  50%{ background-position: 10px 14px, -8px 10px, 12px -10px, -10px 12px, 8px -8px, -12px 10px, 10px -12px, -8px 8px, 12px -10px, 100% 70%; }
+  100%{ background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0% 30%; }
 }
 
 #header{
-background: rgba(255,255,255,0.55);
+background: linear-gradient(100deg,
+  rgba(255,182,213,0.65) 0%,
+  rgba(255,211,167,0.65) 28%,
+  rgba(255,230,160,0.6) 50%,
+  rgba(176,230,255,0.65) 72%,
+  rgba(216,186,250,0.65) 100%
+);
+background-size: 300% 100%;
+animation: birthdayHeaderShift 14s ease-in-out infinite;
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
 border-bottom: 1px solid rgba(180,160,220,0.25);
@@ -194,6 +219,22 @@ padding:10px 15px;
 display:flex;
 align-items:center;
 gap:10px;
+position:relative;
+overflow:hidden;
+}
+@keyframes birthdayHeaderShift{
+  0%,100%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+}
+#header::after{
+  content:"🎉 🎈 ✨ 🎂 ✨ 🎈 🎉";
+  position:absolute;
+  right:-6px; top:-2px;
+  font-size:11px;
+  opacity:0.18;
+  letter-spacing:6px;
+  pointer-events:none;
+  white-space:nowrap;
 }
 
 #headerAvatar{
@@ -257,7 +298,18 @@ transition:transform 0.15s;
   width: 260px;
   padding: 0;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.75);
+  background:
+    radial-gradient(circle at 15% 12%, rgba(255,211,110,0.35) 0 3px, transparent 4px),
+    radial-gradient(circle at 85% 20%, rgba(255,158,196,0.35) 0 3px, transparent 4px),
+    radial-gradient(circle at 70% 85%, rgba(126,200,247,0.35) 0 3px, transparent 4px),
+    radial-gradient(circle at 25% 90%, rgba(201,168,245,0.35) 0 3px, transparent 4px),
+    linear-gradient(160deg,
+      rgba(255,236,219,0.85) 0%,
+      rgba(255,221,230,0.85) 30%,
+      rgba(229,236,255,0.85) 65%,
+      rgba(234,224,255,0.85) 100%
+    );
+  background-size: 140px 140px, 140px 140px, 140px 140px, 140px 140px, 100% 100%;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow: 0 12px 40px rgba(140, 100, 200, 0.22), 0 2px 8px rgba(160, 120, 220, 0.12);
@@ -358,14 +410,15 @@ transition:transform 0.15s;
 .menuIconBox {
   width: 32px;
   height: 32px;
-  background: rgba(128, 96, 204, 0.12);
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ff9ec4, #ffd36e 50%, #7ec8f7);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8060cc;
+  color: #ffffff;
   flex-shrink: 0;
   margin-right: 12px;
+  box-shadow: 0 2px 8px rgba(160,120,220,0.25);
 }
 .menuIconBox svg {
   width: 18px;
@@ -3165,7 +3218,7 @@ window.toggleReaction=async function(msgKey,emoji){
 // ─────────────────────────────────────────────
 // PUSH NOTIFICATIONS — Firebase Cloud Messaging
 // ─────────────────────────────────────────────
-const VAPID_KEY = "BAkMbDMV3P42ZSRoS55fSRBs0T110YjzlTXfo2Gg8DE35vUP7B4MF-YjWcd0dEeqjhZBmzd3MFNtz0ckfJisxsY" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE" // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
 
 let messagingInstance = null
 let pushInitialized = false
@@ -3823,6 +3876,7 @@ async function vcCreatePeerConnection(){
 window.initiateVideoCall = async function(){
   if(vcIsCallActive) return
   if(!username){ alert("Please login first"); return }
+  if(isBlocked()){ alert("🚫 You can't call this user."); return }
   try{
     vcLocalStream = await navigator.mediaDevices.getUserMedia({
       video:{facingMode:vcFacingMode},
@@ -3868,7 +3922,7 @@ function listenIncomingVideoCalls(){
     if(!calls) return
     Object.entries(calls).forEach(([callId, callData])=>{
       const isFresh = callData.time && (Date.now() - callData.time) < 45000
-      if(callData.callee===username && callData.status==="ringing" && callId!==vcCurrentCallId && isFresh){
+      if(callData.callee===username && callData.status==="ringing" && callId!==vcCurrentCallId && isFresh && !isBlocked()){
         if(!vcIsCallActive){ vcCurrentCallId = callId; vcPendingCallOffer = callData.offer || null; vcShowOverlay("incoming") }
       }
     })
@@ -5020,6 +5074,7 @@ async function createPeerConnection(){
 window.initiateCall = async function(){
   if(isCallActive){ return }
   if(!username){ alert("Please login first"); return }
+  if(isBlocked()){ alert("🚫 You can't call this user."); return }
 
   try {
     localStream = await navigator.mediaDevices.getUserMedia({
@@ -5079,7 +5134,7 @@ function listenIncomingCalls(){
     if(!calls) return
     Object.entries(calls).forEach(([callId, callData])=>{
       const isFresh = callData.time && (Date.now() - callData.time) < 45000
-      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId && isFresh){
+      if(callData.callee===username && callData.status==="ringing" && callId!==currentCallId && isFresh && !isBlocked()){
         if(!isCallActive){
           currentCallId=callId
           showIncomingCall(callData)

@@ -173,25 +173,12 @@ animation:spin 0.8s linear infinite;
 display:none;
 height:100vh;
 flex-direction:column;
-background-color:#140a1e;
-background-image:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='40' viewBox='0 0 60 40'%3E%3Cg fill='none' stroke='rgba(20,10,20,0.6)' stroke-width='1'%3E%3Cpath d='M2 38c6-10 4-20-1-28'/%3E%3Cpath d='M6 20c-2-4-1-9 2-12'/%3E%3Cpath d='M4 10c3-1 5 1 5 3'/%3E%3C/g%3E%3C/svg%3E"),
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='70' viewBox='0 0 120 70'%3E%3Cg fill='rgba(10,5,15,0.55)'%3E%3Cpath d='M18 10 2 4l10 6-9 2 10 1-7 4 9-1-5 6 8-3-2 7 6-5 1 7 3-6 3 6 1-7 6 5-2-7 8 3-5-6 9 1-7-4 10-1-9-2 10-6-16 6z'/%3E%3C/g%3E%3C/svg%3E"),
-  radial-gradient(circle at 76% 16%, rgba(255,150,60,0.55) 0%, rgba(255,110,40,0.28) 10%, rgba(255,90,30,0.08) 20%, transparent 30%),
-  radial-gradient(circle at 10% 78%, rgba(255,140,50,0.22) 0%, transparent 26%),
-  radial-gradient(circle at 92% 90%, rgba(255,140,50,0.18) 0%, transparent 22%),
-  radial-gradient(ellipse at 50% 55%, rgba(120,70,150,0.35) 0%, transparent 60%),
-  radial-gradient(ellipse at 20% 92%, rgba(90,50,120,0.4) 0%, transparent 50%),
-  linear-gradient(180deg, #0d0614 0%, #1a0f2a 22%, #241638 45%, #2a1a3d 65%, #190c22 85%, #0d0614 100%);
-background-repeat: repeat-x, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-background-position: bottom left, bottom -10px right -10px, top, bottom left, bottom right, center, bottom left, center;
-background-size: 180px 110px, 260px 150px, 420px 420px, 320px 320px, 300px 300px, 100% 100%, 260px 260px, 100% 100%;
-background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed;
-animation: hauntedFog 26s ease-in-out infinite;
-}
-@keyframes hauntedFog{
-  0%,100%{ background-position: bottom left, bottom -10px right -10px, top, bottom left, bottom right, center 0%, bottom left, center; }
-  50%{ background-position: bottom left, bottom -10px right -10px, top, bottom left, bottom right, center 8%, bottom left, center; }
+background-color:#0d0614;
+background-image: url("halloween-castle.jpg");
+background-size: cover;
+background-position: center center;
+background-repeat: no-repeat;
+background-attachment: fixed;
 }
 
 #header{
@@ -247,15 +234,15 @@ font-size:15px;
 white-space:nowrap;
 overflow:hidden;
 text-overflow:ellipsis;
-color:#f8ecd9;
-text-shadow: 0 0 6px rgba(255,140,60,0.25);
+color:#ffffff;
+text-shadow: 0 0 6px rgba(255,140,60,0.2);
 }
 
 #statusText{
 font-size:12px;
 white-space:nowrap;
-color:#c9a8e0;
-opacity:0.9;
+color:#b5aec2;
+opacity:0.95;
 }
 
 #callBtn{
@@ -980,21 +967,23 @@ background: rgba(45,22,50,0.7);
 #msg:disabled{ background:rgba(30,15,34,0.4); color:rgba(230,200,220,0.35); border-color:rgba(255,140,40,0.15); cursor:not-allowed; }
 
 #sendBtn{
-background: linear-gradient(135deg, #a259e6, #ff8c28 70%, #ffae5c);
-border:none; margin-left:8px; padding:10px 14px; border-radius:50%;
+background: linear-gradient(135deg, #9a4de0, #7c3cc9);
+border: 1px solid rgba(255,150,60,0.45);
+margin-left:8px; padding:10px 14px; border-radius:50%;
 color:white; font-size:18px; flex-shrink:0;
-box-shadow: 0 4px 14px rgba(255,120,40,0.35);
+box-shadow: 0 0 12px rgba(162,89,230,0.5), 0 0 8px rgba(255,140,60,0.25);
 transition: transform 0.15s, box-shadow 0.15s;
 }
-#sendBtn:active{ transform:scale(0.92); box-shadow:0 2px 6px rgba(255,120,40,0.25); }
-#sendBtn:disabled{ background:rgba(140,100,160,0.3); box-shadow:none; cursor:not-allowed; }
+#sendBtn:active{ transform:scale(0.92); box-shadow:0 0 6px rgba(162,89,230,0.35); }
+#sendBtn:disabled{ background:rgba(90,60,110,0.3); box-shadow:none; border-color:transparent; cursor:not-allowed; }
 #micBtn{
-  background: linear-gradient(135deg, #a259e6, #ff8c28 70%, #ffae5c);
-  border:none; margin-left:8px; border-radius:50%;
+  background: linear-gradient(135deg, #9a4de0, #7c3cc9);
+  border: 1px solid rgba(255,150,60,0.45);
+  margin-left:8px; border-radius:50%;
   color:white; flex-shrink:0; cursor:pointer;
   width:44px; height:44px;
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 4px 14px rgba(255,120,40,0.35);
+  box-shadow: 0 0 12px rgba(162,89,230,0.5), 0 0 8px rgba(255,140,60,0.25);
   transition:transform 0.15s, box-shadow 0.15s;
   -webkit-tap-highlight-color:transparent;
   padding:0;

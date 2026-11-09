@@ -15,6 +15,10 @@ background-attachment:fixed;
 height:100vh;
 }
 
+
+/* ═══════════════════════════════════════════════════════
+   ACCESS KEY PAGE — simple, original design
+   ═══════════════════════════════════════════════════════ */
 #access{
 position:relative;
 z-index:1;
@@ -144,7 +148,7 @@ position:fixed;
 top:0;left:0;
 width:100%;height:100%;
 background:rgba(0,0,0,0.45);
-z-index:999;
+z-index:10000;
 justify-content:center;
 align-items:center;
 flex-direction:column;
@@ -165,15 +169,23 @@ animation:spin 0.8s linear infinite;
 display:none;
 height:100vh;
 flex-direction:column;
-background-image:url("https://raw.githubusercontent.com/kittyis0001/kittyis0001.github.io/main/1776940040697.png");
-background-repeat:repeat;
-background-size:280px;
-background-position:top left;
+background: linear-gradient(180deg,
+  #c8d8f8 0%,
+  #d4c8f0 20%,
+  #e8c0e0 40%,
+  #d8b8e8 55%,
+  #c0c8f0 75%,
+  #d0c0e8 90%,
+  #e0b8d8 100%
+);
 }
 
 #header{
-background:#075E54;
-color:white;
+background: rgba(255,255,255,0.55);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-bottom: 1px solid rgba(180,160,220,0.25);
+color: #3a2a6a;
 padding:10px 15px;
 display:flex;
 align-items:center;
@@ -187,7 +199,6 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 border:2px solid rgba(255,255,255,0.6);
-/* TASK 1: cursor pointer removed, no onclick */
 }
 
 #headerInfo{
@@ -204,19 +215,20 @@ font-size:15px;
 white-space:nowrap;
 overflow:hidden;
 text-overflow:ellipsis;
+color:#3a2a6a;
 }
 
 #statusText{
 font-size:12px;
 white-space:nowrap;
+color:#7a6aaa;
 opacity:0.9;
 }
 
-/* TASK 3: Call button in header */
 #callBtn{
 background:none;
 border:none;
-color:white;
+color:#6a5aaa;
 font-size:22px;
 cursor:pointer;
 padding:4px 8px;
@@ -228,23 +240,42 @@ transition:transform 0.15s;
 }
 #callBtn:active{ transform:scale(0.88); }
 
-#menu{ cursor:pointer; font-size:22px; margin-left:4px; flex-shrink:0; }
+#menu{ cursor:pointer; font-size:22px; margin-left:4px; flex-shrink:0; color:#6a5aaa; }
 
 #menuBox{
 display:none;
 position:absolute;
 right:10px; top:62px;
-background:white;
-box-shadow:0 2px 10px rgba(0,0,0,0.3);
+background: linear-gradient(160deg,
+  rgba(200,220,252,0.88) 0%,
+  rgba(210,200,245,0.88) 40%,
+  rgba(235,195,235,0.88) 100%
+);
+backdrop-filter: blur(24px);
+-webkit-backdrop-filter: blur(24px);
+box-shadow: 0 12px 40px rgba(140,100,200,0.22), 0 2px 8px rgba(160,120,220,0.12);
+border: 1px solid rgba(220,200,255,0.45);
 z-index:100;
-border-radius:8px;
+border-radius:20px;
 overflow:hidden;
-min-width:200px;
+min-width:210px;
+/* ── WhatsApp-style open/close animation ──
+   Starts scaled-down + shifted up near the top-right corner
+   (where the 3-dot icon is) and slides/fades into place. */
+transform-origin: top right;
+transform: scale(0.85) translateY(-12px);
+opacity: 0;
+transition: transform 0.18s cubic-bezier(0.2,0.9,0.3,1.2),
+            opacity 0.16s ease;
+}
+#menuBox.menu-open{
+transform: scale(1) translateY(0);
+opacity: 1;
 }
 
-#menuBox div{ padding:12px 20px; cursor:pointer; font-size:14px; }
-#menuBox div:hover{ background:#f5f5f5; }
-#blockBtn{ color:#e53935; }
+#menuBox div{ padding:13px 20px; cursor:pointer; font-size:14px; color:#4a3280; }
+#menuBox div:hover{ background:rgba(180,150,240,0.18); }
+#blockBtn{ color:#d32f2f !important; }
 
 #messages{ flex:1; overflow:auto; padding:10px; }
 
@@ -252,12 +283,15 @@ min-width:200px;
 text-align:center;
 margin:8px auto;
 font-size:12px;
-color:#555;
-background:rgba(255,255,255,0.75);
+color:#7a6aaa;
+background:rgba(255,255,255,0.55);
+backdrop-filter:blur(8px);
+-webkit-backdrop-filter:blur(8px);
 border-radius:12px;
 padding:6px 14px;
 max-width:85%;
 display:table;
+box-shadow:0 1px 6px rgba(140,100,200,0.1);
 }
 
 .msgRow{
@@ -277,30 +311,45 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 cursor:pointer;
-border:2px solid rgba(255,255,255,0.8);
-box-shadow:0 1px 4px rgba(0,0,0,0.2);
+border:2px solid rgba(255,255,255,0.9);
+box-shadow:0 1px 8px rgba(140,100,200,0.2);
 }
 
 .msg{
-padding:10px;
+padding:10px 12px;
 max-width:65%;
-border-radius:8px;
+border-radius:18px;
 word-wrap:break-word;
 position:relative;
 transition:transform 0.2s ease;
+box-shadow:0 2px 10px rgba(140,100,200,0.15);
 }
 
-.me .msg{ background:#dcf8c6; }
-.other .msg{ background:white; }
+/* Outgoing — blue to pink gradient like reference */
+.me .msg{
+background: linear-gradient(135deg, #7ec8f7 0%, #b09ef5 50%, #e899d4 100%);
+color: white;
+border-bottom-right-radius: 5px;
+}
+
+/* Incoming — white soft glass */
+.other .msg{
+background: rgba(255,255,255,0.75);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+color: #3a2a5a;
+border: 1px solid rgba(200,180,240,0.3);
+border-bottom-left-radius: 5px;
+}
 
 .replyQuote{
 background:rgba(0,0,0,0.07);
-border-left:3px solid #075E54;
+border-left:3px solid rgba(140,100,220,0.5);
 border-radius:4px;
 padding:5px 8px;
 margin-bottom:6px;
 font-size:12px;
-color:#444;
+color:#5a4a8a;
 max-width:100%;
 overflow:hidden;
 white-space:nowrap;
@@ -308,17 +357,17 @@ text-overflow:ellipsis;
 }
 
 .replyQuote .replyName{ font-weight:bold; color:#075E54; font-size:11px; margin-bottom:2px; }
-.editedLabel{ font-size:10px; color:#888; margin-left:4px; }
-.time{ font-size:11px; color:gray; margin-top:3px; text-align:right; }
+.editedLabel{ font-size:10px; color:rgba(100,80,160,0.5); margin-left:4px; }
+.time{ font-size:11px; color:rgba(100,80,160,0.55); margin-top:3px; text-align:right; }
 .reactionBar{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
 
 .reactionBadge{
-background:rgba(0,0,0,0.08);
+background:rgba(255,255,255,0.75);
 border-radius:20px;
 padding:2px 7px;
 font-size:14px;
 cursor:pointer;
-border:1px solid rgba(0,0,0,0.1);
+border:1px solid rgba(180,160,220,0.3);
 }
 
 #actionMenu{
@@ -363,39 +412,43 @@ flex-direction:row;
 
 #replyBar{
 display:none;
-background:#e8f5e9;
+background:rgba(240,235,255,0.85);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
 padding:8px 14px;
-border-top:2px solid #075E54;
+border-top:2px solid rgba(180,160,220,0.3);
 align-items:center;
 gap:8px;
 }
 
-#replyBar .replyBarContent{ flex:1; font-size:12px; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-#replyBar .replyBarName{ font-weight:bold; color:#075E54; font-size:11px; }
-#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; }
+#replyBar .replyBarContent{ flex:1; font-size:12px; color:#5a4a8a; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#replyBar .replyBarName{ font-weight:bold; color:#8060cc; font-size:11px; }
+#replyBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#9a8aba; padding:0; }
 
 #editBar{
 display:none;
-background:#fff9c4;
+background:rgba(255,248,230,0.85);
+backdrop-filter:blur(10px);
+-webkit-backdrop-filter:blur(10px);
 padding:8px 14px;
-border-top:2px solid #f9a825;
+border-top:2px solid rgba(220,180,100,0.3);
 align-items:center;
 gap:8px;
 font-size:12px;
-color:#555;
+color:#7a6040;
 }
 
 #editBarClose{ background:none; border:none; font-size:20px; cursor:pointer; color:#555; padding:0; margin-left:auto; }
 
 #blockedBanner{
 display:none;
-background:#ffebee;
+background:rgba(255,235,235,0.85);
 padding:10px 14px;
 text-align:center;
 font-size:13px;
 color:#c62828;
 font-weight:bold;
-border-top:1px solid #ef9a9a;
+border-top:1px solid rgba(200,80,80,0.15);
 }
 
 #nickModal{
@@ -477,7 +530,6 @@ font-size:16px; cursor:pointer; display:flex; align-items:center; justify-conten
 #previewDeleteBtn{ background:#ff4444; color:white; }
 #previewSendBtn{ background:#075E54; color:white; }
 
-/* ─────────────────── TASK 2: GIF PANEL ─────────────────── */
 #gifPanel{
 display:none;
 position:fixed;
@@ -516,9 +568,6 @@ transition:transform 0.1s;
 }
 .gifItem:active{ transform:scale(0.95); }
 
-/* ─────────────────── TASK 3: VOICE CALL UI ─────────────────── */
-
-/* Outgoing / Incoming call overlay */
 #callOverlay{
 display:none;
 position:fixed;
@@ -617,27 +666,177 @@ flex-direction:column;
 align-items:center;
 }
 
-/* incoming-only buttons */
 #incomingActions{ display:none; gap:60px; justify-content:center; }
 #activeActions{ display:none; gap:30px; justify-content:center; flex-wrap:wrap; }
 
-/* ─────────────────── INPUT AREA ─────────────────── */
 #inputArea{
 display:flex; padding:8px 10px;
-background:#f0f0f0; align-items:flex-end;
+background: rgba(255,255,255,0.6);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-top: 1px solid rgba(180,160,220,0.2);
+align-items:flex-end;
 }
 
 #msg{
-flex:1; padding:10px 14px; border-radius:20px; border:2px solid #000;
+flex:1; padding:10px 14px; border-radius:20px;
+border:1.5px solid rgba(180,160,220,0.35);
+background: rgba(255,255,255,0.85);
+color: #3a2a5a;
 resize:none; overflow:hidden; min-height:40px; max-height:120px;
 font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:border-box;
 }
 
-#msg:disabled{ background:#e0e0e0; color:#aaa; border-color:#ccc; cursor:not-allowed; }
-#sendBtn{ background:#075E54; border:none; margin-left:8px; padding:10px 14px; border-radius:50%; color:white; font-size:18px; flex-shrink:0; }
-#sendBtn:disabled{ background:#aaa; cursor:not-allowed; }
-#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#555; font-style:italic; }
+#msg::placeholder{ color:rgba(140,120,180,0.5); }
+
+#msg:focus{
+border-color: rgba(140,110,220,0.55);
+background: rgba(255,255,255,0.95);
+}
+
+ion:absolute; right:8px; bottom:7px;
+width:26px; height:26px; padding:0;
+border:none; border-radius:50%;
+background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+color:white; font-size:14px;
+display:none; align-items:center; justify-content:center;
+cursor:pointer; flex-shrink:0;
+box-shadow:0 2px 8px rgba(160,120,230,0.35);
+#msg:disabled{ background:rgba(220,210,240,0.4); color:rgba(140,120,180,0.5); border-color:rgba(180,160,220,0.2); cursor:not-allowed; }
+
+#sendBtn{
+background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+border:none; margin-left:8px; padding:10px 14px; border-radius:50%;
+color:white; font-size:18px; flex-shrink:0;
+box-shadow: 0 4px 14px rgba(160,120,230,0.3);
+transition: transform 0.15s, box-shadow 0.15s;
+}
+#sendBtn:active{ transform:scale(0.92); box-shadow:0 2px 6px rgba(160,120,230,0.2); }
+#sendBtn:disabled{ background:rgba(180,160,220,0.3); box-shadow:none; cursor:not-allowed; }
+#micBtn{
+  background: linear-gradient(135deg, #7ec8f7, #b09ef5, #e899d4);
+  border:none; margin-left:8px; border-radius:50%;
+  color:white; flex-shrink:0; cursor:pointer;
+  width:44px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(160,120,230,0.3);
+  transition:transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color:transparent;
+  padding:0;
+}
+#micBtn:active{ transform:scale(0.92); }
+
+#typingIndicator{ display:none; padding:4px 14px; font-size:12px; color:#9a8aba; font-style:italic; }
+
+
+/* ════════════════════════════════════
+   DARK THEME — WhatsApp style
+   Applied via body.dark-theme class
+   ════════════════════════════════════ */
+body.dark-theme #chat {
+  background: #0b141a !important;
+}
+body.dark-theme #header {
+  background: #1f2c34 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #headerName { color: #e9edef !important; }
+body.dark-theme #statusText  { color: #8696a0 !important; }
+body.dark-theme #callBtn     { color: #8696a0 !important; }
+body.dark-theme #menu        { color: #8696a0 !important; }
+
+/* Bubbles */
+body.dark-theme .me .msg {
+  background: #005c4b !important;
+  color: #e9edef !important;
+}
+body.dark-theme .other .msg {
+  background: #202c33 !important;
+  color: #e9edef !important;
+  border: none !important;
+}
+body.dark-theme .time {
+  color: #8696a0 !important;
+}
+
+/* Message background / scroll area */
+body.dark-theme #messages {
+  background: transparent !important;
+}
+
+/* Input area */
+body.dark-theme #inputArea {
+  background: #1f2c34 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #msg {
+  background: #2a3942 !important;
+  color: #e9edef !important;
+  border-color: transparent !important;
+}
+body.dark-theme #msg::placeholder { color: #8696a0 !important; }
+
+/* 3-dot menu */
+body.dark-theme #menuBox {
+  background: #233138 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #menuBox div {
+  color: #e9edef !important;
+}
+body.dark-theme #menuBox div:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+body.dark-theme #blockBtn {
+  color: #ef9a9a !important;
+}
+
+/* System messages */
+body.dark-theme .sysMsg {
+  background: rgba(17,27,33,0.85) !important;
+  color: #8696a0 !important;
+}
+
+/* Reply bar */
+body.dark-theme #replyBar {
+  background: #1f2c34 !important;
+  border-top-color: #00a884 !important;
+}
+body.dark-theme #replyBar .replyBarContent { color: #e9edef !important; }
+body.dark-theme #replyBar .replyBarName    { color: #00a884 !important; }
+body.dark-theme #replyBarClose             { color: #8696a0 !important; }
+
+/* Edit bar */
+body.dark-theme #editBar {
+  background: #1f2c34 !important;
+  color: #8696a0 !important;
+  border-top-color: #ffd54f !important;
+}
+
+/* Emoji box */
+body.dark-theme #emojiBox {
+  background: #233138 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* Voice record bar */
+body.dark-theme #voiceRecordBar {
+  background: #1f2c34 !important;
+}
+
+/* Typing indicator */
+body.dark-theme #typingIndicator { color: #8696a0 !important; }
+
+/* Blocked banner */
+body.dark-theme #blockedBanner {
+  background: rgba(40,20,20,0.9) !important;
+  color: #ef9a9a !important;
+}
+
 </style>
+<link rel="stylesheet" href="story.css">
+<link rel="stylesheet" href="shorts.css">
 </head>
 
 <body>
@@ -664,22 +863,24 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <div id="chat">
 
 <div id="header">
-  <!-- TASK 1: headerAvatar has NO onclick — profile pic change only from menu -->
   <img id="headerAvatar" src="" alt="Profile">
   <div id="headerInfo">
     <div id="headerName">Private Chat</div>
     <div id="statusText">Offline</div>
   </div>
-  <!-- TASK 3: Call button -->
   <button id="callBtn" onclick="initiateCall()" title="Voice Call">📞</button>
   <div id="menu" onclick="toggleMenu()">⋮</div>
 </div>
 
+<!-- ✅ storyBar এখানে story.js inject করবে — header এর পরে -->
+
 <div id="menuBox">
   <div onclick="triggerImageUpload()">🖼️ Upload Image</div>
-  <div onclick="triggerVoiceRecord()">🎤 Send Voice Message</div>
+
   <div onclick="openNickModal()">✏️ Change Nick Name</div>
   <div onclick="changeProfilePic()">🖼️ Change Profile Pic</div>
+  <div id="gifToggleItem" onclick="toggleGifSuggestions()">☑️ GIF Suggestions</div>
+  <div id="darkThemeItem" onclick="toggleDarkTheme(event)"><span id="darkThemeLabel">☐ Dark Theme</span></div>
   <div onclick="deleteAll()">Delete All Chat</div>
   <div id="blockBtn" onclick="toggleBlock()">Block User</div>
 </div>
@@ -690,7 +891,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <div id="typingIndicator"></div>
 <div id="messages"></div>
 
-<!-- TASK 2: GIF panel -->
 <div id="gifPanel"></div>
 
 <div id="voicePreviewBar">
@@ -719,10 +919,16 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
 <div id="inputArea">
 <button onclick="toggleEmoji()" style="font-size:20px;background:none;border:none;margin-right:5px;padding:8px 0;flex-shrink:0;">😊</button>
 <textarea id="msg" placeholder="Type message..." rows="1"></textarea>
-<button id="sendBtn" onclick="send()">➤</button>
+<button id="micBtn" onclick="triggerVoiceRecord()" title="Voice message">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20" height="20">
+    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+  </svg>
+</button>
+<button id="sendBtn" onclick="send()" style="display:none;">➤</button>
 </div>
 
-<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:white;max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);"></div>
+<div id="emojiBox" style="display:none;position:fixed;bottom:70px;left:0;width:100%;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-height:200px;overflow:auto;padding:10px;box-shadow:0 -2px 16px rgba(140,100,200,0.12);border-top:1px solid rgba(180,160,220,0.2);"></div>
 
 <div id="voiceRecordBar">
   <div class="recLeft">
@@ -766,7 +972,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   </div>
 </div>
 
-<!-- TASK 3: Voice Call Overlay (WhatsApp style) -->
 <div id="callOverlay">
   <div class="callTop">
     <img id="callAvatar" src="" alt="">
@@ -775,7 +980,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
     <div id="callTimer">0:00</div>
   </div>
 
-  <!-- Incoming call buttons -->
   <div id="incomingActions" class="callActions">
     <div class="callBtnWrap">
       <button class="callActionBtn" id="rejectCallBtn" onclick="rejectCall()">📵</button>
@@ -787,7 +991,6 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
     </div>
   </div>
 
-  <!-- Active call buttons -->
   <div id="activeActions" class="callActions">
     <div class="callBtnWrap">
       <button class="callActionBtn" id="muteCallBtn" onclick="toggleMute()">🎤</button>
@@ -804,11 +1007,15 @@ font-size:15px; font-family:Arial; line-height:1.4; outline:none; box-sizing:bor
   </div>
 </div>
 
-<!-- Hidden audio elements for call -->
 <audio id="remoteAudio" autoplay playsinline></audio>
 <audio id="ringtoneAudio" loop>
   <source src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" type="audio/mpeg">
 </audio>
+
+<!-- ✅ story.js আগে load করো — module script এর আগে -->
+<script src="story.js"></script>
+<script src="story-editor.js"></script>
+<script src="shorts.js"></script>
 
 <script type="module">
 
@@ -851,6 +1058,61 @@ const headerName = document.getElementById("headerName")
 let seenListener = null
 
 // ─────────────────────────────────────────────
+// GIF ON/OFF TOGGLE
+// (Firebase-backed, same persistence pattern as Dark Theme —
+// survives logout, refresh, and re-login on any device.)
+// ─────────────────────────────────────────────
+let gifEnabled = false   // default OFF; corrected instantly once Firebase value loads
+let _gifRef = null
+
+function updateGifToggleLabel(){
+  const item = document.getElementById("gifToggleItem")
+  if(!item) return
+  item.innerText = gifEnabled ? "☑️ GIF Suggestions" : "☐ GIF Suggestions"
+}
+
+function listenGifSuggestions(){
+  _gifRef = ref(db, "gifSuggestions")
+  onValue(_gifRef, snap => {
+    const val = snap.val()
+
+    if (val === null) {
+      // Firebase has never been written for this path yet — this is
+      // the very first login since switching from localStorage to
+      // Firebase. If the user had previously set a preference in
+      // localStorage (from before this change), migrate it into
+      // Firebase now instead of silently discarding it and resetting
+      // to "on". This onValue callback will fire again once the
+      // migration write completes, so no further action is needed
+      // here beyond kicking that write off.
+      const legacyVal = localStorage.getItem("gifSuggestions")
+      const migratedVal = legacyVal === "on" ? "on" : "off"
+      set(ref(db, "gifSuggestions"), migratedVal).catch(()=>{})
+      gifEnabled = migratedVal === "on"
+    } else {
+      gifEnabled = val === "on"
+    }
+
+    updateGifToggleLabel()
+    if(!gifEnabled) hideGifPanel()
+  })
+}
+
+window.toggleGifSuggestions = function(){
+  closeMenuBox()
+  const newVal = !gifEnabled
+  // Apply locally immediately — instant feedback, doesn't wait on the
+  // Firebase round-trip.
+  gifEnabled = newVal
+  updateGifToggleLabel()
+  if(!gifEnabled) hideGifPanel()
+  // Persist to Firebase — listenGifSuggestions() confirms/re-syncs it.
+  set(ref(db, "gifSuggestions"), newVal ? "on" : "off").catch(()=>{})
+}
+
+updateGifToggleLabel()
+
+// ─────────────────────────────────────────────
 // PROFILE PICS
 // ─────────────────────────────────────────────
 let profilePics = {}
@@ -860,6 +1122,10 @@ const DEFAULT_PIC = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53M
 function getAvatar(user){
   return profilePics[user] || DEFAULT_PIC
 }
+
+// ✅ Expose to window so story.js (non-module) can access
+window.getAvatar  = getAvatar
+window.DEFAULT_PIC = DEFAULT_PIC
 
 function updateHeader(){
   headerAvatar.src = getAvatar(otherUser) || DEFAULT_PIC
@@ -875,12 +1141,15 @@ function listenProfilePics(){
       const u = img.dataset.user
       if(u) img.src = getAvatar(u)
     })
+    // menu avatar instant sync
+    const menuAv = document.getElementById('menuProfileAvatar')
+    if(menuAv) menuAv.src = getAvatar(username)
+    if(typeof window.refreshStoryBar === 'function') window.refreshStoryBar()
   })
 }
 
-// TASK 1: changeProfilePic only from menu — avatar img has NO onclick
 window.changeProfilePic = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   document.getElementById("profilePicInput").click()
 }
 
@@ -911,6 +1180,9 @@ function getNick(user){
   return nicknames[user] || (user==="katis1" ? "Kat" : "Kitty")
 }
 
+// ✅ Expose getNick to window so story.js can access
+window.getNick = getNick
+
 function refreshAllDisplayNames(){
   updateHeader()
   document.querySelectorAll(".msgSenderName").forEach(el=>{
@@ -919,16 +1191,107 @@ function refreshAllDisplayNames(){
   })
 }
 
+// ════════════════════════════════════
+// DARK THEME — Firebase sync
+// Shared key: "theme" (no per-user path)
+// Both users see same theme instantly.
+// ════════════════════════════════════
+let _themeRef = null
+
+function listenTheme() {
+  _themeRef = ref(db, "theme")
+  onValue(_themeRef, snap => {
+    const isDark = snap.val() === "dark"
+    applyTheme(isDark)
+    // Sync menu checkbox label — update only the inner <span>, never
+    // the parent <div>, so the div's onclick binding and event target
+    // are never disturbed by this Firebase-driven re-render (this was
+    // the root cause of the click sometimes not registering).
+    const label = document.getElementById("darkThemeLabel")
+    if (label) label.textContent = (isDark ? "☑" : "☐") + " Dark Theme"
+  })
+}
+
+function applyTheme(isDark) {
+  if (isDark) {
+    document.body.classList.add("dark-theme")
+  } else {
+    document.body.classList.remove("dark-theme")
+  }
+}
+
+// ✅ Narrow, read-only exposures for shorts.js (Phase 2) — matches the
+// same safe pattern already used for getAvatar/getNick/DEFAULT_PIC.
+// shorts.js runs as a separate, non-module script and cannot import
+// db/ref/onValue itself, so these two purpose-built listeners are
+// exposed instead of the raw Firebase primitives. Both are read-only
+// and change nothing about existing messaging/status behavior.
+window.listenOtherUserOnlineStatus = function(callback) {
+  if (!otherUser) { callback(false); return }
+  onValue(ref(db, "status/" + otherUser), snap => {
+    const data = snap.val()
+    if (!data) { callback(false); return }
+    callback((Date.now() - data.last) < 12000)   // same 12s threshold the header's own status text uses
+  })
+}
+
+window.listenUnseenMessageCount = function(callback) {
+  if (!otherUser) { callback(0); return }
+  onValue(ref(db, "messages"), snap => {
+    const data = snap.val()
+    if (!data) { callback(0); return }
+    let count = 0
+    Object.values(data).forEach(msg => {
+      if (msg.name === otherUser && !msg.seen && !msg.deleted && !msg.type) count++
+    })
+    callback(count)
+  })
+}
+
+window.toggleDarkTheme = function(e) {
+  // ✅ FIX: stop this click from bubbling anywhere else, and make sure
+  // it is fully processed before we do anything that could interrupt
+  // it (like closing the menu or letting a Firebase update re-render
+  // the label mid-click).
+  if (e) e.stopPropagation()
+
+  const isDark = document.body.classList.contains("dark-theme")
+  const newTheme = isDark ? "light" : "dark"
+
+  // Apply locally immediately — instant feedback, doesn't wait on
+  // the Firebase round-trip so the toggle always feels responsive.
+  applyTheme(!isDark)
+  const label = document.getElementById("darkThemeLabel")
+  if (label) label.textContent = (!isDark ? "☑" : "☐") + " Dark Theme"
+
+  // Save to Firebase — both users will get the confirmed update via
+  // listenTheme(); this also self-corrects if the write ever fails.
+  set(ref(db, "theme"), newTheme)
+    .then(() => console.log("[Theme] Saved to Firebase:", newTheme))
+    .catch(err => console.error("[Theme] Firebase write FAILED — check database rules for the 'theme' path:", err))
+
+  // Close the menu AFTER this click has been fully handled — using
+  // the shared animated helper so this behaves identically to every
+  // other menu item (Delete Chat, Upload Image, etc.).
+  setTimeout(() => { closeMenuBox() }, 120)
+}
+
 function listenNickNames(){
   onValue(ref(db, "nicknames"), snap=>{
     const data = snap.val() || {}
     nicknames = data
     refreshAllDisplayNames()
+    // menu profile name instant update — nicknames load হলে
+    const menuName = document.getElementById('menuProfileName')
+    if(menuName && username) {
+      const nick = getNick(username)
+      if(nick) menuName.innerText = nick
+    }
   })
 }
 
 window.openNickModal = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   document.getElementById("myNickLabel").innerText = "Your Nick Name"
   document.getElementById("otherNickLabel").innerText = "Other's Nick Name"
   document.getElementById("myNickInput").value = getNick(username)
@@ -993,7 +1356,7 @@ function listenBlockStatus(){
 }
 
 window.toggleBlock = async function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   const t = Date.now()
   if(iBlockedOther){
     await set(ref(db, "blocks/"+username+"/"+otherUser), { blocked: false, time: t })
@@ -1024,7 +1387,7 @@ const previewDuration = document.getElementById("previewDuration")
 function formatRecTime(s){ return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2) }
 
 window.triggerVoiceRecord = async function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
   await startRecording()
 }
@@ -1091,354 +1454,126 @@ previewSendBtn.addEventListener("click",async()=>{
 })
 
 // ─────────────────────────────────────────────
-// TYPING INDICATOR
+// TYPING INDICATOR + GIF
 // ─────────────────────────────────────────────
 const typingIndicator = document.getElementById("typingIndicator")
 let typingTimeout=null
-
-// TASK 2: GIF debounce
-
 let gifDebounceTimer = null
-
-const GIF_API_KEY =
-"20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
-
+const GIF_API_KEY = "20hl1xzvQNjj6ZRlHiQ2KtJJ1JSfh2ejHzW8RUg0b4MZVvfyfB5bizDJCE7z18OC"
 const gifPanel = document.getElementById("gifPanel")
 
-// ✅ Professional hide helper
-
 function hideGifPanel() {
-
   gifPanel.style.display = "none"
-
   gifPanel.innerHTML = ""
-
 }
 
-// ✅ Keyboard close detect
-
-msgBox.addEventListener("blur", () => {
-
-  hideGifPanel()
-
-})
-
-// ✅ Mobile keyboard back detect
+msgBox.addEventListener("blur", () => { hideGifPanel() })
 
 window.visualViewport?.addEventListener("resize", () => {
-
-  if (document.activeElement !== msgBox) {
-
-    hideGifPanel()
-
-  }
-
+  if (document.activeElement !== msgBox) { hideGifPanel() }
 })
-
-// ✅ Outside tap close
 
 document.addEventListener("touchstart", e => {
-
-  if (
-    !gifPanel.contains(e.target) &&
-    e.target !== msgBox
-  ) {
-
-    hideGifPanel()
-
-  }
-
+  if (!gifPanel.contains(e.target) && e.target !== msgBox) { hideGifPanel() }
 })
-
-// ✅ Input listener
 
 msgBox.addEventListener("input", function () {
-
   this.style.height = "auto"
-
-  this.style.height =
-  Math.min(this.scrollHeight, 120) + "px"
+  this.style.height = Math.min(this.scrollHeight, 120) + "px"
+  // WhatsApp-style: swap mic↔send instantly as user types
+  const _hasText = this.value.length > 0
+  const _mic = document.getElementById("micBtn")
+  const _snd = document.getElementById("sendBtn")
+  if(_mic) _mic.style.display = _hasText ? "none" : "flex"
+  if(_snd) _snd.style.display = _hasText ? "" : "none"
 
   if (username && !isBlocked()) {
-
     set(ref(db, "typing/" + username), true)
-
     clearTimeout(typingTimeout)
-
-    typingTimeout = setTimeout(() => {
-
-      set(ref(db, "typing/" + username), false)
-
-    }, 2000)
-
+    typingTimeout = setTimeout(() => { set(ref(db, "typing/" + username), false) }, 2000)
   }
+
+  if (!gifEnabled) { hideGifPanel(); return }
 
   const val = this.value.trim()
-
   clearTimeout(gifDebounceTimer)
 
-  // ✅ Empty input → hide
+  if (!val) { hideGifPanel(); return }
+  if (val.endsWith(".") || val.endsWith("?") || val.endsWith("!")) { hideGifPanel(); return }
+  const sentenceCount = (val.match(/[.!?]/g) || []).length
+  if (sentenceCount >= 1) { hideGifPanel(); return }
 
-  if (!val) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  // ✅ Sentence completed → hide
-
-  if (
-    val.endsWith(".") ||
-    val.endsWith("?") ||
-    val.endsWith("!")
-  ) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  // ✅ Multiple sentence detect
-
-  const sentenceCount =
-  (val.match(/[.!?]/g) || []).length
-
-  if (sentenceCount >= 1) {
-
-    hideGifPanel()
-
-    return
-
-  }
-
-  gifDebounceTimer = setTimeout(() => {
-
-    searchGifs(val)
-
-  }, 350)
-
+  gifDebounceTimer = setTimeout(() => { searchGifs(val) }, 350)
 })
 
-// ✅ GIF search
-
 async function searchGifs(query) {
-
-  // ✅ Long sentence → hide
-
-  if (query.split(" ").length > 4) {
-
-    hideGifPanel()
-
-    return
-
-  }
+  if (!gifEnabled) { hideGifPanel(); return }
+  if (query.split(" ").length > 4) { hideGifPanel(); return }
 
   gifPanel.style.display = "flex"
-
   try {
-
-    const url =
-    `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
-
+    const url = `https://api.klipy.com/api/v1/${GIF_API_KEY}/gifs/search?q=${encodeURIComponent(query)}&limit=30`
     const res = await fetch(url)
-
     const data = await res.json()
-
     let items = data?.data?.data || []
 
-    // ✅ Remove duplicates
-
     const usedUrls = new Set()
-
     items = items.filter(item => {
-
-      const url =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      if (!url || usedUrls.has(url)) {
-
-        return false
-
-      }
-
-      usedUrls.add(url)
-
-      return true
-
+      const url = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      if (!url || usedUrls.has(url)) return false
+      usedUrls.add(url); return true
     })
 
-    // ✅ Randomize results
-
     items = items.sort(() => Math.random() - 0.5)
-
-    // ✅ No relevant GIFs → hide
-
-    if (!items.length || items.length < 2) {
-
-      hideGifPanel()
-
-      return
-
-    }
+    if (!items.length || items.length < 2) { hideGifPanel(); return }
 
     gifPanel.innerHTML = ""
-
     items.forEach(item => {
-
-      const gifUrl =
-      item?.file?.md?.gif?.url ||
-      item?.file?.sm?.gif?.url ||
-      ""
-
-      const previewUrl =
-      item?.file?.sm?.gif?.url ||
-      item?.file?.md?.gif?.url ||
-      gifUrl
-
+      const gifUrl = item?.file?.md?.gif?.url || item?.file?.sm?.gif?.url || ""
+      const previewUrl = item?.file?.sm?.gif?.url || item?.file?.md?.gif?.url || gifUrl
       if (!gifUrl) return
 
       const img = document.createElement("img")
-
       img.className = "gifItem"
-
       img.src = previewUrl
-
       img.loading = "lazy"
-
       img.alt = "GIF"
-
-      // ✅ Professional preview size
-
       img.style.width = "72px"
-
       img.style.height = "72px"
-
       img.style.objectFit = "cover"
-
       img.style.borderRadius = "10px"
-
       img.style.margin = "4px"
-
       img.style.cursor = "pointer"
-
       img.style.flexShrink = "0"
-
       img.style.transition = "0.2s"
 
-      // ✅ FIX: scroll + touch send both work
-
       let touchMoved = false
-
-      img.addEventListener("touchmove", () => {
-
-        touchMoved = true
-
-      }, { passive:true })
-
-      img.addEventListener("touchstart", () => {
-
-        touchMoved = false
-
-      }, { passive:true })
-
+      img.addEventListener("touchmove", () => { touchMoved = true }, { passive:true })
+      img.addEventListener("touchstart", () => { touchMoved = false }, { passive:true })
       img.addEventListener("touchend", async (e) => {
-
-        // ✅ If scrolling → don't send
-
         if (touchMoved) return
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
+        e.preventDefault(); e.stopPropagation()
         if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
       }, { passive:false })
 
-      // ✅ Desktop click support
-
       img.addEventListener("click", async (e) => {
-
-        e.preventDefault()
-
-        e.stopPropagation()
-
+        e.preventDefault(); e.stopPropagation()
         if (isBlocked()) return
-
-        await push(ref(db, "messages"), {
-
-          name: username,
-
-          type: "gif",
-
-          text: "__gif__" + gifUrl,
-
-          time: Date.now(),
-
-          seen: false
-
-        })
-
-        hideGifPanel()
-
-        msgBox.value = ""
-
-        msgBox.style.height = "auto"
-
+        await push(ref(db, "messages"), { name:username, type:"gif", text:"__gif__"+gifUrl, time:Date.now(), seen:false })
+        hideGifPanel(); msgBox.value = ""; msgBox.style.height = "auto"
       })
 
       gifPanel.appendChild(img)
-
     })
-
-  } catch (e) {
-
-    console.error(e)
-
-    hideGifPanel()
-
-  }
-
+  } catch (e) { console.error(e); hideGifPanel() }
 }
 
-// ✅ Enter send
-
 msgBox.addEventListener("keydown", function (e) {
-
-  if (e.key === "Enter" && !e.shiftKey) {
-
-    e.preventDefault()
-
-    send()
-
-  }
-
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() }
 })
+
 // ─────────────────────────────────────────────
 // REPLY
 // ─────────────────────────────────────────────
@@ -1604,8 +1739,8 @@ window.unlock=async function(){
     const res=await fetch(BACKEND+"/check-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key})})
     const data=await res.json()
     accessLoader.style.display="none"
-    if(!data.ok){document.body.innerHTML="";return}
-  } catch(e){accessLoader.style.display="none";document.body.innerHTML="";return}
+    if(!data.ok){ window.location.href="closed.html"; return }
+  } catch(e){ accessLoader.style.display="none"; window.location.href="closed.html"; return }
   document.getElementById("access").style.display="none"
   document.getElementById("login").style.display="block"
 }
@@ -1656,9 +1791,22 @@ window.start=async function(){
   listenBlockStatus()
   listenProfilePics()
   markSeenMessages()
-
-  // TASK 3: Start listening for incoming calls
   listenIncomingCalls()
+  listenTheme()
+  listenGifSuggestions()
+
+  // ✅ LOGIN SUCCESS — story bar দেখাও
+  if(typeof showStoryBar === "function") {
+    showStoryBar()
+  }
+
+  // ✅ LOGIN SUCCESS — Shorts Feed default landing screen
+  // (chat above is already fully initialized as before — this just
+  // shows Shorts on top of it; tapping Message/Profile in Shorts
+  // hides it to reveal the already-running chat underneath)
+  if(typeof showShortsFeed === "function") {
+    showShortsFeed()
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1674,6 +1822,9 @@ window.send=async function(){
     editingKey=null; editBar.style.display="none"
     sendBtn.innerText="➤"
     msgBox.value=""; msgBox.style.height="auto"
+    // Reset: show mic, hide send
+    const _micE=document.getElementById("micBtn"); if(_micE)_micE.style.display="flex"
+    sendBtn.style.display="none"
     return
   }
 
@@ -1693,6 +1844,9 @@ window.send=async function(){
   gifPanel.style.display="none"
   set(ref(db,"typing/"+username),false)
   clearTimeout(typingTimeout)
+  // Reset: show mic, hide send
+  const _mic=document.getElementById("micBtn"); if(_mic)_mic.style.display="flex"
+  sendBtn.style.display="none"
 }
 
 function scrollToBottom(){
@@ -1739,7 +1893,7 @@ function createVoicePlayer(url){
 function buildTimeHtml(message,isMe){
   const t=new Date(message.time).getHours()+":"+("0"+new Date(message.time).getMinutes()).slice(-2)
   const editedLabel=message.edited?`<span class="editedLabel">(edited)</span>`:""
-  const tick=isMe?(message.seen?"<span style='color:#001aff'>✔✔</span>":"✔"):""
+  const tick=isMe?(message.seen?"<span style='color:rgba(255,255,255,0.8)'>✔✔</span>":"✔"):""
   return `${t} ${editedLabel} ${tick}`
 }
 
@@ -1773,7 +1927,6 @@ function createMessage(message,key){
   avatarImg.src=getAvatar(message.name)
   avatarImg.alt=displayName
   avatarImg.onerror=function(){ this.src=DEFAULT_PIC }
-  // TASK 1: avatar click only for own pic change
   avatarImg.addEventListener("click",e=>{
     e.stopPropagation()
     if(message.name===username) changeProfilePic()
@@ -1797,14 +1950,13 @@ function createMessage(message,key){
     replyHtml=`<div class="replyQuote"><div class="replyName">${rName}</div>${message.replyTo.text||""}</div>`
   }
 
-  div.innerHTML=`<b class="msgSenderName" data-user="${message.name}">${displayName}</b><br>${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
+  div.innerHTML=`${replyHtml}<div class="time">${buildTimeHtml(message,isMe)}</div>${renderReactions(message.reactions,key)}`
 
   const timeDiv=div.querySelector(".time")
 
   if(message.text.startsWith("__voice__")){
     div.insertBefore(createVoicePlayer(message.text.replace("__voice__","")),timeDiv)
   } else if(message.text.startsWith("__gif__")){
-    // TASK 2: Render GIF message
     const gifUrl = message.text.replace("__gif__","")
     const img=document.createElement("img")
     img.src=gifUrl
@@ -1922,13 +2074,39 @@ onValue(ref(db,"status"),snap=>{
   }
 })
 
+// ✅ Global helper — opens the menu with the slide+fade animation.
+window.openMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  m.style.display="block"
+  // Force a reflow so the browser registers the "closed" starting
+  // state before we add "menu-open" — otherwise it would jump
+  // straight to the open state with no animation.
+  void m.offsetWidth
+  m.classList.add("menu-open")
+}
+
+// ✅ Global helper — plays the reverse animation, THEN hides the menu.
+// Every existing "menuBox...display = 'none'" call site now routes
+// through this so all of them get the same closing animation without
+// having to touch each call site's surrounding logic individually.
+window.closeMenuBox = function(){
+  const m=document.getElementById("menuBox")
+  if(!m) return
+  if(!m.classList.contains("menu-open")){ m.style.display="none"; return }
+  m.classList.remove("menu-open")
+  setTimeout(()=>{ if(m) m.style.display="none" }, 180)
+}
+
 window.toggleMenu=function(){
   const m=document.getElementById("menuBox")
-  m.style.display=m.style.display=="block"?"none":"block"
+  const isOpen = m.classList.contains("menu-open") || m.style.display==="block"
+  if(isOpen) closeMenuBox()
+  else openMenuBox()
 }
 
 window.triggerImageUpload = function(){
-  document.getElementById("menuBox").style.display = "none"
+  closeMenuBox()
   if(isBlocked()){ alert("🚫 Messaging is blocked"); return }
   document.getElementById("imgInput").click()
 }
@@ -1937,7 +2115,7 @@ window.deleteAll=function(){
   if(confirm("Delete all chat?")){
     remove(ref(db,"messages"))
     messagesEl.innerHTML=""
-    document.getElementById("menuBox").style.display="none"
+    closeMenuBox()
   }
 }
 
@@ -2017,7 +2195,7 @@ window.uploadImage=async function(input){
 }
 
 // ══════════════════════════════════════════════
-// TASK 3: VOICE CALL — WebRTC + Firebase signaling
+// VOICE CALL — WebRTC + Firebase signaling
 // ══════════════════════════════════════════════
 
 const ICE_SERVERS = {
@@ -2063,7 +2241,6 @@ const remoteAudio = document.getElementById("remoteAudio")
 const ringtoneAudio = document.getElementById("ringtoneAudio")
 
 function showCallOverlay(mode){
-  // mode: "outgoing" | "incoming" | "active"
   callOverlay.style.display="flex"
   callAvatarEl.src = getAvatar(otherUser)
   callAvatarEl.onerror = ()=>{ callAvatarEl.src = DEFAULT_PIC }
@@ -2076,9 +2253,7 @@ function showCallOverlay(mode){
   if(mode==="outgoing"){
     callStatusEl.innerText="Calling..."
     callAvatarEl.classList.add("ringing")
-    // Show only end button
     activeActions.style.display="flex"
-    // hide mute & speaker, only end
     document.getElementById("muteCallBtn").style.display="none"
     document.getElementById("speakerBtn").style.display="none"
     document.getElementById("endCallBtn").style.display="flex"
@@ -2132,14 +2307,12 @@ function stopCallTimer(){
 async function createPeerConnection(){
   peerConnection = new RTCPeerConnection(ICE_SERVERS)
 
-  // Add local audio tracks
   if(localStream){
     localStream.getTracks().forEach(track=>{
       peerConnection.addTrack(track, localStream)
     })
   }
 
-  // When remote track arrives
   peerConnection.ontrack = e=>{
     if(e.streams && e.streams[0]){
       remoteAudio.srcObject = e.streams[0]
@@ -2147,14 +2320,12 @@ async function createPeerConnection(){
     }
   }
 
-  // ICE candidate — send to Firebase
   peerConnection.onicecandidate = e=>{
     if(e.candidate && currentCallId){
       push(ref(db, "calls/"+currentCallId+"/candidates/"+username), e.candidate.toJSON())
     }
   }
 
-  // Connection state
   peerConnection.onconnectionstatechange = ()=>{
     const state = peerConnection.connectionState
     if(state==="connected"){
@@ -2166,7 +2337,6 @@ async function createPeerConnection(){
   }
 }
 
-// Initiate call (caller side)
 window.initiateCall = async function(){
   if(isCallActive){ return }
   if(!username){ alert("Please login first"); return }
@@ -2188,7 +2358,6 @@ window.initiateCall = async function(){
   const offer = await peerConnection.createOffer()
   await peerConnection.setLocalDescription(offer)
 
-  // Write call to Firebase
   await set(ref(db, "calls/"+currentCallId), {
     caller: username,
     callee: otherUser,
@@ -2199,7 +2368,6 @@ window.initiateCall = async function(){
 
   showCallOverlay("outgoing")
 
-  // Listen for answer
   onValue(ref(db,"calls/"+currentCallId+"/answer"), async snap=>{
     const answer = snap.val()
     if(answer && peerConnection && peerConnection.signalingState!=="stable"){
@@ -2209,7 +2377,6 @@ window.initiateCall = async function(){
     }
   })
 
-  // Listen for remote ICE candidates
   onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+otherUser), async snap=>{
     const candidate = snap.val()
     if(candidate && peerConnection){
@@ -2217,7 +2384,6 @@ window.initiateCall = async function(){
     }
   })
 
-  // Listen for call status (rejected/ended)
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
     if(status==="rejected"||status==="ended"){
@@ -2226,7 +2392,6 @@ window.initiateCall = async function(){
   })
 }
 
-// Listen for incoming calls
 function listenIncomingCalls(){
   onValue(ref(db,"calls"), snap=>{
     const calls=snap.val()
@@ -2246,7 +2411,6 @@ function showIncomingCall(callData){
   showCallOverlay("incoming")
 }
 
-// Accept call
 window.acceptCall = async function(){
   if(!currentCallId) return
   stopRingtone()
@@ -2263,11 +2427,23 @@ window.acceptCall = async function(){
 
   await createPeerConnection()
 
-  const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
-  const offer = snap.val()
+  callStatusEl.innerText = "Connecting..."
+  document.getElementById("incomingActions").style.display = "none"
+
+  let offer = null
+  for(let i = 0; i < 10; i++){
+    const snap = await get(ref(db,"calls/"+currentCallId+"/offer"))
+    offer = snap.val()
+    if(offer) break
+    await new Promise(r => setTimeout(r, 400))
+  }
+
   if(!offer){ cleanupCall(); return }
 
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  try{
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+  }catch(e){ cleanupCall(); return }
+
   const answer = await peerConnection.createAnswer()
   await peerConnection.setLocalDescription(answer)
 
@@ -2276,9 +2452,9 @@ window.acceptCall = async function(){
     status:"active"
   })
 
+  showCallOverlay("active")
   isCallActive=true
 
-  // Listen for caller's ICE candidates
   const callerSnap = await get(ref(db,"calls/"+currentCallId+"/caller"))
   const caller = callerSnap.val() || otherUser
   onChildAdded(ref(db,"calls/"+currentCallId+"/candidates/"+caller), async snap=>{
@@ -2288,14 +2464,12 @@ window.acceptCall = async function(){
     }
   })
 
-  // Listen for ended status
   onValue(ref(db,"calls/"+currentCallId+"/status"), snap=>{
     const status=snap.val()
     if(status==="ended"){ cleanupCall() }
   })
 }
 
-// Reject call
 window.rejectCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"rejected"})
@@ -2303,7 +2477,6 @@ window.rejectCall = async function(){
   cleanupCall()
 }
 
-// End active call
 window.endCall = async function(){
   if(currentCallId){
     await update(ref(db,"calls/"+currentCallId),{status:"ended"})
@@ -2338,7 +2511,6 @@ window.toggleSpeaker = function(){
   const lbl=document.getElementById("speakerLabel")
   btn.style.background=isSpeakerOn?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.15)"
   lbl.innerText=isSpeakerOn?"Speaker On":"Speaker"
-  // On mobile, speakerphone is handled by the OS — this is a visual indicator
 }
 
 </script>
